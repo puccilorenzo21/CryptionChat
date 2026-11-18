@@ -1,0 +1,17 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="25dp"
+    android:height="25dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+
+    <!-- Primo tracciato fornito -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M141.84,353.91L4.41,217.33c-5.97-5.94-5.87-15.64.24-21.44l16.68-15.85c5.85-5.56,15.07-5.47,20.81.21l99.7,98.66L421.98,0l37.17,36.92L141.84,353.91Z"/>
+
+    <!-- Secondo tracciato fornito -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M291.51,422.58l-91.54-90.69c-5.97-5.94-5.87-15.64.24-21.44l16.68-15.85c5.85-5.56,15.07-5.47,20.81.21l53.8,52.76,248.27-247.05,37.17,36.92-285.44,285.12Z"/>
+
+</vector>

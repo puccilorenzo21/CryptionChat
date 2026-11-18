@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Puoi aggiungere qui altri stili personalizzati per la tua applicazione.
+        Ad esempio, stili per pulsanti, testo, ecc.
+    -->
+
+    <style name="ReactionEmoji" parent="Widget.AppCompat.TextView">
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">28sp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+    </style>
+
+</resources>

@@ -1,0 +1,66 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Tema Chiaro (Default) -->
+    <style name="Theme.CryptionChat" parent="Theme.Material3.Light.NoActionBar">
+        <!-- Colori del Tema (Light) -->
+        <item name="colorPrimary">@color/primary_light</item>
+        <item name="colorOnPrimary">#F6F6F6</item>
+        <item name="colorPrimaryContainer">@color/primary_container_light</item>
+        <item name="colorOnPrimaryContainer">@color/on_primary_container_light</item>
+        <item name="colorSecondary">@color/secondary_light</item>
+        <item name="colorOnSecondary">@color/on_secondary_light</item>
+        <item name="colorSecondaryContainer">@color/secondary_container_light</item>
+        <item name="colorOnSecondaryContainer">@color/on_secondary_container_light</item>
+        <item name="colorTertiary">@color/tertiary_light</item>
+        <item name="colorOnTertiary">@color/on_tertiary_light</item>
+        <item name="colorTertiaryContainer">@color/tertiary_container_light</item>
+        <item name="colorOnTertiaryContainer">#161616</item>
+        <item name="colorError">@color/error_light</item>
+        <item name="colorOnError">@color/on_error_light</item>
+        <item name="colorErrorContainer">@color/error_container_light</item>
+        <item name="colorOnErrorContainer">@color/on_error_container_light</item>
+        <item name="android:colorBackground">@color/background_light</item>
+        <item name="colorOnBackground">@color/on_background_light</item>
+        <item name="colorSurface">@color/surface_light</item>
+        <item name="colorOnSurface">@color/on_surface_light</item>
+        <item name="colorSurfaceVariant">@color/surface_variant_light</item>
+        <item name="colorOnSurfaceVariant">@color/on_surface_variant_light</item>
+        <item name="colorOutline">@color/outline_light</item>
+        <item name="colorOutlineVariant">@color/outline_variant_light</item>
+        <item name="colorSurfaceInverse">@color/inverse_surface_light</item>
+        <item name="colorOnSurfaceInverse">@color/inverse_on_surface_light</item>
+        <item name="colorPrimaryInverse">@color/inverse_primary_light</item>
+
+        <!-- Collegamento allo stile personalizzato del Menu Laterale -->
+        <item name="navigationViewStyle">@style/Widget.App.NavigationView</item>
+
+        <!-- Activity Transitions -->
+        <item name="android:windowAnimationStyle">@style/ActivityAnimation</item>
+    </style>
+
+    <!-- Stile per il Menu Laterale (Risolto errore compilazione) -->
+    <style name="Widget.App.NavigationView" parent="Widget.Material3.NavigationView">
+        <!-- Rientro della forma di selezione (pillola) dai bordi -->
+        <item name="itemShapeInsetStart">12dp</item>
+        <item name="itemShapeInsetEnd">12dp</item>
+        <!-- Arrotondamento delle voci -->
+        <item name="itemShapeAppearanceOverlay">@style/ShapeAppearance.Material3.Corner.Full</item>
+    </style>
+
+    <!-- Animazioni delle Activity -->
+    <style name="ActivityAnimation" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/slide_in_right</item>
+        <item name="android:activityOpenExitAnimation">@anim/slide_out_left</item>
+        <item name="android:activityCloseEnterAnimation">@anim/slide_in_left</item>
+        <item name="android:activityCloseExitAnimation">@anim/slide_out_right</item>
+    </style>
+
+    <!-- Animazione dei Dialoghi (Fade In/Out) -->
+    <style name="DialogAnimation">
+        <item name="android:windowEnterAnimation">@android:anim/fade_in</item>
+        <item name="android:windowExitAnimation">@android:anim/fade_out</item>
+    </style>
+
+    <!-- Fallback Tema OLED per la modalità chiara (non fa nulla, lascia il tema bianco) -->
+    <style name="Theme.CryptionChat.OLED" parent="Theme.CryptionChat" />
+
+</resources>

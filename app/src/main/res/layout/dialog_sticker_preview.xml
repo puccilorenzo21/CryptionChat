@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center_horizontal"
+    android:background="?attr/colorSurface">
+
+    <!-- Anteprima Ingrandita Sticker -->
+    <ImageView
+        android:id="@+id/img_sticker_preview"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:scaleType="fitCenter"
+        android:layout_marginBottom="24dp"
+        android:contentDescription="Anteprima Sticker Ingrandito" />
+
+    <!-- Pulsante Invia -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_send_sticker"
+        style="@style/Widget.Material3.Button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Invia Sticker"
+        app:icon="@drawable/ic_send"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Pulsante Aggiungi / Rimuovi dai Preferiti -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_toggle_favorite_sticker"
+        style="@style/Widget.Material3.Button.TonalButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Aggiungi ai Preferiti"
+        app:icon="@drawable/ic_check"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Pulsante Elimina -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_delete_sticker"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Elimina Sticker"
+        android:textColor="?attr/colorError"
+        app:strokeColor="?attr/colorError"
+        app:icon="@drawable/ic_delete_sweep"
+        app:iconTint="?attr/colorError" />
+
+</LinearLayout>

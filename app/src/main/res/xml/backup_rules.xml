@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!--
+        ESCLUSIONE CRITICA: Non eseguire mai il backup del file di preferenze crittografate.
+        La chiave del Keystore utilizzata per decifrare questo file è legata all'hardware (TEE)
+        del dispositivo e non può essere salvata né ripristinata. Consentire il backup di questo
+        file provocherebbe un errore di decifratura (AEADBadTagException) al ripristino.
+    -->
+    <exclude domain="sharedpref" path="cryptionchat_secure_prefs.xml"/>
+</full-backup-content>

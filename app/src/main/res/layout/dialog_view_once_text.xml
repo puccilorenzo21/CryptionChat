@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <!-- HEADER: Icona + Titolo -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:layout_marginBottom="24dp">
+
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_view_once"
+            app:tint="?attr/colorPrimary"
+            android:layout_marginEnd="12dp"
+            android:importantForAccessibility="no" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Testo Effimero"
+            android:textAppearance="?attr/textAppearanceHeadlineSmall"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnSurface" />
+    </LinearLayout>
+
+    <!-- CONTENITORE TESTO (Scrollabile se lungo) -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardBackgroundColor="?attr/colorSecondaryContainer"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp"
+        android:layout_marginBottom="16dp">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxHeight="300dp">
+
+            <TextView
+                android:id="@+id/view_once_text_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="?attr/colorOnSecondaryContainer"
+                tools:text="Questo è un messaggio segreto che si autodistruggerà."
+                android:textIsSelectable="false"/>
+
+        </ScrollView>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- AVVISO DI SICUREZZA -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="⚠️ Questo messaggio verrà distrutto permanentemente appena chiuderai questa finestra."
+        android:textAppearance="?attr/textAppearanceBodySmall"
+        android:textColor="?attr/colorError"
+        android:textAlignment="center"
+        android:layout_marginBottom="24dp" />
+
+    <!-- PULSANTE CHIUDI -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/close_button"
+        style="@style/Widget.Material3.Button.TonalButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Chiudi e Distruggi"
+        android:textColor="?attr/colorError"
+        android:textStyle="bold"
+        android:paddingVertical="12dp"
+        app:backgroundTint="?attr/colorErrorContainer"
+        app:icon="@drawable/ic_delete_sweep"
+        app:iconTint="?attr/colorError"
+        app:iconGravity="textStart" />
+
+</LinearLayout>

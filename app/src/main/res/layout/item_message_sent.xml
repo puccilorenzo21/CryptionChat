@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="end"
+    android:orientation="vertical"
+    android:paddingStart="80dp"
+    android:paddingEnd="8dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
+    android:clipToPadding="false">
+
+    <!-- INIZIO BLOCCO CORRETTO: Aggiunto il layout di anteprima della risposta che mancava -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/replyContextLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        app:cardBackgroundColor="?attr/colorPrimaryContainer"
+        app:cardCornerRadius="12dp"
+        app:strokeWidth="0dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingVertical="6dp"
+            android:paddingHorizontal="12dp">
+
+            <TextView
+                android:id="@+id/textViewReplyAuthor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/colorOnPrimaryContainer"
+                android:textStyle="bold"
+                android:textAppearance="?attr/textAppearanceLabelMedium"
+                tools:text="John Doe"/>
+
+            <TextView
+                android:id="@+id/textViewReplyContent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:textColor="?attr/colorOnPrimaryContainer"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                tools:text="Questo è il testo del messaggio originale a cui si sta rispondendo..."/>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+    <!-- FINE BLOCCO CORRETTO -->
+
+    <TextView
+        android:id="@+id/textViewMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/message_bubble_sent"
+        android:paddingVertical="10dp"
+        android:paddingHorizontal="16dp"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:textColor="?attr/colorOnPrimary"
+        tools:text="Questo è un messaggio inviato."
+        android:autoLink="web"
+        android:linksClickable="true"
+        android:textColorLink="?attr/colorOnPrimary" />
+
+    <com.google.android.flexbox.FlexboxLayout
+        android:id="@+id/reactions_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        app:flexWrap="wrap"
+        android:visibility="gone"
+        tools:visibility="visible">
+        <!-- Le reazioni verranno aggiunte qui programmaticamente -->
+    </com.google.android.flexbox.FlexboxLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/textViewEditedStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="(modificato)"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:layout_marginEnd="6dp"
+            android:visibility="gone"
+            tools:visibility="visible"/>
+
+        <TextView
+            android:id="@+id/textViewTimestamp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            tools:text="10:31"
+            android:textColor="?attr/colorOnSurfaceVariant"/>
+
+        <ImageView
+            android:id="@+id/imageViewStatus"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_marginStart="6dp"
+            tools:src="@drawable/ic_check_all"
+            app:tint="@color/read_receipt_yellow"
+            android:contentDescription="Stato del messaggio"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless"/>
+
+    </LinearLayout>
+
+</LinearLayout>

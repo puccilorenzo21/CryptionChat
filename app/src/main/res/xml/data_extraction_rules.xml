@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- Esclude il file cifrato dal backup cloud per evitare la corruzione delle chiavi hardware -->
+        <exclude domain="sharedpref" path="cryptionchat_secure_prefs.xml"/>
+    </cloud-backup>
+    <device-transfer>
+        <!-- Esclude il file cifrato dal trasferimento diretto (es. Samsung Smart Switch) -->
+        <exclude domain="sharedpref" path="cryptionchat_secure_prefs.xml"/>
+    </device-transfer>
+</data-extraction-rules>

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="?attr/colorSurface">
+
+    <!-- HEADER CON TITOLO E PULSANTI CONTROLLO/FILTRO/IMPORT/EXPORT/DELETE -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:id="@+id/tv_sticker_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Sticker"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
+            android:textStyle="bold" />
+
+        <!-- Pulsante Scorri Tutto Su -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_scroll_top_stickers"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:rotation="180"
+            app:icon="@drawable/ic_arrow_down"
+            app:iconTint="?attr/colorPrimary"
+            android:contentDescription="Scorri Tutto Su" />
+
+        <!-- Pulsante Scorri Tutto Giù -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_scroll_bottom_stickers"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:icon="@drawable/ic_arrow_down"
+            app:iconTint="?attr/colorPrimary"
+            android:contentDescription="Scorri Tutto Giù" />
+
+        <!-- Pulsante Ordinamento / Filtro -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_sort_stickers"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:icon="@drawable/ic_settings"
+            app:iconTint="?attr/colorPrimary"
+            android:contentDescription="Ordina / Filtra Sticker" />
+
+        <!-- Pulsante Esporta ZIP -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_export_stickers"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:icon="@drawable/ic_file_download"
+            app:iconTint="?attr/colorPrimary"
+            android:contentDescription="Esporta ZIP Sticker" />
+
+        <!-- Pulsante Importa ZIP -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_import_stickers"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:icon="@drawable/ic_attach_file"
+            app:iconTint="?attr/colorPrimary"
+            android:contentDescription="Importa ZIP Sticker" />
+
+        <!-- Pulsante Elimina Tutti gli Sticker -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_delete_all_stickers"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:icon="@drawable/ic_delete_sweep"
+            app:iconTint="?attr/colorError"
+            android:contentDescription="Elimina Tutti gli Sticker" />
+
+    </LinearLayout>
+
+    <!-- BARRA SCHEDE (TAB LAYOUT): TUTTI / PREFERITI / RECENTI -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tab_layout_stickers"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        app:tabMode="fixed"
+        app:tabGravity="fill" />
+
+    <ProgressBar
+        android:id="@+id/sticker_progress_bar"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:visibility="visible" />
+
+    <TextView
+        android:id="@+id/tv_empty_stickers"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:gravity="center"
+        android:text="Nessuno sticker trovato."
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:visibility="gone" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_stickers"
+        android:layout_width="match_parent"
+        android:layout_height="380dp"
+        android:clipToPadding="false"
+        android:scrollbars="vertical"
+        android:visibility="gone" />
+
+</LinearLayout>

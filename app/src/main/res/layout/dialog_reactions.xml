@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@android:color/transparent"
+    android:padding="16dp">
+
+    <!-- 1. BARRA REAZIONI RAPIDE (Stile pillola fluttuante) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/quick_reactions_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="30dp"
+        app:cardElevation="6dp"
+        app:strokeWidth="1dp"
+        app:strokeColor="?attr/colorOutlineVariant"
+        app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+        android:layout_marginBottom="12dp">
+
+        <LinearLayout
+            android:id="@+id/quick_reactions_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:paddingVertical="6dp"
+            android:paddingHorizontal="12dp">
+            <!-- Popolato programmaticamente con le 6 emoji più comuni -->
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- 2. PANNELLO DETTAGLIATO TASTIERA EMOJI -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/all_emojis_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="4dp"
+        app:strokeWidth="1dp"
+        app:strokeColor="?attr/colorOutlineVariant"
+        app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+        android:layout_marginBottom="12dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="8dp">
+
+            <!-- BARRA DELLE CATEGORIE -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none"
+                android:background="?attr/colorSurfaceContainerLow">
+
+                <LinearLayout
+                    android:id="@+id/category_tabs_container"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="8dp"
+                    android:gravity="center_vertical" />
+            </HorizontalScrollView>
+
+            <!-- CAMPO DI RICERCA INTERNO EMOJI -->
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="12dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="4dp"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp"
+                app:startIconDrawable="@drawable/user_search"
+                app:startIconTint="?attr/colorOnSurfaceVariant"
+                android:hint="Cerca emoji...">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/search_emoji_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textShortMessage"
+                    android:textSize="14sp"
+                    android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- INDICATORE DI CARICAMENTO API IN CORSO -->
+            <ProgressBar
+                android:id="@+id/progressBarEmojis"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="4dp"
+                android:indeterminate="true"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <!-- TASTIERA EMOJI RECYCLERVIEW -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/all_emojis_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="185dp"
+                android:clipToPadding="false"
+                android:padding="4dp"
+                android:scrollbars="vertical"
+                android:overScrollMode="ifContentScrolls" />
+
+            <!-- Messaggio se la ricerca o la categoria non produce risultati -->
+            <TextView
+                android:id="@+id/tv_empty_emojis"
+                android:layout_width="match_parent"
+                android:layout_height="185dp"
+                android:gravity="center"
+                android:text="Nessun risultato trovato."
+                android:textSize="14sp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:visibility="gone" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?attr/colorOutlineVariant"
+                android:alpha="0.3"
+                android:layout_marginTop="4dp" />
+
+            <!-- Input manuale/Custom per Emoji -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="4dp">
+
+                <EditText
+                    android:id="@+id/add_reaction_input"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:hint="Emoji personalizzata libera..."
+                    android:textColor="?attr/colorOnSurface"
+                    android:textColorHint="?attr/colorOnSurfaceVariant"
+                    android:textSize="14sp"
+                    android:imeOptions="actionDone"
+                    android:inputType="textShortMessage"
+                    android:privateImeOptions="emoji"
+                    android:importantForAutofill="no"
+                    android:maxLines="1"
+                    android:maxLength="4" />
+
+                <ImageButton
+                    android:id="@+id/btn_send_custom_reaction"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Invia reazione"
+                    android:src="@drawable/ic_check_circle"
+                    android:visibility="gone"
+                    app:tint="?attr/colorPrimary"
+                    tools:visibility="visible" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Pulsante Espansione -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_toggle_more_emojis"
+        style="@style/Widget.Material3.Button.TonalButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Mostra altre emoji"
+        app:icon="@drawable/ic_arrow_down"
+        android:layout_marginBottom="12dp"
+        app:cornerRadius="20dp" />
+
+    <!-- 3. SEZIONE AZIONI CONTESTUALI SUL MESSAGGIO -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/actions_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="4dp"
+        app:strokeWidth="1dp"
+        app:strokeColor="?attr/colorOutlineVariant"
+        app:cardBackgroundColor="?attr/colorSurfaceContainer">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingVertical="4dp">
+
+            <!-- PULSANTE GESTIONE PREFERITI STICKER -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_action_favorite_sticker"
+                style="@style/Widget.Material3.Button.TextButton.Icon"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Aggiungi ai Preferiti ⭐"
+                android:gravity="start|center_vertical"
+                android:paddingHorizontal="20dp"
+                app:icon="@drawable/ic_check"
+                app:iconTint="?attr/colorOnSurface"
+                android:textColor="?attr/colorOnSurface"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_action_copy"
+                style="@style/Widget.Material3.Button.TextButton.Icon"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Copia Testo"
+                android:gravity="start|center_vertical"
+                android:paddingHorizontal="20dp"
+                app:icon="@drawable/ic_content_copy"
+                app:iconTint="?attr/colorOnSurface"
+                android:textColor="?attr/colorOnSurface"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_action_edit"
+                style="@style/Widget.Material3.Button.TextButton.Icon"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Modifica Messaggio"
+                android:gravity="start|center_vertical"
+                android:paddingHorizontal="20dp"
+                app:icon="@drawable/ic_edit"
+                app:iconTint="?attr/colorOnSurface"
+                android:textColor="?attr/colorOnSurface"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_action_delete"
+                style="@style/Widget.Material3.Button.TextButton.Icon"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Elimina Messaggio"
+                android:gravity="start|center_vertical"
+                android:paddingHorizontal="20dp"
+                app:icon="@drawable/ic_delete_sweep"
+                app:iconTint="?attr/colorError"
+                android:textColor="?attr/colorError"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <!-- Sezione tracciamento copia -->
+            <LinearLayout
+                android:id="@+id/layout_copied_by"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="8dp"
+                android:visibility="gone">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="?attr/colorOutlineVariant"
+                    android:layout_marginBottom="8dp"
+                    android:alpha="0.5" />
+
+                <TextView
+                    android:id="@+id/tv_copied_by_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceLabelMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:drawableStart="@drawable/ic_content_copy"
+                    android:drawablePadding="12dp"
+                    app:drawableTint="?attr/colorOnSurfaceVariant"
+                    tools:text="Copiato da: Marco" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+</LinearLayout>

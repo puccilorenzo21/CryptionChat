@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <!-- Dimensione fissa del cursore: 12dp (che corrisponde a un raggio visivo di 6dp) -->
+    <size
+        android:width="12dp"
+        android:height="12dp" />
+    <!-- Il colore verrà sovrascritto dall'attributo app:thumbColor nel layout,
+         ma mettiamo bianco come base -->
+    <solid android:color="@android:color/white" />
+</shape>

@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingStart="8dp"
+    android:paddingEnd="64dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
+    android:clipToPadding="false">
+
+    <!-- Avatar Utente -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/profile_image"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_gravity="bottom"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="2dp"
+        android:scaleType="centerCrop"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+        tools:src="@drawable/ic_person"
+        android:background="?attr/colorSurfaceContainerHighest"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Username -->
+        <TextView
+            android:id="@+id/textViewUsername"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="Alice"
+            android:textStyle="bold"
+            android:textColor="?attr/colorPrimary"
+            android:layout_marginStart="4dp"
+            android:layout_marginBottom="2dp"
+            android:textAppearance="?attr/textAppearanceLabelMedium"/>
+
+        <!-- Card Contenitore Messaggio -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="?attr/colorSecondaryContainer"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium"
+            android:layout_marginBottom="2dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:minWidth="250dp">
+
+                <!-- AREA RISPOSTA -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/replyContextLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+                    android:visibility="gone"
+                    app:cardBackgroundColor="?attr/colorSurfaceContainerHighest"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp"
+                    tools:visibility="visible">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="6dp">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+                            <View
+                                android:layout_width="3dp"
+                                android:layout_height="match_parent"
+                                android:background="?attr/colorPrimary"
+                                android:layout_marginEnd="8dp"/>
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+                                <TextView
+                                    android:id="@+id/textViewReplyAuthor"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    tools:text="Tu"
+                                    android:textStyle="bold"
+                                    android:textColor="?attr/colorPrimary"
+                                    android:textAppearance="?attr/textAppearanceLabelMedium"/>
+                                <TextView
+                                    android:id="@+id/textViewReplyContent"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    tools:text="Risposta..."
+                                    android:maxLines="1"
+                                    android:ellipsize="end"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:textAppearance="?attr/textAppearanceBodySmall"/>
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- STRUTTURA PLAYER AUDIO -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="4dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp">
+
+                    <!-- Pulsante Play/Pause -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/play_pause_button"
+                        style="@style/Widget.Material3.Button.IconButton.Filled"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        app:backgroundTint="?attr/colorOnSecondaryContainer"
+                        app:icon="@drawable/ic_play_arrow"
+                        app:iconTint="?attr/colorSecondaryContainer"
+                        app:iconSize="24dp"
+                        app:iconPadding="0dp"
+                        android:insetLeft="0dp"
+                        android:insetTop="0dp"
+                        android:insetRight="0dp"
+                        android:insetBottom="0dp"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"/>
+
+                    <!-- Colonna Destra: Slider + Info -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="12dp">
+
+                        <SeekBar
+                            android:id="@+id/seek_bar"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:thumb="@drawable/audio_thumb"
+                            android:thumbTint="?attr/colorOnSecondaryContainer"
+                            android:progressTint="?attr/colorOnSecondaryContainer"
+                            android:progressBackgroundTint="?attr/colorOutlineVariant"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp"
+                            android:minHeight="6dp"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginBottom="4dp"/>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:paddingStart="10dp"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:id="@+id/duration_text"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                tools:text="00:15"
+                                android:textColor="?attr/colorOnSecondaryContainer"
+                                android:textAppearance="?attr/textAppearanceLabelSmall"
+                                android:textSize="11sp"
+                                android:fontFamily="monospace"
+                                android:alpha="0.9"/>
+
+                            <TextView
+                                android:id="@+id/textViewTimestamp"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                tools:text="14:30"
+                                android:textColor="?attr/colorOnSecondaryContainer"
+                                android:textAppearance="?attr/textAppearanceLabelSmall"
+                                android:textSize="10sp"
+                                android:alpha="0.7"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- PULSANTE TRASCRIZIONE -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_transcribe"
+                        style="@style/Widget.Material3.Button.IconButton"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_marginStart="2dp"
+                        android:padding="4dp"
+                        android:insetLeft="0dp"
+                        android:insetTop="0dp"
+                        android:insetRight="0dp"
+                        android:insetBottom="0dp"
+                        app:icon="@drawable/ic_transcribe"
+                        app:iconSize="20dp"
+                        app:iconTint="?attr/colorOnSecondaryContainer"
+                        app:rippleColor="?attr/colorOnSecondaryContainer"
+                        android:background="@android:color/transparent"
+                        android:contentDescription="Trascrivi audio"/>
+
+                </LinearLayout>
+
+                <!-- CONTAINER TRASCRIZIONE DENTRO LA BOLLA RICEVUTA -->
+                <LinearLayout
+                    android:id="@+id/transcription_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="10dp"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="8dp"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="?attr/colorOnSecondaryContainer"
+                        android:alpha="0.2"
+                        android:layout_marginBottom="6dp" />
+
+                    <LinearLayout
+                        android:id="@+id/transcription_progress_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/transcription_status_text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?attr/textAppearanceLabelSmall"
+                            android:textColor="?attr/colorOnSecondaryContainer"
+                            android:alpha="0.9"
+                            android:layout_marginBottom="4dp"
+                            tools:text="Decodifica audio in corso..." />
+
+                        <com.google.android.material.progressindicator.LinearProgressIndicator
+                            android:id="@+id/transcription_progress_bar"
+                            android:layout_width="match_parent"
+                            android:layout_height="4dp"
+                            app:trackCornerRadius="2dp"
+                            app:indicatorColor="?attr/colorOnSecondaryContainer"
+                            app:trackColor="?attr/colorOutlineVariant"
+                            android:max="100" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/transcription_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSecondaryContainer"
+                        android:textIsSelectable="true"
+                        android:visibility="gone"
+                        tools:text="Questo è il testo dell'audio trascritto..." />
+                </LinearLayout>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- REAZIONI -->
+        <com.google.android.flexbox.FlexboxLayout
+            android:id="@+id/reactions_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            app:flexWrap="wrap"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+    </LinearLayout>
+</LinearLayout>

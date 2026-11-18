@@ -1,0 +1,51 @@
+name: Bug Report
+description: Report a bug or crash in CryptionChat
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue! Please do **not** paste private keys, session tokens, or sensitive personal data.
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: Clear description of what happened vs. what you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. Open ...
+        2. Tap on ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: input
+    id: app_version
+    attributes:
+      label: App Version
+      placeholder: "e.g. 78.1 (beta)"
+    validations:
+      required: true
+  - type: input
+    id: android_version
+    attributes:
+      label: Android Version & Device
+      placeholder: "e.g. Android 14 / Pixel 8"
+    validations:
+      required: true
+  - type: checkboxes
+    id: tor_mode
+    attributes:
+      label: Network Configuration
+      options:
+        - label: Tor / Orbot SOCKS5 proxy enabled
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized Logcat / Stacktrace (Optional)
+      render: shell

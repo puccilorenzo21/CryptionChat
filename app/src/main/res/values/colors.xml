@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Professional Navy & Slate Theme -->
+
+    <!-- Light Theme Colors -->
+    <color name="primary_light">#0D47A1</color> <!-- Midnight Navy -->
+    <color name="on_primary_light">#FFFFFF</color>
+    <color name="primary_container_light">#D4E3FF</color>
+    <color name="on_primary_container_light">#001C3A</color>
+    <color name="secondary_light">#546E7A</color> <!-- Slate Grey -->
+    <color name="on_secondary_light">#FFFFFF</color>
+    <color name="secondary_container_light">#DAE2E9</color>
+    <color name="on_secondary_container_light">#121F26</color>
+    <color name="tertiary_light">#455A64</color> <!-- Blue Grey -->
+    <color name="on_tertiary_light">#FFFFFF</color>
+    <color name="tertiary_container_light">#CFD8DC</color>
+    <color name="on_tertiary_container_light">#101C22</color>
+    <color name="error_light">#BA1A1A</color>
+    <color name="on_error_light">#FFFFFF</color>
+    <color name="error_container_light">#FFDAD6</color>
+    <color name="on_error_container_light">#410002</color>
+    <color name="background_light">#F8F9FA</color> <!-- Very Light Grey -->
+    <color name="on_background_light">#191C20</color>
+    <color name="surface_light">#F8F9FA</color>
+    <color name="on_surface_light">#191C20</color>
+    <color name="surface_variant_light">#E0E2E5</color>
+    <color name="on_surface_variant_light">#44474E</color>
+    <color name="outline_light">#74777F</color>
+    <color name="outline_variant_light">#C4C6CF</color>
+    <color name="inverse_surface_light">#2F3033</color>
+    <color name="inverse_on_surface_light">#F1F0F4</color>
+    <color name="inverse_primary_light">#AEC6FF</color>
+
+    <!-- Dark Theme Colors -->
+    <color name="primary_dark">#AEC6FF</color> <!-- Cornflower Blue -->
+    <color name="on_primary_dark">#002E6C</color>
+    <color name="primary_container_dark">#004494</color>
+    <color name="on_primary_container_dark">#D4E3FF</color>
+    <color name="secondary_dark">#BCC7D1</color>
+    <color name="on_secondary_dark">#263841</color>
+    <color name="secondary_container_dark">#3C505D</color>
+    <color name="on_secondary_container_dark">#DAE2E9</color>
+    <color name="tertiary_dark">#B0BEC5</color>
+    <color name="on_tertiary_dark">#193038</color>
+    <color name="tertiary_container_dark">#2F424C</color>
+    <color name="on_tertiary_container_dark">#CFD8DC</color>
+    <color name="error_dark">#FFB4AB</color>
+    <color name="on_error_dark">#690005</color>
+    <color name="error_container_dark">#93000A</color>
+    <color name="on_error_container_dark">#FFDAD6</color>
+    <color name="background_dark">#121212</color> <!-- Deep Charcoal -->
+    <color name="on_background_dark">#E2E2E6</color>
+    <color name="surface_dark">#121212</color>
+    <color name="on_surface_dark">#E2E2E6</color>
+    <color name="surface_variant_dark">#44474E</color>
+    <color name="on_surface_variant_dark">#C4C6CF</color>
+    <color name="outline_dark">#8E9099</color>
+    <color name="outline_variant_dark">#44474E</color>
+    <color name="inverse_surface_dark">#E2E2E6</color>
+    <color name="inverse_on_surface_dark">#2F3033</color>
+    <color name="inverse_primary_dark">#0D47A1</color>
+
+    <!-- Custom Colors -->
+    <color name="read_receipt_yellow">#FFC107</color>
+    <color name="message_highlight">#400D47A1</color> <!-- 25% transparency of primary -->
+
+    <!-- Warning Colors -->
+    <color name="warning_container_light">#FFECB3</color>
+    <color name="on_warning_container_light">#212121</color>
+    <color name="warning_container_dark">#433400</color>
+    <color name="on_warning_container_dark">#FFECB3</color>
+</resources>

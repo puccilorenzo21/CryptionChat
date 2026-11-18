@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="?attr/colorSurface"
+    android:clipToOutline="true">
+
+    <!-- 1. HEADER DIALOG CON STATO ARCHIVIAZIONE -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="28dp"
+        android:paddingBottom="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp"
+                app:cardBackgroundColor="?attr/colorPrimaryContainer">
+                <ImageView
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_transcribe"
+                    app:tint="?attr/colorOnPrimaryContainer" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Motore Vocale"
+                    android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorOnSurface"/>
+
+                <TextView
+                    android:id="@+id/model_status_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    tools:text="Stato: Installato (190 MB)" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- SCHEDA ARCHIVIAZIONE DISPOSITIVO -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="?attr/colorOutlineVariant"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerLowest">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="12dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_settings"
+                    app:tint="?attr/colorOnSurfaceVariant"
+                    android:layout_marginEnd="8dp"/>
+
+                <TextView
+                    android:id="@+id/tv_storage_free_space"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    tools:text="Spazio libero sul telefono: 24.5 GB" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?attr/colorOutlineVariant"
+        android:alpha="0.4"/>
+
+    <!-- 2. SCROLL LIST DEI MODELLI DISPONIBILI -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:maxHeight="380dp"
+        android:scrollbars="vertical"
+        android:fadeScrollbars="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="24dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="24dp"
+            android:clipToPadding="false">
+
+            <!-- SEZIONE: VELOCE MA BASE -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MOTORE STANDARD (OFFLINE SUPER VELOCE)"
+                android:textAppearance="?attr/textAppearanceLabelMedium"
+                android:textColor="?attr/colorPrimary"
+                android:letterSpacing="0.05"
+                android:textStyle="bold"
+                android:layout_marginBottom="10dp" />
+
+            <!-- VOSK -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_vosk"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="?attr/colorOutlineVariant"
+                app:strokeWidth="1dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:padding="14dp">
+                    <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rb_vosk" android:layout_width="wrap_content" android:layout_height="wrap_content" android:clickable="false" android:minWidth="0dp" android:minHeight="0dp"/>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="12dp">
+                        <TextView android:id="@+id/tv_vosk_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Vosk (Legacy)" android:textAppearance="?attr/textAppearanceTitleMedium" android:textStyle="bold" />
+                        <TextView android:id="@+id/tv_vosk_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dimensioni: ~45 MB\n⚡ Velocità: 5/5 | ⭐ Precisione: 2/5" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginTop="2dp"/>
+                    </LinearLayout>
+                    <ImageButton android:id="@+id/help_vosk" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_help_outline" app:tint="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- SEZIONE: INTELLIGENZA NEURALE ALTA PRECISIONE -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MODELLI NEURALI AI (ALTA PRECISIONE)"
+                android:textAppearance="?attr/textAppearanceLabelMedium"
+                android:textColor="?attr/colorPrimary"
+                android:letterSpacing="0.05"
+                android:textStyle="bold"
+                android:layout_marginBottom="10dp" />
+
+            <!-- WHISPER BASE -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_whisper_base"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="?attr/colorOutlineVariant"
+                app:strokeWidth="1dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:padding="14dp">
+                    <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rb_whisper_base" android:layout_width="wrap_content" android:layout_height="wrap_content" android:clickable="false" android:minWidth="0dp" android:minHeight="0dp"/>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="12dp">
+                        <TextView android:id="@+id/tv_whisper_base_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Whisper Base" android:textAppearance="?attr/textAppearanceTitleMedium" android:textStyle="bold" />
+                        <TextView android:id="@+id/tv_whisper_base_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dimensioni: ~148 MB\n⚡ Velocità: 4/5 | ⭐ Precisione: 3/5" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginTop="2dp"/>
+                    </LinearLayout>
+                    <ImageButton android:id="@+id/help_whisper_base" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_help_outline" app:tint="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- WHISPER SMALL Q5 (Consigliato) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_whisper_small_q5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="?attr/colorPrimary"
+                app:strokeWidth="2dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:padding="14dp">
+                    <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rb_whisper_small_q5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:clickable="false" android:minWidth="0dp" android:minHeight="0dp"/>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="12dp">
+                        <TextView android:id="@+id/tv_whisper_q5_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Whisper Small Q5 (Consigliato)" android:textAppearance="?attr/textAppearanceTitleMedium" android:textColor="?attr/colorPrimary" android:textStyle="bold"/>
+                        <TextView android:id="@+id/tv_whisper_q5_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dimensioni: ~190 MB\n⚡ Velocità: 3.5/5 | ⭐ Precisione: 4/5" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginTop="2dp"/>
+                    </LinearLayout>
+                    <ImageButton android:id="@+id/help_whisper_small_q5" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_help_outline" app:tint="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- WHISPER SMALL Q8 -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_whisper_small_q8"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="?attr/colorOutlineVariant"
+                app:strokeWidth="1dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:padding="14dp">
+                    <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rb_whisper_small_q8" android:layout_width="wrap_content" android:layout_height="wrap_content" android:clickable="false" android:minWidth="0dp" android:minHeight="0dp"/>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="12dp">
+                        <TextView android:id="@+id/tv_whisper_q8_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Whisper Small Q8" android:textAppearance="?attr/textAppearanceTitleMedium" android:textStyle="bold" />
+                        <TextView android:id="@+id/tv_whisper_q8_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dimensioni: ~264 MB\n⚡ Velocità: 2.5/5 | ⭐ Precisione: 4.5/5" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginTop="2dp"/>
+                    </LinearLayout>
+                    <ImageButton android:id="@+id/help_whisper_small_q8" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_help_outline" app:tint="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- WHISPER SMALL FULL -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_whisper_small"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="?attr/colorOutlineVariant"
+                app:strokeWidth="1dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:padding="14dp">
+                    <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rb_whisper_small" android:layout_width="wrap_content" android:layout_height="wrap_content" android:clickable="false" android:minWidth="0dp" android:minHeight="0dp"/>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="12dp">
+                        <TextView android:id="@+id/tv_whisper_small_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Whisper Small Full" android:textAppearance="?attr/textAppearanceTitleMedium" android:textStyle="bold" />
+                        <TextView android:id="@+id/tv_whisper_small_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dimensioni: ~488 MB\n⚡ Velocità: 1.5/5 | ⭐ Precisione: 5/5" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginTop="2dp"/>
+                    </LinearLayout>
+                    <ImageButton android:id="@+id/help_whisper_small" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_help_outline" app:tint="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- WHISPER LARGE-V3-TURBO Q5 -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_whisper_turbo_q5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="?attr/colorOutlineVariant"
+                app:strokeWidth="1dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:padding="14dp">
+                    <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rb_whisper_turbo_q5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:clickable="false" android:minWidth="0dp" android:minHeight="0dp"/>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="12dp">
+                        <TextView android:id="@+id/tv_whisper_turbo_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Whisper Large-v3-Turbo Q5 🚀" android:textAppearance="?attr/textAppearanceTitleMedium" android:textStyle="bold"/>
+                        <TextView android:id="@+id/tv_whisper_turbo_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dimensioni: ~547 MB\n⚡ Velocità: 4/5 | ⭐ Precisione: 5/5 (Top Mondiale)" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginTop="2dp"/>
+                    </LinearLayout>
+                    <ImageButton android:id="@+id/help_whisper_turbo_q5" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_help_outline" app:tint="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- HYBRID -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_hybrid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="?attr/colorOutlineVariant"
+                app:strokeWidth="1dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:padding="14dp">
+                    <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rb_hybrid" android:layout_width="wrap_content" android:layout_height="wrap_content" android:clickable="false" android:minWidth="0dp" android:minHeight="0dp"/>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="12dp">
+                        <TextView android:id="@+id/tv_hybrid_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Modalità Ibrida" android:textAppearance="?attr/textAppearanceTitleMedium" android:textStyle="bold" />
+                        <TextView android:id="@+id/tv_hybrid_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Confronto simultaneo Vosk + Whisper\nIdeale per test di sviluppatori." android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginTop="2dp"/>
+                    </LinearLayout>
+                    <ImageButton android:id="@+id/help_hybrid" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_help_outline" app:tint="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- 3. FOOTER FISSO CON DOWNLOAD E AZIONI -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:background="?attr/colorSurfaceContainer"
+        android:elevation="8dp">
+
+        <!-- Progress Layout con LinearProgressIndicator M3 -->
+        <LinearLayout
+            android:id="@+id/progress_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:orientation="vertical"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <TextView
+                android:id="@+id/progress_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorPrimary"
+                android:textAppearance="?attr/textAppearanceLabelMedium"
+                tools:text="Download in corso... 45%" />
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/progress_bar"
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                app:trackCornerRadius="4dp"
+                app:indicatorColor="?attr/colorPrimary"
+                android:max="100" />
+        </LinearLayout>
+
+        <!-- DISPOSIZIONE TASTI VERTICALE -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Pulsante Principale: Scarica / Riscarica -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_action_model"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginBottom="12dp"
+                android:text="Scarica"
+                app:icon="@drawable/ic_file_download"
+                app:iconGravity="textStart" />
+
+            <!-- Pulsanti Secondari: Rimuovi e Chiudi -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="2">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_delete_model"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="0dp"
+                    android:layout_height="52dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:text="Rimuovi"
+                    android:textColor="?attr/colorError"
+                    tools:visibility="visible" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_close_dialog"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="52dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:text="Chiudi" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

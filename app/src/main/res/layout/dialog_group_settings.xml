@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Sezione Immagine Gruppo -->
+        <TextView
+            android:id="@+id/group_image_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Immagine Gruppo"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:layout_marginBottom="16dp"/>
+
+        <LinearLayout
+            android:id="@+id/group_image_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <FrameLayout
+                android:layout_width="92dp"
+                android:layout_height="92dp">
+
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/group_picture_progress"
+                    android:layout_width="92dp"
+                    android:layout_height="92dp"
+                    android:layout_gravity="center"
+                    android:indeterminate="false"
+                    android:max="100"
+                    android:progress="0"
+                    app:indicatorSize="92dp"
+                    app:trackThickness="5dp"
+                    app:trackColor="?attr/colorSurfaceContainerHighest"
+                    app:indicatorColor="?attr/colorPrimary"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/group_picture_preview"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:layout_gravity="center"
+                    android:scaleType="centerCrop"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+                    tools:src="@drawable/ic_group" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="16dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_change_group_picture"
+                    style="@style/Widget.Material3.Button.TextButton.Icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Cambia Immagine"
+                    app:icon="@drawable/ic_camera" />
+
+                <!-- NUOVO: GENERAZIONE FOTO GRUPPO CON IA -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_ai_group_picture"
+                    style="@style/Widget.Material3.Button.TextButton.Icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Genera con IA"
+                    app:icon="@drawable/ic_transcribe" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_remove_group_picture"
+                    style="@style/Widget.Material3.Button.TextButton.Icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Rimuovi Immagine"
+                    android:textColor="?attr/colorError"
+                    app:icon="@drawable/ic_close"
+                    app:iconTint="?attr/colorError" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <View
+            android:id="@+id/divider1"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutlineVariant"
+            android:layout_marginVertical="24dp"/>
+
+        <!-- Sezione Nome Gruppo -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/group_name_input_layout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nome del Gruppo"
+            app:endIconMode="custom"
+            app:endIconDrawable="@drawable/ic_edit">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_text_group_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapWords" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <View
+            android:id="@+id/divider2"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutlineVariant"
+            android:layout_marginVertical="24dp"/>
+
+        <!-- Sezione Permessi di Scrittura -->
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switch_admins_only_chat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Solo gli admin possono inviare messaggi"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:paddingVertical="8dp"/>
+
+        <View
+            android:id="@+id/divider3"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutlineVariant"
+            android:layout_marginVertical="24dp"/>
+
+        <!-- Sezione Auto-eliminazione -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Auto-eliminazione Messaggi"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/auto_delete_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            tools:text="Dopo 15 minuti"/>
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/auto_delete_slider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:valueFrom="0"
+            android:valueTo="60"
+            android:stepSize="1"
+            android:layout_marginTop="8dp"/>
+
+    </LinearLayout>
+</ScrollView>

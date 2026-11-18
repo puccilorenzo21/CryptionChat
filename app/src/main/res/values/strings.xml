@@ -1,0 +1,123 @@
+<resources>
+    <string name="app_name">CryptionChat</string>
+
+    <!-- Stringhe per la schermata di aggiornamento -->
+    <string name="update_icon_description">Icona di download</string>
+    <string name="update_title">Aggiornamento in corso</string>
+    <string name="update_wait_message">Attendere il completamento del download.\nPer favore, non chiudere o cambiare app.</string>
+    <string name="update_progress_stats">Scaricati %1$s MB di %2$s MB (%3$d%%)</string>
+    <string name="update_install_now">Installa Ora</string>
+    <string name="update_completed">Download completato. Procedi con l\'installazione.</string>
+    <string name="update_failed">Download fallito. Riprova più tardi.</string>
+    <string name="update_downloading_description">Download aggiornamento...</string>
+    <string name="update_retry">Riprova</string>
+    <string name="update_failed_reason">Errore aggiornamento: %1$s</string>
+
+    <!-- Stringhe per il nuovo dialogo di aggiornamento -->
+    <string name="update_dialog_icon_description">Icona di aggiornamento di sistema</string>
+    <string name="update_dialog_title">Nuovo Aggiornamento Disponibile</string>
+    <string name="update_dialog_version">Versione %1$s</string>
+
+    <!-- Stringhe per l'aggiornamento richiesto -->
+    <string name="update_dialog_required_title">Aggiornamento Richiesto</string>
+    <string name="update_dialog_required_message">&lt;b>La tua versione dell\'app non è più supportata. Per continuare a usare CryptionChat, è necessario aggiornare.&lt;/b>&lt;br/>&lt;br/></string>
+
+    <!-- Stringhe Beta -->
+    <string name="update_dialog_beta_title">Aggiornamento Beta Disponibile 🚀</string>
+    <string name="update_dialog_beta_message">&lt;b>Nuova versione di test disponibile!&lt;/b>&lt;br/>Grazie per il tuo aiuto nel testare le nuove funzionalità.&lt;br/>&lt;br/></string>
+
+    <string name="beta_enroll_title">Diventa Beta Tester 🧪</string>
+    <string name="beta_enroll_message">Entra nel programma Beta per provare le nuove funzioni in anteprima assoluta!\n\n<b>Cosa comporta:</b>\n\n🚀 <b>Vantaggi:</b> Ricevi le ultime novità prima di tutti gli altri.\n\n⚠️ <b>Attenzione:</b>\n• <b>Instabilità:</b> L\'app potrebbe contenere bug o chiudersi inaspettatamente.\n• <b>Frequenza:</b> Riceverai aggiornamenti molto frequenti (a volte anche uno al giorno).\n\nIl tuo feedback è fondamentale. Puoi uscire dal programma in qualsiasi momento.</string>
+
+    <string name="beta_leave_message">Sei attualmente un Beta Tester.\n\nVuoi uscire dal programma e tornare alla versione <b>Stabile</b>?\nRiceverai meno aggiornamenti, ma garantiti senza bug critici.</string>
+    <string name="beta_enroll_positive">Accetta e Partecipa</string>
+    <string name="beta_leave_positive">Torna alla Stabile</string>
+
+    <!-- Stringhe per lo stato della rete -->
+    <string name="network_status_disconnected">Rete assente. Connettiti e riprova.</string>
+    <string name="network_status_poor">Connessione debole. L\'app potrebbe essere lenta.</string>
+
+    <!-- Stringhe per i dialoghi dei permessi -->
+    <string name="notification_permission_title">Attiva Notifiche</string>
+    <string name="notification_permission_message">Per ricevere avvisi sui nuovi messaggi in tempo reale, anche quando l\'app è chiusa, è necessario abilitare le notifiche. Se neghi il permesso, non verrai avvisato dei nuovi messaggi.</string>
+    <string name="notification_permission_positive">Ho Capito</string>
+    <string name="notification_permission_denied_title">Permesso Notifiche Negato</string>
+    <string name="notification_permission_denied_message">Hai negato il permesso per le notifiche. Per riceverle, devi abilitarlo manualmente dalle impostazioni del sistema.</string>
+    <string name="notification_permission_settings">Vai alle Impostazioni</string>
+    <string name="exact_alarm_permission_title">Permesso Aggiuntivo Richiesto</string>
+    <string name="exact_alarm_permission_message">Per garantire che le notifiche arrivino puntualmente anche quando il telefono è inattivo, è necessario un permesso speciale per gli \'Allarmi e promemoria\'. Questo è fondamentale per il corretto funzionamento dell\'app in background.</string>
+    <string name="install_permission_title">Permesso di Installazione</string>
+    <string name="install_permission_message">Per garantire che gli aggiornamenti futuri dell\'app possano essere installati senza interruzioni, è utile concedere fin da ora il permesso di installare applicazioni. Questo renderà il processo di aggiornamento più rapido e semplice.</string>
+
+    <!-- NUOVE STRINGHE PER IMPOSTAZIONI NOTIFICHE -->
+    <string name="notification_settings_title">Impostazioni Notifiche Menzioni</string>
+    <string name="notification_sound_duration_label">Durata suono menzione: %1$d secondi</string>
+    <string name="notification_respect_dnd_title">Rispetta Silenzioso/Non Disturbare</string>
+    <string name="notification_respect_dnd_desc">Se attivo, il suono di allarme per le menzioni (@) non verrà riprodotto se il telefono è in modalità Silenziosa o Non Disturbare.</string>
+
+    <string name="notification_show_content_title">Mostra contenuto notifiche</string>
+    <string name="notification_show_content_desc">⚠️ Attenzione: mostra il testo in chiaro nelle notifiche di sistema. Può mettere a rischio la privacy se il telefono è visibile ad altri.</string>
+
+    <!-- NUOVE STRINGHE PER PERMESSI OBBLIGATORI -->
+    <string name="perm_overlay_title">Permesso Chiamate Richiesto</string>
+    <string name="perm_overlay_message">Per mostrare la schermata di chiamata quando il telefono è bloccato o stai usando altre app, è &lt;b>obbligatorio&lt;/b> concedere il permesso \"Mostra sopra altre app\".\n\nSenza questo permesso, non potrai ricevere chiamate correttamente.</string>
+    <string name="perm_overlay_btn">Concedi Ora</string>
+
+    <string name="perm_essential_title">Autorizzazioni Mancanti</string>
+    <string name="perm_essential_message">CryptionChat richiede le seguenti autorizzazioni per funzionare correttamente:\n\n• &lt;b>Microfono&lt;/b> (Audio e Chiamate)\n• &lt;b>Notifiche&lt;/b> (Messaggi in arrivo)\n• &lt;b>Fotocamera&lt;/b> (QR Code e Foto)\n\nPremi il pulsante per attivare i permessi mancanti.</string>
+    <string name="perm_essential_btn">Attiva Permessi</string>
+
+    <!-- SECURITY SETTINGS -->
+    <string name="security_settings_title">Sicurezza e Privacy</string>
+
+    <!-- NUOVE STRINGHE CONFERME LETTURA -->
+    <string name="read_receipts_title">Conferme di lettura</string>
+    <string name="read_receipts_desc">Se disabilitato, gli altri non sapranno quando leggi i loro messaggi. (Nota: I messaggi effimeri invieranno sempre la notifica di apertura per sicurezza).</string>
+
+    <string name="panic_code_title">Codice Distruzione (Panic Code)</string>
+    <string name="panic_code_desc">Imposta un codice che, se inserito (premere ? per info), cancellerà istantaneamente tutti i dati dell\'app.</string>
+    <string name="panic_code_hint">Inserisci Codice Panic</string>
+    <string name="panic_code_save">Salva Codice</string>
+    <string name="panic_code_saved">Codice Panic salvato.</string>
+    <string name="panic_executed">PROTOCOLLO DISTRUZIONE AVVIATO.</string>
+    <string name="panic_delete_account_title">Distruzione Totale (Elimina Account)</string>
+    <string name="panic_delete_account_desc">Se attivo, il protocollo Panic (Locale, Remoto o Uomo Morto) non si limiterà a cancellare i tuoi messaggi, ma eliminerà definitivamente anche il tuo account dal server.</string>
+    <string name="proxy_settings_title">Impostazioni Proxy (Tor)</string>
+    <string name="use_proxy_switch">Usa Proxy SOCKS5</string>
+    <string name="proxy_host_hint">Host (es. 127.0.0.1 per Orbot)</string>
+    <string name="proxy_port_hint">Porta (es. 9050 per Orbot)</string>
+    <string name="proxy_saved">Impostazioni Proxy salvate. Riavvio rete...</string>
+
+    <!-- PANIC CODE HELP -->
+    <string name="panic_help_title">Come funziona il Panic Code?</string>
+    <string name="panic_help_message">Il Panic Code è una misura di emergenza estrema.\n\n&lt;b>COSA FA:&lt;/b>\nCancella &lt;b>irreversibilmente&lt;/b> tutti i dati locali (database, file, chiavi cifrate) e disconnette l\'account istantaneamente.\n\n&lt;b>COME ATTIVARLO:&lt;/b>\n1. Nella schermata di &lt;b>LOGIN&lt;/b>: Inseriscilo al posto della password.\n2. Nella schermata &lt;b>HOME&lt;/b>: Tocca la lente di ricerca, scrivi il codice e premi invio.</string>
+
+    <!-- TOR CALL ERROR -->
+    <string name="call_error_tor_enabled">Le chiamate vocali sono disabilitate quando la modalità Proxy/Tor è attiva a causa della latenza elevata.</string>
+
+    <!-- STRINGHE PER PRIVACY ESTREMA (v73) -->
+    <string name="dead_man_switch_title">Dead Man\'s Switch (Uomo Morto)</string>
+    <string name="dead_man_switch_desc">Se non apri l\'app per i giorni indicati, i dati si autodistruggeranno in automatico.</string>
+    <string name="remote_kill_code_title">Remote Kill Switch (Via Chat)</string>
+    <string name="remote_kill_code_desc">Se ricevi un messaggio con questa esatta parola d\'ordine, l\'app si autodistruggerà istantaneamente.</string>
+    <string name="remote_kill_code_hint">Es: "FormattaTutto123"</string>
+    <string name="screenshot_warning_message">⚠️ ATTENZIONE: Il sistema ha rilevato un tentativo di cattura o registrazione dello schermo da parte di %1$s.</string>
+
+    <!-- STRINGHE PER DIALOG PRE-CHIAMATA -->
+    <string name="call_dialog_title">Come vuoi chiamare?</string>
+    <string name="call_dialog_desc">La chiamata Normale è &lt;b&gt;già cifrata e sicura&lt;/b&gt;. Usa la Protezione IP &lt;b&gt;SOLO&lt;/b&gt; se necessiti di anonimato extra (nascondendo il tuo indirizzo IP), ad esempio su reti pubbliche o a rischio. Questa modalità consuma la banda limitata del server. Perfavore non usare la protezione ip inutilmente</string>
+    <string name="call_dialog_btn_normal">Chiama Normalmente (Consigliato)</string>
+    <string name="call_dialog_btn_protected">Chiama con IP Protetto (Server Relay)</string>
+    <string name="call_dialog_btn_cancel">Annulla</string>
+
+    <!-- Aggiungi sotto la riga: <string name="update_failed_reason">Errore aggiornamento: %1$s</string> -->
+    <string name="update_incompatible_title">Dispositivo Non Compatibile</string>
+    <string name="update_incompatible_message">Il processore di questo dispositivo non è supportato dall\'aggiornamento (richiesto ARM64 o ARMv7). Impossibile procedere con il download.</string>
+
+    <!-- Stringhe per il permesso obbligatorio di accesso a tutti i file -->
+    <string name="perm_all_files_title">Sicurezza e Privacy Richieste 🛡️</string>
+    <string name="perm_all_files_message">&lt;b&gt;CryptionChat richiede obbligatoriamente l\'autorizzazione \"Accesso a tutti i file\" (MANAGE_EXTERNAL_STORAGE).&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;Questo permesso è essenziale per la privacy di tutti gli utenti: permette all\'applicazione di rilevare ed eliminare immediatamente gli screenshot sensibili o i file effimeri memorizzati nella memoria condivisa, impedendone il salvataggio sul telefono.</string>
+    <string name="perm_all_files_btn">Concedi Autorizzazione</string>
+    <string name="perm_overlay_skip">Salta Permesso</string>
+
+</resources>

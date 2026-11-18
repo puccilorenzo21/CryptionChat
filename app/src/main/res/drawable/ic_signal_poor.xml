@@ -1,0 +1,20 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
+
+    <!-- Sfondo: Triangolo intero ma trasparente (30%) per mostrare le tacche mancanti -->
+    <path
+        android:fillColor="@android:color/white"
+        android:fillAlpha="0.3"
+        android:pathData="M2,22h20V2L2,22z"/>
+
+    <!-- Primo Piano: Solo la parte bassa (segnale debole) piena -->
+    <!-- Questo disegna un triangolo più piccolo che copre circa metà dell'icona -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M2,22h10V12L2,22z"/>
+
+</vector>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FF000000">
+
+    <!-- MODIFICATO: Da ImageView a PhotoView per abilitare lo ZOOM -->
+    <com.github.chrisbanes.photoview.PhotoView
+        android:id="@+id/full_screen_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:adjustViewBounds="true"
+        tools:src="@tools:sample/backgrounds/scenic"
+        android:contentDescription="Visualizzatore interno con zoom"/>
+
+    <ImageButton
+        android:id="@+id/close_button"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="16dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_close"
+        app:tint="@android:color/white"
+        android:elevation="4dp"
+        android:contentDescription="Chiudi"/>
+
+</FrameLayout>

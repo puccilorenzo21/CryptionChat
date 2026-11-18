@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Pulsante Attivo -> Icona Nera -->
+    <item android:state_checked="true" android:color="#121212" />
+
+    <!-- Pulsante Normale -> Icona Bianca -->
+    <item android:color="@android:color/white" />
+</selector>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_ultra_secure"
+        android:title="Sicurezza &amp; Safety Number"
+        android:icon="@drawable/ic_lock"
+        app:iconTint="?attr/colorOnSurface"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_regenerate_keys"
+        android:title="Rigenera Chiavi Cifratura"
+        android:icon="@drawable/ic_check_circle"
+        app:iconTint="?attr/colorOnSurface"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_chat_background"
+        android:title="Sfondo di questa Chat"
+        android:icon="@drawable/ic_wallpaper"
+        app:iconTint="?attr/colorOnSurface"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_clear_chat"
+        android:title="Svuota Chat"
+        android:icon="@drawable/ic_delete_sweep"
+        app:iconTint="?attr/colorError"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_group_settings"
+        android:title="Impostazioni Gruppo"
+        android:icon="@drawable/ic_settings"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_call"
+        android:title="Chiama"
+        android:icon="@drawable/ic_call"
+        app:showAsAction="ifRoom" />
+
+</menu>
