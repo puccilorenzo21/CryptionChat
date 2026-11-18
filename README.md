@@ -2,9 +2,12 @@
 
 **CryptionChat** is a privacy-first, End-to-End Encrypted (E2EE) Android messaging & voice-calling application designed around Zero-Knowledge client-side cryptography, local encrypted storage, Tor proxy support, and active device-level privacy protections.
 
+[![Official Website](https://img.shields.io/badge/Official%20Website-CryptionChat-0A66C2?style=flat&logo=googlechrome&logoColor=white)](https://lollo1344.altervista.org/CryptionChat/CryptionChat.html)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Platform: Android](https://img.shields.io/badge/Platform-Android%2010%2B%20(API%2029%2B)-green.svg)](app/build.gradle.kts)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-purple.svg)](build.gradle.kts)
+
+**Official Website / Sito Ufficiale:** [https://lollo1344.altervista.org/CryptionChat/CryptionChat.html](https://lollo1344.altervista.org/CryptionChat/CryptionChat.html)
 
 > **Attribution Notice:** Everyone is free to use, modify, and redistribute CryptionChat under the **Apache License 2.0**, provided that you **credit the original author — Lorenzo Pucci (lollo1344)** — and preserve the [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE) files. See [License & Attribution](#license--attribution).
 
