@@ -5,7 +5,7 @@ Thank you for your interest in contributing to **CryptionChat**!
 ## License & Attribution
 
 CryptionChat is licensed under the **Apache License, Version 2.0** with a mandatory attribution [`NOTICE`](NOTICE) file.
-By submitting a contribution, you agree that your contribution will be licensed under the same Apache-2.0 terms and that proper attribution to the original author (**Lorenzo Pucci / lollo1344**) is preserved.
+By submitting a contribution, you agree that your contribution will be licensed under the same Apache-2.0 terms and that proper attribution to the original author (**Lorenzo Pucci / puccilorenzo21**) is preserved.
 
 ## How to Contribute
 

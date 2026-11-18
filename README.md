@@ -108,7 +108,7 @@ For detailed instructions, see [docs/SETUP.md](docs/SETUP.md) and [docs/ARCHITEC
 - **Required**: You **must** include the [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE) files and **give clear attribution to the original author** in your repository, documentation, or app credits:
 
 ```text
-Based on CryptionChat by Lorenzo Pucci (lollo1344)
+Based on CryptionChat by Lorenzo Pucci (puccilorenzo21)
 Licensed under the Apache License, Version 2.0
 ```
 

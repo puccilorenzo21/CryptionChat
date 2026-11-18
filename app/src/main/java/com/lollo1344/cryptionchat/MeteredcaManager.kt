@@ -1,4 +1,4 @@
-package com.account1.cryptionchat
+package com.lollo1344.cryptionchat
 
 import android.content.Context
 import android.util.Log
