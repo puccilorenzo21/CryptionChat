@@ -112,4 +112,4 @@ Based on CryptionChat by Lorenzo Pucci (lollo1344)
 Licensed under the Apache License, Version 2.0
 ```
 
-Copyright © 2025-2026 **Lorenzo Pucci (lollo1344)**.
+Copyright © 2025-2026 **Lorenzo Pucci (puccilorenzo21)**.
