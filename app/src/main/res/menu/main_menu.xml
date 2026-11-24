@@ -4,13 +4,13 @@
 
     <item
         android:id="@+id/action_scan_qr"
-        android:title="Scansiona QR"
+        android:title="@string/menu_scan_qr"
         android:icon="@drawable/ic_camera"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_search"
-        android:title="Cerca Utente"
+        android:title="@string/menu_search_user"
         android:icon="@drawable/user_search"
         app:showAsAction="ifRoom" />
 

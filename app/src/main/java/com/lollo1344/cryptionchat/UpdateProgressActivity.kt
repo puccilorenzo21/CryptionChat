@@ -53,10 +53,10 @@ class UpdateProgressActivity : BaseActivity() {
     ) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (packageManager.canRequestPackageInstalls()) {
-                Toast.makeText(this, "Permesso concesso. Avvio installazione...", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.update_perm_granted), Toast.LENGTH_SHORT).show()
                 installApk(this)
             } else {
-                Toast.makeText(this, "Permesso non concesso. Impossibile installare l'aggiornamento.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, getString(R.string.update_perm_denied), Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -70,14 +70,14 @@ class UpdateProgressActivity : BaseActivity() {
         // Blocco tasto indietro durante il download per evitare interruzioni accidentali
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                Toast.makeText(this@UpdateProgressActivity, "Aggiornamento in corso. Attendi la fine.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@UpdateProgressActivity, getString(R.string.update_in_progress_wait), Toast.LENGTH_SHORT).show()
             }
         })
 
         downloadUrl = intent.getStringExtra("DOWNLOAD_URL")
 
         if (downloadUrl.isNullOrEmpty()) {
-            Toast.makeText(this, "URL per l'aggiornamento non valido.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.update_invalid_url), Toast.LENGTH_LONG).show()
             finish()
             return
         }
@@ -96,7 +96,7 @@ class UpdateProgressActivity : BaseActivity() {
         binding.installButton.visibility = View.GONE
         binding.retryButton.visibility = View.GONE
         binding.updateProgressBar.isIndeterminate = true
-        binding.progressStatsText.text = "Connessione al server in corso..."
+        binding.progressStatsText.text = getString(R.string.update_connecting_server)
 
         val downloadsDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
         val finalApkFile = File(downloadsDir, FINAL_APK_NAME)
@@ -126,9 +126,9 @@ class UpdateProgressActivity : BaseActivity() {
 
                     val response = downloadClient.newCall(request).execute()
 
-                    if (!response.isSuccessful) throw IOException("Errore server: HTTP ${response.code}")
+                    if (!response.isSuccessful) throw IOException(getString(R.string.update_server_http_error, response.code))
 
-                    val body = response.body ?: throw IOException("Corpo della risposta vuoto")
+                    val body = response.body ?: throw IOException(getString(R.string.update_empty_body))
                     totalBytes = body.contentLength()
                     downloadedBytes = 0
 
@@ -159,10 +159,10 @@ class UpdateProgressActivity : BaseActivity() {
                         if (renamed) {
                             success = true
                         } else {
-                            throw IOException("Impossibile rinominare il file temporaneo")
+                            throw IOException(getString(R.string.update_rename_failed))
                         }
                     } else {
-                        throw IOException("Download interrotto: scaricati $downloadedBytes su $totalBytes")
+                        throw IOException(getString(R.string.update_download_interrupted, downloadedBytes, totalBytes))
                     }
 
                 } catch (e: Exception) {
@@ -178,7 +178,7 @@ class UpdateProgressActivity : BaseActivity() {
                             throwable = lastException
                         )
 
-                        withContext(Dispatchers.Main) { updateUiForFailed(e.message ?: "Connessione instabile") }
+                        withContext(Dispatchers.Main) { updateUiForFailed(e.message ?: getString(R.string.update_unstable_connection)) }
                         return@launch
                     }
                     delay(1000)
@@ -215,7 +215,7 @@ class UpdateProgressActivity : BaseActivity() {
         } else {
             binding.updateProgressBar.isIndeterminate = true
             val downloadedMb = String.format(Locale.getDefault(), "%.1f", downloadedBytes / 1048576.0)
-            binding.progressStatsText.text = "Scaricati $downloadedMb MB"
+            binding.progressStatsText.text = getString(R.string.update_downloaded_mb, downloadedMb)
         }
     }
 
@@ -227,7 +227,7 @@ class UpdateProgressActivity : BaseActivity() {
         binding.progressStatsText.visibility = View.GONE
 
         binding.installButton.visibility = View.VISIBLE
-        binding.installButton.text = "Installa"
+        binding.installButton.text = getString(R.string.update_install_btn)
         binding.installButton.isEnabled = true
 
         binding.installButton.setOnClickListener {
@@ -252,7 +252,7 @@ class UpdateProgressActivity : BaseActivity() {
                     .setTitle(getString(R.string.install_permission_title))
                     .setMessage(getString(R.string.install_permission_message))
                     .setCancelable(false)
-                    .setPositiveButton("Vai alle Impostazioni") { _, _ ->
+                    .setPositiveButton(getString(R.string.settings_go_to)) { _, _ ->
                         try {
                             val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
                                 data = Uri.parse("package:$packageName")
@@ -263,7 +263,7 @@ class UpdateProgressActivity : BaseActivity() {
                             installPermissionLauncher.launch(intent)
                         }
                     }
-                    .setNegativeButton("Annulla", null)
+                    .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null)
                     .show()
                 return
             }
@@ -335,16 +335,16 @@ class UpdateProgressActivity : BaseActivity() {
     private fun installApk(context: Context) {
         val apkFile = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), FINAL_APK_NAME)
         if (!apkFile.exists() || apkFile.length() == 0L) {
-            Toast.makeText(context, "Errore: APK non trovato o corrotto. Riprova il download.", Toast.LENGTH_LONG).show()
-            updateUiForFailed("File APK mancante.")
+            Toast.makeText(context, context.getString(R.string.update_apk_missing_toast), Toast.LENGTH_LONG).show()
+            updateUiForFailed(context.getString(R.string.update_apk_missing))
             return
         }
 
         // Verifica crittografica anti-manomissione della firma APK
         if (!verifyApkSignature(context, apkFile)) {
             PanicHelper.secureDelete(apkFile)
-            Toast.makeText(context, "ERRORE DI SICUREZZA: Firma dell'aggiornamento non valida o manomessa!", Toast.LENGTH_LONG).show()
-            updateUiForFailed("Firma crittografica dell'APK non valida. File distrutto.")
+            Toast.makeText(context, context.getString(R.string.update_sig_error_toast), Toast.LENGTH_LONG).show()
+            updateUiForFailed(context.getString(R.string.update_sig_error_status))
             return
         }
 
@@ -358,7 +358,7 @@ class UpdateProgressActivity : BaseActivity() {
         try {
             context.startActivity(installIntent)
         } catch (e: Exception) {
-            Toast.makeText(context, "Impossibile avviare l'installazione.", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, context.getString(R.string.update_install_start_failed), Toast.LENGTH_LONG).show()
         }
     }
 

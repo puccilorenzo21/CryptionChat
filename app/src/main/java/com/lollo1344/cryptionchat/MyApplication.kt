@@ -4,6 +4,9 @@ import android.app.Application
 import android.content.Context
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /**
  * Classe Application personalizzata.
@@ -48,6 +51,15 @@ class MyApplication : Application() {
         // 4. Inizializzazione Client API (Carica Proxy se configurato)
         // NECESSARIO per le nuove funzioni di sicurezza
         ApiClient.init(this)
+
+        // 4.5 Pulizia asincrona all'avvio di eventuali APK di aggiornamento già installati o obsoleti
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                AutoUpdateManager.getInstance(this@MyApplication).cleanupIfUpdatedOrObsolete()
+            } catch (e: Exception) {
+                Log.w("MyApplication", "Errore pulizia APK all'avvio: ${e.message}")
+            }
+        }
 
         // 5. Gestione Migrazione Dati (da vecchie versioni)
         handleDataMigration(this)

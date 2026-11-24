@@ -26,7 +26,7 @@ class VerifyCodeActivity : BaseActivity() {
         password = intent.getStringExtra("PASSWORD") ?: ""
 
         if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Errore: dati di registrazione mancanti.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.verify_missing_reg_data), Toast.LENGTH_LONG).show()
             finish()
             return
         }
@@ -38,7 +38,7 @@ class VerifyCodeActivity : BaseActivity() {
         binding.buttonVerify.setOnClickListener {
             val code = binding.editTextVerificationCode.text.toString().trim()
             if (code.length != 6) {
-                Toast.makeText(this, "Il codice deve essere di 6 cifre", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.code_must_be_6_digits), Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             verifyCodeAndRegister(code)
@@ -54,19 +54,19 @@ class VerifyCodeActivity : BaseActivity() {
         ).enqueue(object : Callback<BaseResponse> {
             override fun onResponse(call: Call<BaseResponse>, response: Response<BaseResponse>) {
                 if (response.isSuccessful && response.body()?.status == "success") {
-                    Toast.makeText(this@VerifyCodeActivity, "Registrazione completata! Effettua il login.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@VerifyCodeActivity, getString(R.string.verify_registration_complete), Toast.LENGTH_LONG).show()
                     val intent = Intent(this@VerifyCodeActivity, LoginActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     }
                     startActivity(intent)
                     finish()
                 } else {
-                    Toast.makeText(this@VerifyCodeActivity, "Errore: ${response.body()?.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@VerifyCodeActivity, getString(R.string.error_prefix, response.body()?.message ?: ""), Toast.LENGTH_LONG).show()
                 }
             }
 
             override fun onFailure(call: Call<BaseResponse>, t: Throwable) {
-                Toast.makeText(this@VerifyCodeActivity, "Errore di rete: ${t.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@VerifyCodeActivity, getString(R.string.error_network_msg, t.message ?: ""), Toast.LENGTH_LONG).show()
             }
         })
     }

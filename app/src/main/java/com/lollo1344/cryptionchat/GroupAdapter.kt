@@ -210,7 +210,7 @@ class GroupAdapter(
                 }
 
                 if (!draftText.isNullOrEmpty()) {
-                    groupCodeTextView.text = "✏️ Bozza: $draftText"
+                    groupCodeTextView.text = itemView.context.getString(R.string.chat_draft_prefix, draftText)
                     itemView.context.theme.resolveAttribute(android.R.attr.colorError, typedValue, true)
                     groupCodeTextView.setTextColor(typedValue.data)
                     groupCodeTextView.setTypeface(null, Typeface.ITALIC)
@@ -220,19 +220,19 @@ class GroupAdapter(
                     groupCodeTextView.setTypeface(null, Typeface.NORMAL)
 
                     groupCodeTextView.text = if (decrypted != null) {
-                        formatLastMessagePreview(decrypted)
+                        formatLastMessagePreview(decrypted, itemView.context)
                     } else {
-                        "🔒 Messaggio criptato"
+                        itemView.context.getString(R.string.chat_encrypted_msg_preview)
                     }
                 }
             } else {
                 if (!draftText.isNullOrEmpty()) {
-                    groupCodeTextView.text = "✏️ Bozza: $draftText"
+                    groupCodeTextView.text = itemView.context.getString(R.string.chat_draft_prefix, draftText)
                     itemView.context.theme.resolveAttribute(android.R.attr.colorError, typedValue, true)
                     groupCodeTextView.setTextColor(typedValue.data)
                     groupCodeTextView.setTypeface(null, Typeface.ITALIC)
                 } else {
-                    groupCodeTextView.text = if (!group.groupCode.isNullOrEmpty() && !group.isPrivateChat) "Codice: ${group.groupCode}" else "Nessun messaggio."
+                    groupCodeTextView.text = if (!group.groupCode.isNullOrEmpty() && !group.isPrivateChat) itemView.context.getString(R.string.group_code_prefix, group.groupCode) else itemView.context.getString(R.string.chat_no_messages)
                 }
             }
 
@@ -254,7 +254,7 @@ class GroupAdapter(
             groupIconImageView.setOnClickListener { onGroupIconClicked(group) }
         }
 
-        private fun formatLastMessagePreview(decrypted: String): String {
+        private fun formatLastMessagePreview(decrypted: String, context: android.content.Context): String {
             val trimmed = decrypted.trim()
             if (trimmed.startsWith("{") && trimmed.endsWith("}") &&
                 (trimmed.contains("\"mime\"") || trimmed.contains("\"msg_type\"") || trimmed.contains("\"file_key\""))
@@ -267,17 +267,17 @@ class GroupAdapter(
                     val caption = json.optString("caption", "")
 
                     val prefix = when {
-                        msgType == "image" || mime.startsWith("image/") -> "📷 Foto"
-                        msgType == "video" || mime.startsWith("video/") -> "🎥 Video"
-                        msgType == "audio" || mime.startsWith("audio/") -> "🎵 Messaggio vocale"
+                        msgType == "image" || mime.startsWith("image/") -> context.getString(R.string.media_photo_label)
+                        msgType == "video" || mime.startsWith("video/") -> context.getString(R.string.media_video_label)
+                        msgType == "audio" || mime.startsWith("audio/") -> context.getString(R.string.media_voice_label)
                         else -> "📎"
                     }
 
                     return when {
                         prefix == "📎" && name.isNotEmpty() && caption.isNotEmpty() -> "📎 $name: $caption"
                         prefix == "📎" && name.isNotEmpty() -> "📎 $name"
-                        prefix == "📎" && caption.isNotEmpty() -> "📎 File: $caption"
-                        prefix == "📎" -> "📎 File"
+                        prefix == "📎" && caption.isNotEmpty() -> context.getString(R.string.media_file_with_caption, caption)
+                        prefix == "📎" -> context.getString(R.string.media_file_label)
                         caption.isNotEmpty() -> "$prefix: $caption"
                         name.isNotEmpty() && msgType != "audio" && !mime.startsWith("audio/") -> "$prefix: $name"
                         else -> prefix
@@ -287,10 +287,10 @@ class GroupAdapter(
             }
 
             return when {
-                trimmed.contains("[REQ_LOC]") -> "📍 Richiesta posizione"
-                trimmed.contains("https://maps.google.com/?q=") -> "📍 Posizione condivisa"
-                trimmed.startsWith("[ZK_ECDH]:") || trimmed.startsWith("[ZK_EXCHANGE]:") -> "🔑 Sincronizzazione chiavi Ultra Sicura"
-                trimmed.contains("La Chat Ultra Sicura è stata disattivata") -> "🔓 Chat Ultra Sicura disattivata"
+                trimmed.contains("[REQ_LOC]") -> context.getString(R.string.chat_location_request_preview)
+                trimmed.contains("https://maps.google.com/?q=") -> context.getString(R.string.chat_location_shared_preview)
+                trimmed.startsWith("[ZK_ECDH]:") || trimmed.startsWith("[ZK_EXCHANGE]:") -> context.getString(R.string.zk_key_sync_preview)
+                trimmed.contains("La Chat Ultra Sicura è stata disattivata") || trimmed.contains("Ultra Secure Chat has been disabled") -> context.getString(R.string.zk_disabled_preview)
                 else -> trimmed
             }
         }

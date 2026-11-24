@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import java.lang.ref.WeakReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -16,6 +17,10 @@ object AppLifecycleManager : Application.ActivityLifecycleCallbacks {
     private const val TAG = "AppLifecycleManager"
     private var startedActivities = 0
     private lateinit var appContext: Context
+    @Volatile
+    private var currentResumedActivityRef: WeakReference<Activity>? = null
+
+    fun getCurrentResumedActivity(): Activity? = currentResumedActivityRef?.get()
 
     var isAppUnlocked: Boolean = false
 
@@ -103,6 +108,9 @@ object AppLifecycleManager : Application.ActivityLifecycleCallbacks {
         val wasZero = startedActivities == 0
         startedActivities++
         if (wasZero) {
+            if (::appContext.isInitialized) {
+                AutoUpdateManager.getInstance(appContext).onAppEnteredForeground()
+            }
             syncOnlineStatusNow(appContext)
             SecurePrefs.get(appContext).edit()
                 .putLong("last_active_timestamp", System.currentTimeMillis())
@@ -140,8 +148,21 @@ object AppLifecycleManager : Application.ActivityLifecycleCallbacks {
     }
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
-    override fun onActivityResumed(activity: Activity) {}
-    override fun onActivityPaused(activity: Activity) {}
+    override fun onActivityResumed(activity: Activity) {
+        currentResumedActivityRef = WeakReference(activity)
+        if (::appContext.isInitialized && !activity.isFinishing) {
+            val mgr = AutoUpdateManager.getInstance(appContext)
+            if (mgr.isEligiblePromptActivity(activity)) {
+                mgr.onActivityReady(activity)
+            }
+        }
+    }
+
+    override fun onActivityPaused(activity: Activity) {
+        if (currentResumedActivityRef?.get() === activity) {
+            currentResumedActivityRef = null
+        }
+    }
     override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
     override fun onActivityDestroyed(activity: Activity) {}
 }

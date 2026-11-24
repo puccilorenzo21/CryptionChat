@@ -30,18 +30,18 @@ class RegisterActivity : BaseActivity() {
 
             var isValid = true
             if (username.isEmpty()) {
-                binding.usernameInputLayout.error = "Il nome utente è obbligatorio"
+                binding.usernameInputLayout.error = getString(R.string.register_username_required)
                 isValid = false
             }
             if (email.isEmpty()) {
-                binding.emailInputLayout.error = "L'email è obbligatoria"
+                binding.emailInputLayout.error = getString(R.string.register_email_required)
                 isValid = false
             } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                binding.emailInputLayout.error = "Inserisci un indirizzo email valido"
+                binding.emailInputLayout.error = getString(R.string.register_email_invalid)
                 isValid = false
             }
             if (password.isEmpty()) {
-                binding.passwordInputLayout.error = "La password è obbligatoria"
+                binding.passwordInputLayout.error = getString(R.string.register_password_required)
                 isValid = false
             }
 
@@ -68,7 +68,7 @@ class RegisterActivity : BaseActivity() {
 
                     // ... (resto del codice esistente per il success)
                     if (response.isSuccessful && response.body()?.status == "success") {
-                        Toast.makeText(this@RegisterActivity, "Codice inviato! Controlla la tua email.", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@RegisterActivity, getString(R.string.register_code_sent), Toast.LENGTH_LONG).show()
 
                         // Avvia l'activity per inserire il codice
                         val intent = Intent(this@RegisterActivity, VerifyCodeActivity::class.java).apply {
@@ -79,12 +79,12 @@ class RegisterActivity : BaseActivity() {
                         startActivity(intent)
 
                     } else {
-                        Toast.makeText(this@RegisterActivity, "Errore: ${response.body()?.message}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@RegisterActivity, getString(R.string.error_prefix, response.body()?.message ?: ""), Toast.LENGTH_LONG).show()
                     }
                 }
 
                 override fun onFailure(call: Call<BaseResponse>, t: Throwable) {
-                    Toast.makeText(this@RegisterActivity, "Errore di rete: ${t.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@RegisterActivity, getString(R.string.error_network_msg, t.message ?: ""), Toast.LENGTH_LONG).show()
                 }
             })
     }

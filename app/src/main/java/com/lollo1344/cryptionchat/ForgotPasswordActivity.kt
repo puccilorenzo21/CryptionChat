@@ -25,7 +25,7 @@ class ForgotPasswordActivity : BaseActivity() {
         binding.buttonSendCode.setOnClickListener {
             val email = binding.editTextEmail.text.toString().trim()
             if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                Toast.makeText(this, "Inserisci un indirizzo email valido", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.register_email_invalid), Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             sendResetCode(email)
@@ -43,12 +43,12 @@ class ForgotPasswordActivity : BaseActivity() {
                     startActivity(intent)
                     finish()
                 } else {
-                    Toast.makeText(this@ForgotPasswordActivity, "Errore: ${response.body()?.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@ForgotPasswordActivity, getString(R.string.error_prefix, response.body()?.message ?: ""), Toast.LENGTH_LONG).show()
                 }
             }
 
             override fun onFailure(call: Call<BaseResponse>, t: Throwable) {
-                Toast.makeText(this@ForgotPasswordActivity, "Errore di rete: ${t.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@ForgotPasswordActivity, getString(R.string.error_network_msg, t.message ?: ""), Toast.LENGTH_LONG).show()
             }
         })
     }

@@ -21,7 +21,7 @@ class ResetPasswordActivity : BaseActivity() {
 
         userEmail = intent.getStringExtra("USER_EMAIL")
         if (userEmail == null) {
-            Toast.makeText(this, "Errore: Email non fornita.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.reset_email_missing), Toast.LENGTH_LONG).show()
             finish()
             return
         }
@@ -35,11 +35,11 @@ class ResetPasswordActivity : BaseActivity() {
             val newPassword = binding.editTextNewPassword.text.toString()
 
             if (code.length != 6) {
-                Toast.makeText(this, "Il codice deve essere di 6 cifre", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.code_must_be_6_digits), Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             if (newPassword.isEmpty()) {
-                Toast.makeText(this, "La nuova password non può essere vuota", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.reset_password_empty), Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -59,12 +59,12 @@ class ResetPasswordActivity : BaseActivity() {
                         startActivity(intent)
                         finish()
                     } else {
-                        Toast.makeText(this@ResetPasswordActivity, "Errore: ${response.body()?.message}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@ResetPasswordActivity, getString(R.string.error_prefix, response.body()?.message ?: ""), Toast.LENGTH_LONG).show()
                     }
                 }
 
                 override fun onFailure(call: Call<BaseResponse>, t: Throwable) {
-                    Toast.makeText(this@ResetPasswordActivity, "Errore di rete: ${t.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@ResetPasswordActivity, getString(R.string.error_network_msg, t.message ?: ""), Toast.LENGTH_LONG).show()
                 }
             })
     }

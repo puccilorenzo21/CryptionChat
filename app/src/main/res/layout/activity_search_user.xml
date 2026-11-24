@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:navigationIcon="@drawable/ic_arrow_back"
-            app:title="Cerca Utenti" />
+            app:title="@string/search_users_title" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -42,7 +42,7 @@
             android:layout_gravity="center"
             android:gravity="center"
             android:padding="16dp"
-            android:text="Nessun utente trovato."
+            android:text="@string/search_no_users_found"
             android:textAppearance="?attr/textAppearanceBodyLarge"
             android:textColor="?attr/colorOnSurfaceVariant"
             android:visibility="gone"

@@ -25,7 +25,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Benvenuto in CryptionChat"
+            android:text="@string/auth_welcome"
             android:textAppearance="?attr/textAppearanceHeadlineSmall"
             android:textColor="?attr/colorOnSurface"
             android:layout_marginBottom="48dp"/>
@@ -35,7 +35,7 @@
             style="@style/Widget.Material3.Button.ElevatedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Accedi"
+            android:text="@string/action_login"
             android:paddingVertical="12dp"
             android:layout_marginBottom="12dp"/>
 
@@ -44,7 +44,7 @@
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Registrati"
+            android:text="@string/action_register"
             android:paddingVertical="12dp"/>
 
         <!-- NUOVO: Pulsante per l'accesso biometrico -->
@@ -54,7 +54,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:contentDescription="Accedi con impronta"
+            android:contentDescription="@string/cd_login_fingerprint"
             app:icon="@drawable/ic_fingerprint"
             app:iconSize="32dp"
             android:visibility="gone"

@@ -55,6 +55,7 @@ class NotificationService : Service() {
 
     private var currentRingingCallId: Int = -1
     private var lastDistSyncTimeMs: Long = 0L
+    private var currentCallUsername: String? = null
 
     private val actionReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -63,7 +64,7 @@ class NotificationService : Service() {
                 ACTION_SET_ONGOING_CALL -> {
                     val show = intent.getBooleanExtra("SHOW", false)
                     if (show) {
-                        val username = intent.getStringExtra("USERNAME") ?: "Sconosciuto"
+                        val username = intent.getStringExtra("USERNAME") ?: getString(R.string.unknown_user)
                         updateForegroundState(isCallActive = true, callUsername = username)
                     } else {
                         updateForegroundState(isCallActive = false)
@@ -133,8 +134,15 @@ class NotificationService : Service() {
         soundWakeLock?.setReferenceCounted(false)
     }
 
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        createNotificationChannels()
+        updateForegroundState(isCallActive = CallManager.isActive, callUsername = currentCallUsername)
+    }
+
     @Synchronized
     private fun updateForegroundState(isCallActive: Boolean, callUsername: String? = null) {
+        currentCallUsername = if (isCallActive) callUsername else null
         val notification: Notification
         val serviceType: Int
 
@@ -145,8 +153,8 @@ class NotificationService : Service() {
             val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
             notification = NotificationCompat.Builder(this, ONGOING_CALL_CHANNEL_ID)
-                .setContentTitle("Chiamata in corso")
-                .setContentText(callUsername ?: "Sconosciuto")
+                .setContentTitle(getString(R.string.notif_ongoing_call_title))
+                .setContentText(callUsername ?: getString(R.string.unknown_user))
                 .setSmallIcon(R.drawable.ic_call)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setOngoing(true)
@@ -162,8 +170,8 @@ class NotificationService : Service() {
             val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
 
             notification = NotificationCompat.Builder(this, SERVICE_CHANNEL_ID)
-                .setContentTitle("CryptionChat attiva")
-                .setContentText("Connesso in background")
+                .setContentTitle(getString(R.string.notif_service_active_title))
+                .setContentText(getString(R.string.notif_service_active_text))
                 .setSmallIcon(R.drawable.ic_notification_chat)
                 .setPriority(NotificationCompat.PRIORITY_MIN)
                 .setContentIntent(pendingIntent)
@@ -263,6 +271,15 @@ class NotificationService : Service() {
                             wakeLock?.release()
                         }
                     } catch (e: Exception) { }
+                }
+
+                try {
+                    AutoUpdateManager.getInstance(applicationContext).checkAndDownloadInBackground(
+                        forceCheck = false,
+                        isInteractive = false
+                    )
+                } catch (e: Exception) {
+                    Log.w(TAG, "Errore controllo aggiornamenti in background: ${e.message}")
                 }
 
                 if (activeCallIdForPolling > 0) {
@@ -493,7 +510,7 @@ class NotificationService : Service() {
 
         val notificationBuilder = NotificationCompat.Builder(this, CALL_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_call)
-            .setContentTitle("Chiamata in arrivo")
+            .setContentTitle(getString(R.string.notif_incoming_call_title))
             .setContentText(call.callerUsername)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_CALL)
@@ -613,14 +630,14 @@ class NotificationService : Service() {
 
         val notification = NotificationCompat.Builder(this, MENTION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification_chat)
-            .setContentTitle("Menzione Rilevata")
-            .setContentText("Tocca per fermare il suono")
+            .setContentTitle(getString(R.string.notif_mention_title))
+            .setContentText(getString(R.string.notif_mention_text))
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setOngoing(true)
             .setAutoCancel(true)
             .setContentIntent(stopPendingIntent)
-            .addAction(R.drawable.ic_stop, "Ferma Suono", stopPendingIntent)
+            .addAction(R.drawable.ic_stop, getString(R.string.notif_mention_stop_action), stopPendingIntent)
             .build()
 
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -682,24 +699,24 @@ class NotificationService : Service() {
         val showContent = prefs.getBoolean("show_notification_content", false)
         val textPrefix = if (msg.isPrivateChat) "" else "${msg.senderUsername}: "
 
-        var notificationText = if (msg.isPrivateChat) "Nuovo messaggio ricevuto" else "${msg.senderUsername} ha inviato un messaggio"
+        var notificationText = if (msg.isPrivateChat) getString(R.string.notif_new_message_private) else getString(R.string.notif_new_message_group, msg.senderUsername)
 
         if (showContent) {
             if (msg.isViewOnce) {
-                notificationText = "${textPrefix}Messaggio effimero \uD83D\uDCA3"
+                notificationText = "${textPrefix}${getString(R.string.notif_ephemeral_message)}"
             } else {
                 when (msg.messageType) {
-                    "image" -> notificationText = "${textPrefix}\uD83D\uDCF7 Foto"
-                    "audio" -> notificationText = "${textPrefix}\uD83C\uDFB5 Messaggio vocale"
+                    "image" -> notificationText = "${textPrefix}${getString(R.string.media_photo_label)}"
+                    "audio" -> notificationText = "${textPrefix}${getString(R.string.media_voice_label)}"
                     "file" -> {
                         val decryptedMeta = decryptNotificationPayload(msg)
                         val meta = decryptedMeta?.let {
                             try { Gson().fromJson(it, FileMetadata::class.java) } catch (_: Exception) { null }
                         }
                         notificationText = when (meta?.msgType) {
-                            "image" -> "${textPrefix}\uD83D\uDCF7 Foto"
-                            "audio" -> "${textPrefix}\uD83C\uDFB5 Messaggio vocale"
-                            else -> if (!meta?.name.isNullOrBlank()) "${textPrefix}\uD83D\uDCCE ${meta!!.name}" else "${textPrefix}\uD83D\uDCCE File"
+                            "image" -> "${textPrefix}${getString(R.string.media_photo_label)}"
+                            "audio" -> "${textPrefix}${getString(R.string.media_voice_label)}"
+                            else -> if (!meta?.name.isNullOrBlank()) "${textPrefix}\uD83D\uDCCE ${meta!!.name}" else "${textPrefix}${getString(R.string.media_file_label)}"
                         }
                     }
                     else -> {
@@ -707,12 +724,12 @@ class NotificationService : Service() {
 
                         if (!decrypted.isNullOrBlank()) {
                             if (decrypted.contains("[REQ_LOC]")) {
-                                notificationText = "${textPrefix}\uD83D\uDCCD Ti ha richiesto la posizione."
+                                notificationText = "${textPrefix}${getString(R.string.notif_location_requested)}"
                             } else {
                                 notificationText = "${textPrefix}$decrypted"
                             }
                         } else {
-                            notificationText = "${textPrefix}Messaggio criptato (Apri per leggere)"
+                            notificationText = "${textPrefix}${getString(R.string.notif_encrypted_open_to_read)}"
                         }
                     }
                 }
@@ -742,7 +759,7 @@ class NotificationService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = getSystemService(NotificationManager::class.java)
 
-            manager.createNotificationChannel(NotificationChannel(NEW_MESSAGE_CHANNEL_ID, "Messaggi", NotificationManager.IMPORTANCE_HIGH))
+            manager.createNotificationChannel(NotificationChannel(NEW_MESSAGE_CHANNEL_ID, getString(R.string.channel_messages), NotificationManager.IMPORTANCE_HIGH))
 
             val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
             val audioAttributes = AudioAttributes.Builder()
@@ -750,7 +767,7 @@ class NotificationService : Service() {
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build()
 
-            val mentionChannel = NotificationChannel(MENTION_CHANNEL_ID, "Menzioni", NotificationManager.IMPORTANCE_HIGH).apply {
+            val mentionChannel = NotificationChannel(MENTION_CHANNEL_ID, getString(R.string.channel_mentions), NotificationManager.IMPORTANCE_HIGH).apply {
                 setSound(defaultSoundUri, audioAttributes)
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0, 500, 200, 500)
@@ -759,17 +776,17 @@ class NotificationService : Service() {
             }
             manager.createNotificationChannel(mentionChannel)
 
-            manager.createNotificationChannel(NotificationChannel(CALL_CHANNEL_ID, "Chiamate in Arrivo", NotificationManager.IMPORTANCE_HIGH).apply {
+            manager.createNotificationChannel(NotificationChannel(CALL_CHANNEL_ID, getString(R.string.channel_incoming_calls), NotificationManager.IMPORTANCE_HIGH).apply {
                 lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
                 enableVibration(true)
                 setSound(null, null)
             })
 
-            manager.createNotificationChannel(NotificationChannel(ONGOING_CALL_CHANNEL_ID, "Chiamata in Corso", NotificationManager.IMPORTANCE_LOW))
+            manager.createNotificationChannel(NotificationChannel(ONGOING_CALL_CHANNEL_ID, getString(R.string.channel_ongoing_call), NotificationManager.IMPORTANCE_LOW))
 
             val serviceChannel = NotificationChannel(
                 SERVICE_CHANNEL_ID,
-                "Stato del Servizio",
+                getString(R.string.channel_service_status),
                 NotificationManager.IMPORTANCE_MIN
             ).apply {
                 setShowBadge(false)

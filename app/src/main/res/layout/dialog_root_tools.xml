@@ -13,7 +13,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Strumenti Privacy (Root)"
+            android:text="@string/root_tools_title"
             android:textAppearance="?attr/textAppearanceTitleLarge"
             android:textColor="?attr/colorError"
             android:textStyle="bold"
@@ -22,7 +22,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Accesso consentito: sei nella whitelist."
+            android:text="@string/root_tools_whitelist"
             android:textAppearance="?attr/textAppearanceBodySmall"
             android:textColor="?attr/colorOnSurfaceVariant"
             android:layout_marginBottom="24dp"/>
@@ -31,7 +31,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Distruzione e Pulizia"
+            android:text="@string/root_section_wipe"
             android:textAppearance="?attr/textAppearanceLabelMedium"
             android:textColor="?attr/colorPrimary"
             android:layout_marginBottom="8dp"/>
@@ -41,7 +41,7 @@
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Svuota Cache (rm -rf)"
+            android:text="@string/root_btn_clear_cache"
             app:icon="@drawable/ic_broom" />
 
         <com.google.android.material.button.MaterialButton
@@ -49,7 +49,7 @@
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Wipe Totale App (pm clear)"
+            android:text="@string/root_btn_pm_clear"
             android:textColor="?attr/colorError"
             app:iconTint="?attr/colorError"
             app:icon="@drawable/ic_delete_sweep" />
@@ -59,7 +59,7 @@
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Elimina SecurePrefs (Test Corruzione)"
+            android:text="@string/root_btn_del_prefs"
             app:icon="@drawable/ic_lock" />
 
         <com.google.android.material.button.MaterialButton
@@ -67,7 +67,7 @@
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Kill Processo (am force-stop)"
+            android:text="@string/root_btn_kill_proc"
             app:icon="@drawable/ic_close" />
 
         <View
@@ -80,7 +80,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Forensics e Debug"
+            android:text="@string/root_section_forensics"
             android:textAppearance="?attr/textAppearanceLabelMedium"
             android:textColor="?attr/colorPrimary"
             android:layout_marginBottom="8dp"/>
@@ -90,7 +90,7 @@
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Esporta DB in Download/"
+            android:text="@string/root_btn_export_db"
             app:icon="@drawable/ic_file_download" />
 
         <com.google.android.material.button.MaterialButton
@@ -98,7 +98,7 @@
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Esporta Logcat in Download/"
+            android:text="@string/root_btn_export_logcat"
             app:icon="@drawable/ic_settings" />
 
         <View
@@ -111,7 +111,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Esegui Comando Shell"
+            android:text="@string/root_section_shell"
             android:textAppearance="?attr/textAppearanceLabelMedium"
             android:textColor="?attr/colorPrimary"
             android:layout_marginBottom="8dp"/>
@@ -120,7 +120,7 @@
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="es. ls -l /data/data/">
+            android:hint="@string/root_shell_hint">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/edit_custom_command"
@@ -135,14 +135,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Esegui come Root"
+            android:text="@string/root_btn_exec"
             app:icon="@drawable/ic_send" />
 
         <!-- Area Output -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Output Terminale:"
+            android:text="@string/root_terminal_output"
             android:layout_marginTop="16dp"
             android:textAppearance="?attr/textAppearanceLabelMedium"/>
 
@@ -165,7 +165,7 @@
                     android:textColor="#00FF00"
                     android:fontFamily="monospace"
                     android:textSize="12sp"
-                    android:text="Ready..."/>
+                    android:text="@string/root_terminal_ready"/>
             </ScrollView>
         </com.google.android.material.card.MaterialCardView>
 

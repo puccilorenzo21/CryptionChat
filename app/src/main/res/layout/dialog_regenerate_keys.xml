@@ -44,7 +44,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Rigenera Chiavi E2EE"
+                    android:text="@string/regen_keys_title"
                     android:textAppearance="?attr/textAppearanceHeadlineSmall"
                     android:textColor="?attr/colorOnSurface"
                     android:textStyle="bold" />
@@ -53,7 +53,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="Tocca una delle due schede per eseguire l'operazione."
+                    android:text="@string/regen_keys_subtitle"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
             </LinearLayout>
@@ -99,7 +99,7 @@
                             android:layout_height="wrap_content"
                             android:paddingHorizontal="12dp"
                             android:paddingVertical="4dp"
-                            android:text="Consigliato"
+                            android:text="@string/badge_recommended"
                             android:textAppearance="?attr/textAppearanceLabelSmall"
                             android:textColor="?attr/colorOnPrimaryContainer"
                             android:textStyle="bold" />
@@ -121,7 +121,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:text="Ruota PreKey (Signed &amp; One-Time)"
+                    android:text="@string/regen_rotate_prekey_title"
                     android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textColor="?attr/colorOnSurface"
                     android:textStyle="bold" />
@@ -131,7 +131,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:lineSpacingExtra="2dp"
-                    android:text="• Genera una nuova Signed PreKey e ricarica il pool OPK sul server\n• Mantiene identico il tuo Safety Number con tutti i contatti\n• Nessun blocco o avviso di sicurezza nelle chat aperte"
+                    android:text="@string/regen_rotate_prekey_desc"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
@@ -141,7 +141,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
-                    android:text="Ruota PreKey ora" />
+                    android:text="@string/action_rotate_prekey_now" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -185,7 +185,7 @@
                             android:layout_height="wrap_content"
                             android:paddingHorizontal="12dp"
                             android:paddingVertical="4dp"
-                            android:text="Cambio Identità (Avanzato)"
+                            android:text="@string/regen_identity_badge"
                             android:textAppearance="?attr/textAppearanceLabelSmall"
                             android:textColor="?attr/colorOnErrorContainer"
                             android:textStyle="bold" />
@@ -207,7 +207,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:text="Rigenera Identity Key Completa"
+                    android:text="@string/regen_identity_title"
                     android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textColor="?attr/colorOnSurface"
                     android:textStyle="bold" />
@@ -217,7 +217,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:lineSpacingExtra="2dp"
-                    android:text="• Sostituisce Identity Key, PreKey e reimposta le sessioni attive\n• I contatti vedranno un avviso TOFU di cambio chiave e dovranno ri-verificare il Safety Number\n• I messaggi già decifrati sul dispositivo restano leggibili"
+                    android:text="@string/regen_identity_desc"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
@@ -227,7 +227,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
-                    android:text="Rigenera Identity Key"
+                    android:text="@string/action_regen_identity_key"
                     android:textColor="?attr/colorError"
                     app:strokeColor="?attr/colorError" />
             </LinearLayout>
@@ -238,6 +238,6 @@
             style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Annulla" />
+            android:text="@string/call_dialog_btn_cancel" />
     </LinearLayout>
 </LinearLayout>

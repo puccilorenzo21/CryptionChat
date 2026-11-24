@@ -44,7 +44,7 @@ object AIDialogHelper {
 
     fun showAIGeneratorDialog(
         activity: Activity,
-        buttonText: String = "Imposta come Sfondo",
+        buttonText: String? = null,
         onImageSelected: (Bitmap) -> Unit
     ) {
         val dialogView = LayoutInflater.from(activity).inflate(R.layout.dialog_ai_generator, null)
@@ -57,7 +57,7 @@ object AIDialogHelper {
         val previewImage = dialogView.findViewById<ImageView>(R.id.ai_preview_image)
         val btnSetBg = dialogView.findViewById<MaterialButton>(R.id.btn_set_generated_bg)
 
-        btnSetBg.text = buttonText
+        btnSetBg.text = buttonText ?: activity.getString(R.string.action_set_as_background)
 
         var lastGeneratedBitmap: Bitmap? = null
 
@@ -94,7 +94,7 @@ object AIDialogHelper {
         btnGenerate.setOnClickListener {
             val prompt = editPrompt.text.toString().trim()
             if (prompt.isBlank()) {
-                Toast.makeText(activity, "La descrizione è obbligatoria.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(activity, activity.getString(R.string.ai_prompt_required), Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -121,9 +121,9 @@ object AIDialogHelper {
                     }
                     is AIGenerationResult.Failure -> {
                         MaterialAlertDialogBuilder(activity)
-                            .setTitle("Generazione Fallita")
+                            .setTitle(activity.getString(R.string.ai_generation_failed_title))
                             .setMessage(result.message)
-                            .setPositiveButton("OK", null)
+                            .setPositiveButton(activity.getString(R.string.ok), null)
                             .show()
                     }
                 }
@@ -149,18 +149,18 @@ object AIDialogHelper {
         groupId: Int? = null,
         onBackgroundApplied: () -> Unit
     ) {
-        showAIGeneratorDialog(activity, "Imposta come Sfondo") { bitmap ->
+        showAIGeneratorDialog(activity, activity.getString(R.string.action_set_as_background)) { bitmap ->
             if (target == ChatBackgroundManager.TARGET_CHAT) {
                 if (ChatBackgroundManager.setCustomBackgroundFromBitmap(activity, bitmap, target, groupId)) {
-                    Toast.makeText(activity, "Sfondo chat aggiornato!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(activity, activity.getString(R.string.ai_chat_bg_updated), Toast.LENGTH_SHORT).show()
                     onBackgroundApplied()
                 } else {
-                    Toast.makeText(activity, "Errore salvataggio.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(activity, activity.getString(R.string.ai_save_error_short), Toast.LENGTH_SHORT).show()
                 }
             } else {
-                val options = arrayOf("Solo Schermata Home", "Solo Chat Globale", "Entrambi")
+                val options = arrayOf(activity.getString(R.string.ai_bg_opt_home_only), activity.getString(R.string.ai_bg_opt_chat_only), activity.getString(R.string.ai_bg_opt_both))
                 MaterialAlertDialogBuilder(activity)
-                    .setTitle("Destinazione Sfondo")
+                    .setTitle(activity.getString(R.string.ai_bg_dest_title))
                     .setItems(options) { _, which ->
                         val finalTarget = when (which) {
                             0 -> ChatBackgroundManager.TARGET_HOME
@@ -168,10 +168,10 @@ object AIDialogHelper {
                             else -> ChatBackgroundManager.TARGET_BOTH
                         }
                         if (ChatBackgroundManager.setCustomBackgroundFromBitmap(activity, bitmap, finalTarget)) {
-                            Toast.makeText(activity, "Sfondo applicato!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(activity, activity.getString(R.string.ai_bg_applied), Toast.LENGTH_SHORT).show()
                             onBackgroundApplied()
                         } else {
-                            Toast.makeText(activity, "Errore di salvataggio.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(activity, activity.getString(R.string.ai_save_error), Toast.LENGTH_SHORT).show()
                         }
                     }
                     .show()
@@ -240,14 +240,14 @@ object AIDialogHelper {
         infoLayout.addView(textLayout)
 
         val accountNameText = TextView(activity).apply {
-            text = "Nome Account: Caricamento..."
+            text = activity.getString(R.string.ai_account_loading)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
             setTypeface(null, android.graphics.Typeface.BOLD)
         }
         textLayout.addView(accountNameText)
 
         val balanceText = TextView(activity).apply {
-            text = "Saldo Totale: Caricamento..."
+            text = activity.getString(R.string.ai_balance_loading)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
             setTextColor(ContextCompat.getColor(activity, R.color.primary_light))
         }
@@ -270,7 +270,7 @@ object AIDialogHelper {
         textLayout.addView(paidBalanceText)
 
         val usageText = TextView(activity).apply {
-            text = "Uso questa chiave: Caricamento..."
+            text = activity.getString(R.string.ai_usage_loading)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
             setTextColor(ContextCompat.getColor(activity, R.color.outline_dark))
             val params = LinearLayout.LayoutParams(
@@ -287,11 +287,11 @@ object AIDialogHelper {
 
         val keyInputLayout = TextInputLayout(activity).apply {
             hint = "Pollinations API Key"
-            helperText = "Inserisci una chiave per abilitare i modelli PRO"
+            helperText = activity.getString(R.string.ai_api_key_helper)
             boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
             endIconMode = TextInputLayout.END_ICON_CUSTOM
             endIconDrawable = ContextCompat.getDrawable(activity, R.drawable.ic_check_circle)
-            setEndIconContentDescription("Verifica Chiave")
+            setEndIconContentDescription(activity.getString(R.string.ai_verify_key))
             val params = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -308,7 +308,7 @@ object AIDialogHelper {
         linearLayout.addView(keyInputLayout)
 
         val linkText = TextView(activity).apply {
-            text = "Crea una chiave API su enter.pollinations.ai"
+            text = activity.getString(R.string.ai_create_key_link)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
             setTextColor(ContextCompat.getColor(activity, R.color.primary_light))
             paintFlags = paintFlags or Paint.UNDERLINE_TEXT_FLAG
@@ -326,7 +326,7 @@ object AIDialogHelper {
                     val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://enter.pollinations.ai/#keys"))
                     activity.startActivity(browserIntent)
                 } catch (e: Exception) {
-                    Toast.makeText(activity, "Impossibile aprire il browser.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(activity, activity.getString(R.string.error_open_browser), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -334,11 +334,11 @@ object AIDialogHelper {
 
         fun loadAccountStats(apiKey: String) {
             infoCard.visibility = View.VISIBLE
-            accountNameText.text = "Aggiornamento in corso..."
-            balanceText.text = "Saldo Totale: ..."
+            accountNameText.text = activity.getString(R.string.ai_updating)
+            balanceText.text = activity.getString(R.string.ai_balance_dots)
             questBalanceText.text = "Quest: ..."
             paidBalanceText.text = "Paid: ..."
-            usageText.text = "Uso questa chiave: ..."
+            usageText.text = activity.getString(R.string.ai_usage_dots)
             avatarImage.setImageResource(R.drawable.ic_person)
 
             fetchPollinationsAccountInfo(activity, apiKey) { name: String?, total: Double?, allowance: Double?, pack: Double?, imageUrl: String?, usageCount: Int, totalCost: Double ->
@@ -346,24 +346,24 @@ object AIDialogHelper {
                     accountNameText.text = name
 
                     if (allowance != null || pack != null) {
-                        balanceText.text = "Saldo Totale: ${if (total != null && total >= 0) String.format(Locale.getDefault(), "%.4f", total) else "N/D"} Pollen"
+                        balanceText.text = activity.getString(R.string.ai_total_balance_fmt, if (total != null && total >= 0) String.format(Locale.getDefault(), "%.4f", total) else activity.getString(R.string.na_label))
                         questBalanceText.text = "Quest: ${if (allowance != null && allowance >= 0) String.format(Locale.getDefault(), "%.4f", allowance) else "0.0000"} Pollen"
                         questBalanceText.visibility = View.VISIBLE
                         paidBalanceText.text = "Paid: ${if (pack != null && pack >= 0) String.format(Locale.getDefault(), "%.4f", pack) else "0.0000"} Pollen"
                         paidBalanceText.visibility = View.VISIBLE
                     } else {
-                        balanceText.text = "Limite Chiave: ${if (total != null && total >= 0) String.format(Locale.getDefault(), "%.2f", total) else "N/D"} Pollen"
+                        balanceText.text = activity.getString(R.string.ai_key_limit_fmt, if (total != null && total >= 0) String.format(Locale.getDefault(), "%.2f", total) else activity.getString(R.string.na_label))
                         questBalanceText.visibility = View.GONE
                         paidBalanceText.visibility = View.GONE
                     }
 
-                    usageText.text = "Uso questa chiave: \$${String.format(Locale.getDefault(), "%.4f", totalCost)} (${usageCount} gen.)"
+                    usageText.text = activity.getString(R.string.ai_key_usage_fmt, String.format(Locale.getDefault(), "%.4f", totalCost), usageCount)
                     if (!imageUrl.isNullOrBlank()) {
                         Glide.with(activity).load(imageUrl).placeholder(R.drawable.ic_person).into(avatarImage)
                     }
                 } else {
-                    accountNameText.text = "Chiave Non Valida"
-                    balanceText.text = "Verifica i permessi della chiave"
+                    accountNameText.text = activity.getString(R.string.ai_invalid_key)
+                    balanceText.text = activity.getString(R.string.ai_check_key_perms)
                     questBalanceText.visibility = View.GONE
                     paidBalanceText.visibility = View.GONE
                     usageText.text = ""
@@ -377,7 +377,7 @@ object AIDialogHelper {
                 loadAccountStats(enteredKey)
             } else {
                 infoCard.visibility = View.GONE
-                Toast.makeText(activity, "Inserisci prima una chiave API", Toast.LENGTH_SHORT).show()
+                Toast.makeText(activity, activity.getString(R.string.ai_enter_key_first), Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -386,7 +386,7 @@ object AIDialogHelper {
         }
 
         val modelLabel = TextView(activity).apply {
-            text = "Seleziona Modello di Generazione:"
+            text = activity.getString(R.string.ai_select_model)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
             setTypeface(null, android.graphics.Typeface.BOLD)
             val params = LinearLayout.LayoutParams(
@@ -401,14 +401,14 @@ object AIDialogHelper {
         linearLayout.addView(modelLabel)
 
         val models = listOf(
-            "flux_free" to "Flux (Gratuito, senza limiti)",
-            "kontext" to "Kontext (Pro - richiede API Key)",
-            "gptimage" to "GPT Image (Pro - richiede API Key)",
-            "gptimage-large" to "GPT Image Large (Pro - richiede API Key)",
-            "zimage" to "ZImage (Pro - richiede API Key)",
-            "klein" to "Klein (Pro - richiede API Key)",
-            "nova-canvas" to "Nova Canvas (Pro - richiede API Key)",
-            "flux" to "Flux Pro (Pro - richiede API Key)"
+            "flux_free" to activity.getString(R.string.ai_model_flux_free),
+            "kontext" to activity.getString(R.string.ai_model_kontext),
+            "gptimage" to activity.getString(R.string.ai_model_gptimage),
+            "gptimage-large" to activity.getString(R.string.ai_model_gptimage_large),
+            "zimage" to activity.getString(R.string.ai_model_zimage),
+            "klein" to activity.getString(R.string.ai_model_klein),
+            "nova-canvas" to activity.getString(R.string.ai_model_nova_canvas),
+            "flux" to activity.getString(R.string.ai_model_flux_pro)
         )
 
         val radioGroup = android.widget.RadioGroup(activity).apply {
@@ -429,9 +429,9 @@ object AIDialogHelper {
         scrollView.addView(linearLayout)
 
         MaterialAlertDialogBuilder(activity)
-            .setTitle("Configura Generatore")
+            .setTitle(activity.getString(R.string.ai_configure_generator_title))
             .setView(scrollView)
-            .setPositiveButton("Salva") { _, _ ->
+            .setPositiveButton(activity.getString(R.string.action_save)) { _, _ ->
                 val newKey = keyEditText.text.toString().trim()
                 val checkedId = radioGroup.checkedRadioButtonId
                 val checkedRadioButton = radioGroup.findViewById<View>(checkedId) as? com.google.android.material.radiobutton.MaterialRadioButton
@@ -444,12 +444,12 @@ object AIDialogHelper {
                 }
 
                 if (newModel == "flux_free" || newKey.isBlank()) {
-                    Toast.makeText(activity, "Impostato modello Flux gratuito ed illimitato.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(activity, activity.getString(R.string.ai_flux_free_set), Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(activity, "Salvato modello PRO: $newModel", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(activity, activity.getString(R.string.ai_pro_model_saved, newModel), Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton("Annulla", null)
+            .setNegativeButton(activity.getString(R.string.call_dialog_btn_cancel), null)
             .show()
     }
 

@@ -20,7 +20,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Sticker"
+            android:text="@string/cd_sticker"
             android:textAppearance="?attr/textAppearanceTitleLarge"
             android:textStyle="bold" />
 
@@ -33,7 +33,7 @@
             android:rotation="180"
             app:icon="@drawable/ic_arrow_down"
             app:iconTint="?attr/colorPrimary"
-            android:contentDescription="Scorri Tutto Su" />
+            android:contentDescription="@string/cd_scroll_top" />
 
         <!-- Pulsante Scorri Tutto Giù -->
         <com.google.android.material.button.MaterialButton
@@ -43,7 +43,7 @@
             android:layout_height="40dp"
             app:icon="@drawable/ic_arrow_down"
             app:iconTint="?attr/colorPrimary"
-            android:contentDescription="Scorri Tutto Giù" />
+            android:contentDescription="@string/cd_scroll_bottom_list" />
 
         <!-- Pulsante Ordinamento / Filtro -->
         <com.google.android.material.button.MaterialButton
@@ -53,7 +53,7 @@
             android:layout_height="40dp"
             app:icon="@drawable/ic_settings"
             app:iconTint="?attr/colorPrimary"
-            android:contentDescription="Ordina / Filtra Sticker" />
+            android:contentDescription="@string/cd_sort_filter_stickers" />
 
         <!-- Pulsante Esporta ZIP -->
         <com.google.android.material.button.MaterialButton
@@ -63,7 +63,7 @@
             android:layout_height="40dp"
             app:icon="@drawable/ic_file_download"
             app:iconTint="?attr/colorPrimary"
-            android:contentDescription="Esporta ZIP Sticker" />
+            android:contentDescription="@string/cd_export_stickers" />
 
         <!-- Pulsante Importa ZIP -->
         <com.google.android.material.button.MaterialButton
@@ -73,7 +73,7 @@
             android:layout_height="40dp"
             app:icon="@drawable/ic_attach_file"
             app:iconTint="?attr/colorPrimary"
-            android:contentDescription="Importa ZIP Sticker" />
+            android:contentDescription="@string/cd_import_stickers" />
 
         <!-- Pulsante Elimina Tutti gli Sticker -->
         <com.google.android.material.button.MaterialButton
@@ -83,7 +83,7 @@
             android:layout_height="40dp"
             app:icon="@drawable/ic_delete_sweep"
             app:iconTint="?attr/colorError"
-            android:contentDescription="Elimina Tutti gli Sticker" />
+            android:contentDescription="@string/cd_delete_all_stickers" />
 
     </LinearLayout>
 
@@ -108,7 +108,7 @@
         android:layout_width="match_parent"
         android:layout_height="150dp"
         android:gravity="center"
-        android:text="Nessuno sticker trovato."
+        android:text="@string/no_stickers_found"
         android:textAppearance="?attr/textAppearanceBodyMedium"
         android:textColor="?attr/colorOnSurfaceVariant"
         android:visibility="gone" />

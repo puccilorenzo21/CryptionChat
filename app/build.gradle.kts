@@ -40,7 +40,7 @@ android {
         minSdk = 29
         targetSdk = 34
         versionCode = 78
-        versionName = "78.1 (beta)"
+        versionName = "78.6 (beta)"
         multiDexEnabled = true
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -108,7 +108,7 @@ android {
 
     packaging {
         jniLibs {
-            useLegacyPackaging = true
+            useLegacyPackaging = false
         }
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -164,7 +164,7 @@ dependencies {
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
     kapt("androidx.room:room-compiler:$roomVersion")
-    implementation("net.zetetic:sqlcipher-android:4.5.6@aar")
+    implementation("net.zetetic:sqlcipher-android:4.9.0@aar")
     implementation("androidx.sqlite:sqlite-ktx:2.4.0")
 
     // Glide

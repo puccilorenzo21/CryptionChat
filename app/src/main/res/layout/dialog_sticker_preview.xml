@@ -15,7 +15,7 @@
         android:layout_height="200dp"
         android:scaleType="fitCenter"
         android:layout_marginBottom="24dp"
-        android:contentDescription="Anteprima Sticker Ingrandito" />
+        android:contentDescription="@string/cd_sticker_preview_zoom" />
 
     <!-- Pulsante Invia -->
     <com.google.android.material.button.MaterialButton
@@ -23,7 +23,7 @@
         style="@style/Widget.Material3.Button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Invia Sticker"
+        android:text="@string/action_send_sticker"
         app:icon="@drawable/ic_send"
         android:layout_marginBottom="8dp" />
 
@@ -33,7 +33,7 @@
         style="@style/Widget.Material3.Button.TonalButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Aggiungi ai Preferiti"
+        android:text="@string/action_add_to_favorites"
         app:icon="@drawable/ic_check"
         android:layout_marginBottom="8dp" />
 
@@ -43,7 +43,7 @@
         style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Elimina Sticker"
+        android:text="@string/action_delete_sticker"
         android:textColor="?attr/colorError"
         app:strokeColor="?attr/colorError"
         app:icon="@drawable/ic_delete_sweep"

@@ -35,7 +35,7 @@ object ServiceScheduler {
             if (channel != null && channel.importance == NotificationManager.IMPORTANCE_NONE) {
                 Log.e("ServiceScheduler", "Impossibile avviare NotificationService: il canale è disabilitato.")
                 Handler(Looper.getMainLooper()).post {
-                    Toast.makeText(context.applicationContext, "Le notifiche non funzioneranno. Riattiva il canale 'Stato del Servizio'.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context.applicationContext, context.getString(R.string.service_channel_disabled_toast), Toast.LENGTH_LONG).show()
                 }
                 return
             }

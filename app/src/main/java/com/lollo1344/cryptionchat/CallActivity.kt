@@ -46,7 +46,7 @@ class CallActivity : BaseActivity(), CallManager.CallStateListener {
     private var otherUserId: Int = -1
     private var intentGroupKey: String? = null
     private var intentGroupIv: String? = null
-    private var intentOtherUserName: String = "Utente"
+    private var intentOtherUserName: String = ""
     private var intentProfilePic: String? = null
 
     private var hasPlayedConnectionFeedback = false
@@ -113,7 +113,7 @@ class CallActivity : BaseActivity(), CallManager.CallStateListener {
         intentGroupId = intent.getIntExtra("GROUP_ID", -1)
         isIncoming = intent.getBooleanExtra("IS_INCOMING", false)
         otherUserId = intent.getIntExtra("OTHER_USER_ID", -1)
-        intentOtherUserName = intent.getStringExtra("OTHER_USERNAME") ?: "Utente"
+        intentOtherUserName = intent.getStringExtra("OTHER_USERNAME") ?: getString(R.string.default_user_label)
         intentProfilePic = intent.getStringExtra("PROFILE_PIC")
 
         val isZk = prefs.getBoolean("is_zk_$intentGroupId", false)
@@ -138,7 +138,7 @@ class CallActivity : BaseActivity(), CallManager.CallStateListener {
                 val isV2Chat = prefs.getInt("e2ee_version_$intentGroupId", 1) >= 2
                 if (isV2Chat && myUserId > 0 && otherUserId > 0) {
                     isInitializingCallKeys = true
-                    binding.textStatus.text = "Derivazione chiavi E2EE..."
+                    binding.textStatus.text = getString(R.string.call_status_deriving_keys)
                     lifecycleScope.launch {
                         val callKeys = withContext(Dispatchers.IO) {
                             E2eeSessionOrchestrator.deriveZeroKnowledgeCallKeysSync(this@CallActivity, myUserId, otherUserId)
@@ -321,11 +321,13 @@ class CallActivity : BaseActivity(), CallManager.CallStateListener {
         runOnUiThread {
             Log.d(TAG, "Stato chiamata ricevuto: $status")
 
-            if (status.equals("Connesso", ignoreCase = true) && !isFinishing) {
+            val isConnected = status.equals("Connesso", ignoreCase = true) || status.equals("Connected", ignoreCase = true) || status.equals(getString(R.string.call_status_connected), ignoreCase = true)
+            val isCallActiveStatus = isConnected || status.equals("Chiamata attiva", ignoreCase = true) || status.equals("Active call", ignoreCase = true) || status.equals(getString(R.string.call_status_active), ignoreCase = true)
+            if (isConnected && !isFinishing) {
                 playConnectionFeedback()
             }
 
-            if (status.equals("Connesso", ignoreCase = true) || status.equals("Chiamata attiva", ignoreCase = true)) {
+            if (isCallActiveStatus) {
                 binding.textStatus.visibility = View.GONE
                 binding.activeCallInfoLayout.visibility = View.VISIBLE
             } else {
@@ -364,7 +366,7 @@ class CallActivity : BaseActivity(), CallManager.CallStateListener {
         runOnUiThread {
             stopRinging()
             setOngoingCallNotification(false)
-            Toast.makeText(this, "Chiamata terminata", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.call_ended_toast), Toast.LENGTH_SHORT).show()
             finish()
         }
     }
@@ -385,7 +387,7 @@ class CallActivity : BaseActivity(), CallManager.CallStateListener {
 
     private fun fetchGroupKeysAndStart() {
         isInitializingCallKeys = true
-        binding.textStatus.text = "Recupero chiavi..."
+        binding.textStatus.text = getString(R.string.call_status_fetching_keys)
         val prefs = SecurePrefs.get(this)
         val myUserId = prefs.getInt("user_id", -1)
 
@@ -414,7 +416,7 @@ class CallActivity : BaseActivity(), CallManager.CallStateListener {
                                 .apply()
                             checkPermissionsAndStart()
                         } else if (myUserId > 0 && otherUserId > 0) {
-                            binding.textStatus.text = "Derivazione chiavi E2EE..."
+                            binding.textStatus.text = getString(R.string.call_status_deriving_keys)
                             lifecycleScope.launch {
                                 val callKeys = withContext(Dispatchers.IO) {
                                     E2eeSessionOrchestrator.deriveZeroKnowledgeCallKeysSync(this@CallActivity, myUserId, otherUserId)
@@ -426,7 +428,7 @@ class CallActivity : BaseActivity(), CallManager.CallStateListener {
                                     intentGroupIv = callKeys.second
                                     checkPermissionsAndStart()
                                 } else {
-                                    Toast.makeText(this@CallActivity, "Impossibile derivare le chiavi E2EE per la chiamata.", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(this@CallActivity, getString(R.string.call_derive_keys_failed), Toast.LENGTH_SHORT).show()
                                     finish()
                                 }
                             }
@@ -482,7 +484,7 @@ class CallActivity : BaseActivity(), CallManager.CallStateListener {
         if (isGranted) {
             startCallLogic()
         } else {
-            Toast.makeText(this, "Permesso microfono negato.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.call_mic_permission_denied), Toast.LENGTH_SHORT).show()
             finish()
         }
     }

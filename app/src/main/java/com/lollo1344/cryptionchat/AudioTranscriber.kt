@@ -164,7 +164,7 @@ object AudioTranscriber {
         onError: (String) -> Unit
     ) {
         val type = getModelType(context)
-        val targetDir = context.getExternalFilesDir(null) ?: run { onError("Storage esterno non accessibile."); return }
+        val targetDir = context.getExternalFilesDir(null) ?: run { onError(context.getString(R.string.transcribe_ext_storage_error)); return }
 
         Thread {
             try {
@@ -201,7 +201,7 @@ object AudioTranscriber {
                     if (url != null && fileName != null) {
                         downloadSpecific(url, fileName, false, 0, 100)
                     } else {
-                        throw IOException("Configurazione modello non trovata per tipo: $type")
+                        throw IOException(context.getString(R.string.transcribe_model_config_missing, type))
                     }
                 }
 
@@ -209,7 +209,7 @@ object AudioTranscriber {
 
             } catch (e: Exception) {
                 Log.e(TAG, "Errore durante il download/installazione", e)
-                onError(e.message ?: "Errore sconosciuto durante il download.")
+                onError(e.message ?: context.getString(R.string.transcribe_download_unknown_error))
             }
         }.start()
     }
@@ -219,9 +219,9 @@ object AudioTranscriber {
         val request = Request.Builder().url(url).build()
         val response = client.newCall(request).execute()
 
-        if (!response.isSuccessful) throw IOException("Errore HTTP: ${response.code}")
+        if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
 
-        val body = response.body ?: throw IOException("Body vuoto.")
+        val body = response.body ?: throw IOException("Empty body.")
         val contentLength = body.contentLength()
 
         body.byteStream().use { input ->
@@ -275,7 +275,7 @@ object AudioTranscriber {
 
             val latch = CountDownLatch(2)
 
-            onProgress(10, "Avvio modalità ibrida (Vosk + Whisper)...")
+            onProgress(10, context.getString(R.string.transcribe_hybrid_starting))
 
             transcribeWithVosk(context, audioFile,
                 onProgress = { p, s -> onProgress(p / 2, "Vosk: $s") },
@@ -289,16 +289,16 @@ object AudioTranscriber {
                 onError = { err -> whisperError = err; latch.countDown() }
             )
 
-            try { latch.await() } catch (e: InterruptedException) { onError("Interrotto."); return@Thread }
+            try { latch.await() } catch (e: InterruptedException) { onError(context.getString(R.string.transcribe_interrupted)); return@Thread }
 
-            onProgress(100, "Elaborazione completata!")
+            onProgress(100, context.getString(R.string.transcribe_processing_done))
 
             val sb = StringBuilder()
             sb.append("🗣️ VOSK (Offline Fast):\n")
-            if (voskError != null) sb.append("⚠️ Errore: $voskError\n") else sb.append("$voskResult\n")
+            if (voskError != null) sb.append(context.getString(R.string.transcribe_error_line, voskError)) else sb.append("$voskResult\n")
             sb.append("\n-------------------------\n")
             sb.append("🧠 WHISPER (Base):\n")
-            if (whisperError != null) sb.append("⚠️ Errore: $whisperError\n") else sb.append("$whisperResult\n")
+            if (whisperError != null) sb.append(context.getString(R.string.transcribe_error_line, whisperError)) else sb.append("$whisperResult\n")
 
             onResult(sb.toString())
         }.start()
@@ -313,31 +313,31 @@ object AudioTranscriber {
         onError: (String) -> Unit
     ) {
         if (!WhisperLib.isAvailable()) {
-            onError("Libreria nativa Whisper non caricata.")
+            onError(context.getString(R.string.transcribe_whisper_lib_missing))
             return
         }
 
         val fileName = getCurrentWhisperFileName(type)
         if (fileName == null) {
-            onError("Tipo modello non valido.")
+            onError(context.getString(R.string.transcribe_invalid_model_type))
             return
         }
 
         val modelFile = File(context.getExternalFilesDir(null), fileName)
         if (!modelFile.exists()) {
-            onError("Modello non trovato: $fileName. Scaricalo dalle impostazioni.")
+            onError(context.getString(R.string.transcribe_model_not_found, fileName))
             return
         }
 
         Thread {
             try {
-                onProgress(15, "Decodifica traccia audio...")
+                onProgress(15, context.getString(R.string.transcribe_decoding_track))
                 val (pcmData, sourceSampleRate) = decodeAudioToPCM(audioFile) ?: run {
-                    onError("Impossibile decodificare l'audio.")
+                    onError(context.getString(R.string.transcribe_decode_failed))
                     return@Thread
                 }
 
-                onProgress(35, "Ricampionamento 16kHz...")
+                onProgress(35, context.getString(R.string.transcribe_resampling))
                 val rawFloats = shortBytesToFloat(pcmData)
                 val resampledFloats = if (sourceSampleRate != 16000) {
                     resampleTo16k(rawFloats, sourceSampleRate)
@@ -345,28 +345,28 @@ object AudioTranscriber {
                     rawFloats
                 }
 
-                onProgress(55, "Inizializzazione Whisper AI...")
+                onProgress(55, context.getString(R.string.transcribe_init_whisper))
                 val contextPtr = WhisperLib.init(modelFile.absolutePath)
                 if (contextPtr == 0L) {
-                    onError("Inizializzazione Whisper fallita (Memoria insufficiente o file corrotto).")
+                    onError(context.getString(R.string.transcribe_init_whisper_failed))
                     return@Thread
                 }
 
-                onProgress(75, "Elaborazione neurale in corso...")
+                onProgress(75, context.getString(R.string.transcribe_neural_processing))
                 val text = WhisperLib.transcribe(contextPtr, resampledFloats)
                 WhisperLib.free(contextPtr)
 
-                onProgress(100, "Trascrizione completata!")
+                onProgress(100, context.getString(R.string.transcribe_done))
                 val cleanText = text.trim()
-                if (cleanText.isNotEmpty() && !cleanText.equals("[Musica]", ignoreCase = true)) {
+                if (cleanText.isNotEmpty() && !cleanText.equals("[Musica]", ignoreCase = true) && !cleanText.equals("[Music]", ignoreCase = true)) {
                     onResult(cleanText)
                 } else {
-                    onResult("(Nessun testo rilevato)")
+                    onResult(context.getString(R.string.transcribe_no_text))
                 }
 
             } catch (e: Exception) {
                 Log.e(TAG, "Errore Whisper", e)
-                onError("Errore trascrizione: ${e.message}")
+                onError(context.getString(R.string.transcribe_error_msg, e.message ?: ""))
             }
         }.start()
     }
@@ -379,17 +379,17 @@ object AudioTranscriber {
         onError: (String) -> Unit
     ) {
         Thread {
-            onProgress(10, "Caricamento modello Vosk...")
+            onProgress(10, context.getString(R.string.transcribe_loading_vosk))
             val model = getVoskModel(context)
             if (model == null) {
-                onError("Modello Vosk non trovato.")
+                onError(context.getString(R.string.transcribe_vosk_not_found))
                 return@Thread
             }
 
             try {
-                onProgress(25, "Decodifica audio...")
+                onProgress(25, context.getString(R.string.transcribe_decoding_audio))
                 val (pcmData, sampleRate) = decodeAudioToPCM(audioFile) ?: run {
-                    onError("Impossibile decodificare l'audio.")
+                    onError(context.getString(R.string.transcribe_decode_failed))
                     return@Thread
                 }
 
@@ -400,26 +400,26 @@ object AudioTranscriber {
                 val totalBytes = pcmData.size.coerceAtLeast(1)
                 var processedBytes = 0
 
-                onProgress(40, "Analisi vocale in corso...")
+                onProgress(40, context.getString(R.string.transcribe_vosk_analyzing))
 
                 while (bis.read(buffer).also { bytesRead = it } != -1) {
                     recognizer.acceptWaveForm(buffer, bytesRead)
                     processedBytes += bytesRead
                     val percent = (40 + (processedBytes.toDouble() / totalBytes * 50)).toInt().coerceIn(40, 90)
-                    onProgress(percent, "Analisi vocale in corso... $percent%")
+                    onProgress(percent, context.getString(R.string.transcribe_vosk_analyzing_pct, percent))
                 }
 
-                onProgress(95, "Elaborazione testo...")
+                onProgress(95, context.getString(R.string.transcribe_processing_text))
                 val finalResultJson = recognizer.finalResult
                 val text = parseVoskJson(finalResultJson)
 
-                onProgress(100, "Completato!")
-                if (text.isNotBlank()) onResult(text) else onResult("(Nessun parlato rilevato)")
+                onProgress(100, context.getString(R.string.transcribe_completed_short))
+                if (text.isNotBlank()) onResult(text) else onResult(context.getString(R.string.transcribe_no_speech))
                 recognizer.close()
 
             } catch (e: Exception) {
                 Log.e(TAG, "Errore Vosk", e)
-                onError("Errore trascrizione Vosk: ${e.message}")
+                onError(context.getString(R.string.transcribe_vosk_error_msg, e.message ?: ""))
             }
         }.start()
     }

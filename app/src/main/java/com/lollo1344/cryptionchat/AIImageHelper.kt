@@ -33,7 +33,7 @@ object AIImageHelper {
             Log.d(TAG, "Avvio generazione immagine. Prompt originale: $prompt")
 
             // 1. TRADUZIONE AUTOMATICA DALL'ITALIANO ALL'INGLESE
-            val englishPrompt = translateToEnglish(prompt)
+            val englishPrompt = if (java.util.Locale.getDefault().language.equals("it", ignoreCase = true)) translateToEnglish(prompt) else prompt
             Log.d(TAG, "Prompt tradotto in inglese: $englishPrompt")
 
             // 2. MIGLIORAMENTO AUTOMATICO (Prompt Enhancement stile Gemini)
@@ -78,7 +78,7 @@ object AIImageHelper {
                 val bodyString = response.body?.string() ?: ""
                 Log.e(TAG, "Errore API Immagini: HTTP $code. Response: $bodyString")
 
-                var serverErrorMessage = "Nessun messaggio dal server."
+                var serverErrorMessage = context.getString(R.string.ai_no_server_message)
                 try {
                     val json = JSONObject(bodyString)
                     val errorObj = json.optJSONObject("error")
@@ -91,28 +91,28 @@ object AIImageHelper {
                 }
 
                 val userFriendlyMessage = when (code) {
-                    401 -> "Chiave API non valida o non autorizzata.\nVerifica la chiave inserita nelle impostazioni della generazione."
-                    402 -> "Crediti insufficienti nel portafoglio Pollinations!\n\n$serverErrorMessage\n\nPuoi ricaricare su enter.pollinations.ai o reimpostare il modello Flux Gratuito ed illimitato nelle impostazioni."
-                    else -> "Errore del server: $serverErrorMessage (HTTP $code)"
+                    401 -> context.getString(R.string.ai_error_401)
+                    402 -> context.getString(R.string.ai_error_402, serverErrorMessage)
+                    else -> context.getString(R.string.ai_error_server_http, serverErrorMessage, code)
                 }
                 return@withContext AIGenerationResult.Failure(userFriendlyMessage)
             }
 
             val inputStream = response.body?.byteStream()
             if (inputStream == null) {
-                return@withContext AIGenerationResult.Failure("Corpo della risposta vuoto dal server.")
+                return@withContext AIGenerationResult.Failure(context.getString(R.string.ai_error_empty_body))
             }
 
             val bitmap = BitmapFactory.decodeStream(inputStream)
             if (bitmap != null) {
                 return@withContext AIGenerationResult.Success(bitmap)
             } else {
-                return@withContext AIGenerationResult.Failure("Impossibile decodificare l'immagine scaricata.")
+                return@withContext AIGenerationResult.Failure(context.getString(R.string.ai_error_decode_image))
             }
 
         } catch (e: Exception) {
             Log.e(TAG, "Eccezione durante la generazione dell'immagine", e)
-            return@withContext AIGenerationResult.Failure("Errore di rete durante il contatto con il server: ${e.localizedMessage ?: "connessione assente"}")
+            return@withContext AIGenerationResult.Failure(context.getString(R.string.ai_error_network_contact, e.localizedMessage ?: context.getString(R.string.ai_error_no_connection)))
         }
     }
 

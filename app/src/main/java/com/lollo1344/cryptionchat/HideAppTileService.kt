@@ -68,10 +68,10 @@ class HideAppTileService : TileService() {
 
         if (isHidden) {
             tile.state = Tile.STATE_ACTIVE
-            tile.label = "App Nascosta"
+            tile.label = getString(R.string.hide_app_tile_hidden)
         } else {
             tile.state = Tile.STATE_INACTIVE
-            tile.label = "Nascondi App"
+            tile.label = getString(R.string.hide_app_tile_label)
         }
         tile.updateTile()
     }

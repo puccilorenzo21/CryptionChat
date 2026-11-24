@@ -35,7 +35,7 @@ class LoginActivity : BaseActivity() {
             }
 
             if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Email e password sono obbligatori", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.login_email_password_required), Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -62,7 +62,7 @@ class LoginActivity : BaseActivity() {
                 if (response.isSuccessful && loginResponse?.status == "success") {
                     val userData = loginResponse.data
                     if (userData != null) {
-                        Toast.makeText(this@LoginActivity, "Login effettuato con successo", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@LoginActivity, getString(R.string.login_success), Toast.LENGTH_SHORT).show()
 
                         val securePrefs = SecurePrefs.get(this@LoginActivity)
                         SessionLifecycleHelper.prepareForAuthenticatedUser(securePrefs, userData.userId) {
@@ -104,15 +104,15 @@ class LoginActivity : BaseActivity() {
                         finish()
 
                     } else {
-                        Toast.makeText(this@LoginActivity, "Errore: Dati utente non ricevuti", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@LoginActivity, getString(R.string.login_user_data_missing), Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    Toast.makeText(this@LoginActivity, "Errore: ${loginResponse?.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@LoginActivity, getString(R.string.error_prefix, loginResponse?.message ?: ""), Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
-                Toast.makeText(this@LoginActivity, "Errore di rete: ${t.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@LoginActivity, getString(R.string.error_network_msg, t.message ?: ""), Toast.LENGTH_LONG).show()
             }
         })
     }

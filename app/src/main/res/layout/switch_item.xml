@@ -10,12 +10,12 @@
     android:clickable="true"
     android:focusable="true"
     android:background="?attr/selectableItemBackgroundBorderless"
-    android:contentDescription="Attiva o disattiva l'eliminazione automatica dei messaggi">
+    android:contentDescription="@string/cd_toggle_auto_delete">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Auto-Delete"
+        android:text="@string/label_auto_delete"
         android:textAppearance="?attr/textAppearanceLabelLarge"
         android:textColor="?attr/colorOnSurface"
         android:layout_marginEnd="8dp"/>

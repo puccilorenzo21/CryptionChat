@@ -212,10 +212,10 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
     private val pickChatBackgroundLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         uri?.let {
             if (ChatBackgroundManager.setCustomBackground(this, it, ChatBackgroundManager.TARGET_CHAT, groupId)) {
-                Toast.makeText(this, "Sfondo applicato a questa chat!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.chat_bg_applied_here), Toast.LENGTH_SHORT).show()
                 applyCurrentChatBackground()
             } else {
-                Toast.makeText(this, "Errore nel salvataggio.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.main_bg_save_error), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -241,9 +241,9 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         ActivityResultContracts.StartActivityForResult()
     ) {
         if (packageManager.canRequestPackageInstalls()) {
-            Toast.makeText(this, "Permesso concesso. Riprova l'aggiornamento.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.chat_perm_granted_retry_update), Toast.LENGTH_LONG).show()
         } else {
-            Toast.makeText(this, "Permesso di installazione non concesso.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.chat_perm_install_denied), Toast.LENGTH_LONG).show()
         }
     }
 
@@ -255,9 +255,9 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
 
     private val requestAudioPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         if (isGranted) {
-            Toast.makeText(this, "Permesso concesso. Tieni premuto per registrare.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.chat_perm_audio_granted), Toast.LENGTH_SHORT).show()
         } else {
-            Toast.makeText(this, "Permesso per registrare audio negato.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.chat_perm_audio_denied), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -265,7 +265,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         if (isGranted) {
             launchCamera()
         } else {
-            Toast.makeText(this, "Permesso per la fotocamera negato.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.chat_perm_camera_denied), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -276,7 +276,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         if (fineGranted || coarseGranted) {
             showLocationConfirmationDialog()
         } else {
-            Toast.makeText(this, "Permesso di posizione negato.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.chat_perm_location_denied), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -309,7 +309,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             }
         } else if (result.resultCode == UCrop.RESULT_ERROR) {
             val cropError = UCrop.getError(result.data!!)
-            Toast.makeText(this, "Errore ritaglio: ${cropError?.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.chat_crop_error, cropError?.message ?: ""), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -331,20 +331,20 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
     private val pickStickerZipLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         uri?.let { zipUri ->
             lifecycleScope.launch {
-                Toast.makeText(this@ChatActivity, "Importazione sticker in corso...", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@ChatActivity, getString(R.string.sticker_importing), Toast.LENGTH_SHORT).show()
                 val importedCount = StickerZipManager.importStickersFromZip(this@ChatActivity, zipUri)
                 if (importedCount > 0) {
-                    Toast.makeText(this@ChatActivity, "Importati $importedCount nuovi sticker!", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@ChatActivity, getString(R.string.sticker_imported_count, importedCount), Toast.LENGTH_LONG).show()
                     showStickerPickerDialog()
                 } else {
-                    Toast.makeText(this@ChatActivity, "Nessuno sticker WebP valido trovato nello ZIP.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ChatActivity, getString(R.string.sticker_none_valid_zip), Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
 
     private var commandPopup: androidx.appcompat.widget.ListPopupWindow? = null
-    private val commandDescriptions = listOf("/off (Spegni)", "/reboot (Riavvia)", "/uninstall (Disinstalla)")
+    private val commandDescriptions by lazy { listOf(getString(R.string.cmd_off_desc), getString(R.string.cmd_reboot_desc), getString(R.string.cmd_uninstall_desc)) }
     private val rawCommands = listOf("/off", "/reboot", "/uninstall")
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -388,7 +388,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         }
 
         if (groupId == -1 || userId == -1) {
-            Toast.makeText(this, "Errore: Dati utente o gruppo non validi", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.chat_invalid_user_or_group), Toast.LENGTH_SHORT).show()
             finish()
             return
         }
@@ -410,7 +410,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             setChatInputEnabled(true)
             forceLocalUIUpdate()
         } else {
-            setChatInputEnabled(false, "Caricamento chat...")
+            setChatInputEnabled(false, getString(R.string.chat_loading))
         }
 
         binding.closeReplyButton.setOnClickListener { clearReplyState() }
@@ -525,7 +525,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         binding.buttonCancelUpload.setOnClickListener {
             currentUploadTempId?.let { tempId ->
                 BackgroundUploadManager.cancelUpload(this, tempId)
-                Toast.makeText(this, "Caricamento annullato.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.chat_upload_cancelled), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -831,12 +831,12 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         val banner = ensureTofuBannerView()
         val firstPeerId = changedPeers.first()
         val peerName = groupMembers.find { it.userId == firstPeerId }?.username
-            ?: if (isPrivateChat) extractPeerNameFromPrivateGroupName().ifBlank { "contatto" } else "utente #$firstPeerId"
+            ?: if (isPrivateChat) extractPeerNameFromPrivateGroupName().ifBlank { getString(R.string.tofu_contact_fallback) } else getString(R.string.tofu_user_id_fallback, firstPeerId)
 
         val label = if (changedPeers.size == 1) {
-            "⚠️ Chiave di sicurezza cambiata per $peerName. Invio bloccato. Tocca qui per verificare il Safety Number."
+            getString(R.string.tofu_banner_single, peerName)
         } else {
-            "⚠️ Chiave di sicurezza cambiata per ${changedPeers.size} membri. Invio bloccato. Tocca qui per verificare."
+            getString(R.string.tofu_banner_multi, changedPeers.size)
         }
         banner.findViewById<TextView>(android.R.id.text1)?.text = label
         banner.setOnClickListener {
@@ -844,7 +844,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         }
         banner.visibility = View.VISIBLE
         binding.appBarLayout.requestLayout()
-        setChatInputEnabled(false, "Invio bloccato: verifica cambio chiave")
+        setChatInputEnabled(false, getString(R.string.tofu_input_blocked_hint))
     }
 
     private fun fetchMessages(isTriggeredByBroadcast: Boolean = false) {
@@ -1093,14 +1093,14 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                                 hasShownDecryptErrorNotice = true
                                 Toast.makeText(
                                     this@ChatActivity,
-                                    "Alcuni messaggi precedenti o cifrati con chiavi mancanti non sono decifrabili.",
+                                    getString(R.string.chat_decrypt_partial_notice),
                                     Toast.LENGTH_LONG
                                 ).show()
                             }
                         }
                     }
                 } else if (!isTriggeredByBroadcast) {
-                    Toast.makeText(this@ChatActivity, "Errore caricamento: ${response.body()?.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ChatActivity, getString(R.string.chat_load_error, response.body()?.message ?: ""), Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -1139,7 +1139,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         val blocked = checkTofuKeyChangedPeers()
         if (blocked.isNotEmpty()) {
             refreshTofuBlockingUi(blocked)
-            Toast.makeText(this, "Invio bloccato: verifica prima il cambio chiave.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.chat_send_blocked_tofu), Toast.LENGTH_LONG).show()
             return
         }
 
@@ -1153,7 +1153,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         val replyToId = replyingToMessage?.id
         val isViewOnce = binding.buttonViewOnce.isChecked
 
-        val hasAtTutti = messageText.contains("@tutti", ignoreCase = true)
+        val hasAtTutti = messageText.contains("@tutti", ignoreCase = true) || messageText.contains("@all", ignoreCase = true) || messageText.contains("@${getString(R.string.mention_all)}", ignoreCase = true)
         val validMentionedIds = mutableSetOf<Int>()
 
         if (hasAtTutti) {
@@ -1238,12 +1238,12 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                 if (isFinishing || isDestroyed) return@launch
                 if (encResult.second.isNotEmpty()) {
                     refreshTofuBlockingUi(encResult.second)
-                    Toast.makeText(this@ChatActivity, "Invio bloccato: chiave cambiata per un destinatario.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@ChatActivity, getString(R.string.chat_send_blocked_peer), Toast.LENGTH_LONG).show()
                     return@launch
                 }
                 val encryptedMessage = encResult.first
                 if (encryptedMessage == null) {
-                    Toast.makeText(this@ChatActivity, "Impossibile cifrare E2EE v2 (bundle chiavi non disponibile).", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@ChatActivity, getString(R.string.chat_e2ee_v2_bundle_error), Toast.LENGTH_LONG).show()
                     return@launch
                 }
 
@@ -1275,7 +1275,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         }
 
         if (currentGroupKey == null || currentGroupIv == null) {
-            Toast.makeText(this, "Errore: Chiavi di cifratura non disponibili. Impossibile inviare.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.chat_keys_unavailable_error), Toast.LENGTH_LONG).show()
             return
         }
         val encryptedMessage = EncryptionHelper.encrypt(messageText, currentGroupKey!!, currentGroupIv!!) ?: return
@@ -1306,13 +1306,13 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
 
     override fun onTranscribeAudioClicked(message: Message) {
         if (!AudioTranscriber.isModelAvailable(this)) {
-            Toast.makeText(this, "Modello vocale non installato. Scaricalo dalle impostazioni.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.chat_voice_model_not_installed), Toast.LENGTH_LONG).show()
             return
         }
 
         val localFile = FileUtils.getLocalFile(this, message)
         if (!localFile.exists()) {
-            Toast.makeText(this, "Scarica prima il file audio.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.chat_download_audio_first), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -1334,7 +1334,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             onError = { error ->
                 TranscriptionTracker.error(message.id, error)
                 runOnUiThread {
-                    Toast.makeText(this@ChatActivity, "Errore trascrizione: $error", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@ChatActivity, getString(R.string.transcribe_error_msg, error), Toast.LENGTH_LONG).show()
                 }
             }
         )
@@ -1361,7 +1361,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             dialog.window?.attributes?.windowAnimations = R.style.DialogAnimation
             dialog.show()
         } else {
-            Toast.makeText(this, "File non trovato localmente.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.chat_file_not_found_local), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -1483,7 +1483,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         mPhotoEditor.brushSize = sliderBrushSize.value
         sliderBrushSize.addOnChangeListener { _, value, _ ->
             val size = value.toInt()
-            tvBrushSizeLabel.text = "Spessore: ${size}px"
+            tvBrushSizeLabel.text = getString(R.string.image_editor_brush_fmt, size)
             mPhotoEditor.brushSize = value
         }
 
@@ -1652,13 +1652,13 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         btnZoom.setOnClickListener {
             if (isZoomActive) {
                 resetZoom()
-                Toast.makeText(this, "Zoom disattivato", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.zoom_disabled_toast), Toast.LENGTH_SHORT).show()
             } else {
                 isZoomActive = true
                 mPhotoEditor.setBrushDrawingMode(false)
                 brushToolsLayout.visibility = View.GONE
                 btnZoom.setIconTintResource(R.color.primary_light)
-                Toast.makeText(this, "Zoom attivo: usa due dita per ingrandire o spostare l'immagine", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.zoom_enabled_toast), Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -1709,7 +1709,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         }
 
         val textInputLayout = TextInputLayout(this).apply {
-            hint = "Inserisci testo..."
+            hint = getString(R.string.hint_enter_text)
             boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
         }
 
@@ -1765,20 +1765,20 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         dialogView.addView(colorScrollView)
 
         MaterialAlertDialogBuilder(this)
-            .setTitle(if (existingText == null) "Aggiungi Testo" else "Modifica Testo")
+            .setTitle(if (existingText == null) getString(R.string.title_add_text) else getString(R.string.title_edit_text))
             .setView(dialogView)
-            .setPositiveButton("OK") { _, _ ->
+            .setPositiveButton(getString(R.string.ok)) { _, _ ->
                 val newText = editText.text?.toString()?.trim() ?: ""
                 if (newText.isNotEmpty()) {
                     if (rootViewToUpdate != null) {
                         photoEditor.editText(rootViewToUpdate, newText, selectedColor)
                     } else {
                         photoEditor.addText(newText, selectedColor)
-                        Toast.makeText(this, "Testo aggiunto! Puoi trascinarlo o ingrandirlo con le dita.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, getString(R.string.text_added_toast), Toast.LENGTH_SHORT).show()
                     }
                 }
             }
-            .setNegativeButton("Annulla", null)
+            .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null)
             .show()
     }
 
@@ -1836,26 +1836,26 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             dialogView.addView(slider)
         }
 
-        createColorSlider("Rosso (R)", red) { red = it }
-        createColorSlider("Verde (G)", green) { green = it }
-        createColorSlider("Blu (B)", blue) { blue = it }
+        createColorSlider(getString(R.string.color_red), red) { red = it }
+        createColorSlider(getString(R.string.color_green), green) { green = it }
+        createColorSlider(getString(R.string.color_blue), blue) { blue = it }
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("Selezione Colore Personalizzato")
+            .setTitle(getString(R.string.custom_color_title))
             .setView(dialogView)
-            .setPositiveButton("Seleziona") { _, _ ->
+            .setPositiveButton(getString(R.string.action_select)) { _, _ ->
                 onColorSelected(Color.rgb(red, green, blue))
             }
-            .setNegativeButton("Annulla", null)
+            .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null)
             .show()
     }
 
     private fun showTextDialog(photoEditor: PhotoEditor, color: Int) {
-        val editText = EditText(this).apply { hint = "Scrivi testo..."; setTextColor(color) }
-        AlertDialog.Builder(this).setView(editText).setPositiveButton("OK") { _, _ ->
+        val editText = EditText(this).apply { hint = getString(R.string.hint_type_text); setTextColor(color) }
+        AlertDialog.Builder(this).setView(editText).setPositiveButton(getString(R.string.ok)) { _, _ ->
             val text = editText.text.toString()
             if (text.isNotEmpty()) photoEditor.addText(text, color)
-        }.setNegativeButton("Annulla", null).show()
+        }.setNegativeButton(getString(R.string.call_dialog_btn_cancel), null).show()
     }
 
     private fun startCrop(uri: Uri?) {
@@ -1871,7 +1871,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
     private fun saveEditedImageAndSend(photoEditor: PhotoEditor, mimeType: String, caption: String) {
         val file = File(cacheDir, "edited_image_${System.currentTimeMillis()}.jpg")
         val saveSettings = SaveSettings.Builder().setClearViewsEnabled(true).setTransparencyEnabled(true).build()
-        Toast.makeText(this, "Elaborazione...", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, getString(R.string.processing_toast), Toast.LENGTH_SHORT).show()
 
         lifecycleScope.launch {
             try {
@@ -1882,13 +1882,13 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                     uploadFile(uri, mimeType, caption)
                     currentEditorDialog?.dismiss()
                 } else {
-                    Toast.makeText(this@ChatActivity, "Errore durante il salvataggio", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ChatActivity, getString(R.string.error_during_save), Toast.LENGTH_SHORT).show()
                 }
             } catch (e: SecurityException) {
                 Log.e(TAG, "SecurityException durante salvataggio immagine editor", e)
-                Toast.makeText(this@ChatActivity, "Errore permessi: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@ChatActivity, getString(R.string.error_permissions_msg, e.message ?: ""), Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
-                Toast.makeText(this@ChatActivity, "Errore editor: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@ChatActivity, getString(R.string.error_editor_msg, e.message ?: ""), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -1897,7 +1897,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         val blocked = checkTofuKeyChangedPeers()
         if (blocked.isNotEmpty()) {
             refreshTofuBlockingUi(blocked)
-            Toast.makeText(this, "Invio file bloccato: verifica prima il cambio chiave.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.chat_file_blocked_tofu), Toast.LENGTH_LONG).show()
             return
         }
 
@@ -1991,13 +1991,13 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                 if (isFinishing || isDestroyed) return@launch
                 if (prep.second.isNotEmpty()) {
                     refreshTofuBlockingUi(prep.second)
-                    Toast.makeText(this@ChatActivity, "Invio file bloccato: chiave cambiata.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@ChatActivity, getString(R.string.chat_file_blocked_key_changed), Toast.LENGTH_LONG).show()
                     return@launch
                 }
                 val encKey = prep.first
                 val encryptor = prep.third
                 if (encKey == null || encryptor == null) {
-                    Toast.makeText(this@ChatActivity, "Sessione E2EE v2 non pronta per l'invio file.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@ChatActivity, getString(R.string.chat_file_e2ee_not_ready), Toast.LENGTH_LONG).show()
                     return@launch
                 }
 
@@ -2030,7 +2030,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         }
 
         if (currentGroupKey == null || currentGroupIv == null) {
-            Toast.makeText(this, "Chiavi di cifratura mancanti.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.err_missing_encryption_keys), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -2094,20 +2094,20 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
     private fun showEditMessageDialog(message: Message) {
         if (isFinishing || isDestroyed) return
         val decryptedMessage = decryptMessageText(message, currentGroupKey, currentGroupIv)
-        if (decryptedMessage == null) { Toast.makeText(this, "Impossibile decifrare.", Toast.LENGTH_SHORT).show(); return }
+        if (decryptedMessage == null) { Toast.makeText(this, getString(R.string.chat_cannot_decrypt), Toast.LENGTH_SHORT).show(); return }
         val editText = EditText(this).apply { setText(decryptedMessage); setSelection(decryptedMessage.length) }
-        MaterialAlertDialogBuilder(this).setTitle("Modifica Messaggio").setView(editText)
-            .setPositiveButton("Salva") { _, _ ->
+        MaterialAlertDialogBuilder(this).setTitle(getString(R.string.action_edit_message)).setView(editText)
+            .setPositiveButton(getString(R.string.action_save)) { _, _ ->
                 val newMessage = editText.text?.toString()?.trim() ?: ""
                 if (newMessage.isNotEmpty() && newMessage != decryptedMessage) editMessage(message.id, newMessage)
             }
-            .setNegativeButton("Annulla", null).show()
+            .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null).show()
     }
 
     private fun editMessage(messageId: Int, newMessage: String) {
         if (checkTofuKeyChangedPeers().isNotEmpty()) {
             refreshTofuBlockingUi()
-            Toast.makeText(this, "Modifica bloccata: verifica prima il cambio chiave.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.chat_edit_blocked_tofu), Toast.LENGTH_SHORT).show()
             return
         }
         val encryptedNewMessage = if (currentE2eeVersion >= 2) {
@@ -2123,8 +2123,8 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         } ?: return
 
         ApiClient.instance.editMessage(userId = userId, messageId = messageId, encryptedNewMessage = encryptedNewMessage).enqueue(object : Callback<BaseResponse> {
-            override fun onResponse(call: Call<BaseResponse>, response: Response<BaseResponse>) { if (response.isSuccessful && response.body()?.status == "success") Toast.makeText(this@ChatActivity, "Modificato", Toast.LENGTH_SHORT).show() else Toast.makeText(this@ChatActivity, "Errore", Toast.LENGTH_SHORT).show() }
-            override fun onFailure(call: Call<BaseResponse>, t: Throwable) { Toast.makeText(this@ChatActivity, "Errore rete", Toast.LENGTH_SHORT).show() }
+            override fun onResponse(call: Call<BaseResponse>, response: Response<BaseResponse>) { if (response.isSuccessful && response.body()?.status == "success") Toast.makeText(this@ChatActivity, getString(R.string.chat_edited_toast), Toast.LENGTH_SHORT).show() else Toast.makeText(this@ChatActivity, getString(R.string.error_word), Toast.LENGTH_SHORT).show() }
+            override fun onFailure(call: Call<BaseResponse>, t: Throwable) { Toast.makeText(this@ChatActivity, getString(R.string.error_network_short), Toast.LENGTH_SHORT).show() }
         })
     }
 
@@ -2144,14 +2144,14 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         ApiClient.instance.deleteMessage(userId = userId, messageId = message.id).enqueue(object : Callback<BaseResponse> {
             override fun onResponse(call: Call<BaseResponse>, response: Response<BaseResponse>) {
                 if (response.isSuccessful && response.body()?.status == "success") {
-                    if (!message.isViewOnce) Toast.makeText(this@ChatActivity, "Eliminato", Toast.LENGTH_SHORT).show()
+                    if (!message.isViewOnce) Toast.makeText(this@ChatActivity, getString(R.string.chat_deleted_toast), Toast.LENGTH_SHORT).show()
                     fetchMessages(isTriggeredByBroadcast = false)
                 } else {
-                    Toast.makeText(this@ChatActivity, "Errore: ${response.body()?.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ChatActivity, getString(R.string.error_prefix, response.body()?.message ?: ""), Toast.LENGTH_SHORT).show()
                 }
             }
             override fun onFailure(call: Call<BaseResponse>, t: Throwable) {
-                Toast.makeText(this@ChatActivity, "Errore rete", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@ChatActivity, getString(R.string.error_network_short), Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -2229,11 +2229,11 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
     private fun startVoiceCall() {
         val useProxy = SecurePrefs.get(this).getBoolean("use_proxy", false)
         if (useProxy) {
-            MaterialAlertDialogBuilder(this).setTitle("Chiamate Disabilitate").setMessage(getString(R.string.call_error_tor_enabled)).setPositiveButton("OK", null).show()
+            MaterialAlertDialogBuilder(this).setTitle(getString(R.string.calls_disabled_title)).setMessage(getString(R.string.call_error_tor_enabled)).setPositiveButton(getString(R.string.ok), null).show()
             return
         }
         if (!isPrivateChat) {
-            Toast.makeText(this, "Solo chat private.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.private_chats_only_toast), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -2241,7 +2241,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         val targetId = otherMember?.userId ?: -1
 
         if (targetId == -1) {
-            Toast.makeText(this, "Caricamento utente in corso... Riprova tra un istante.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.loading_user_retry_toast), Toast.LENGTH_SHORT).show()
             fetchGroupMembersForMentions()
             return
         }
@@ -2278,7 +2278,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         btnProtected.setOnClickListener {
             dialog.dismiss()
             SecurePrefs.get(this).edit().putBoolean("temp_call_protect_ip", true).apply()
-            Toast.makeText(this, "Protezione IP attivata per questa chiamata.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.ip_protection_enabled_call), Toast.LENGTH_SHORT).show()
             proceedToCallActivity(targetId, otherMember)
         }
 
@@ -2331,13 +2331,13 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             dialogBinding.buttonAiGroupPicture.setOnClickListener {
                 AIDialogHelper.showAIGeneratorDialog(
                     activity = this,
-                    buttonText = "Imposta Foto Gruppo"
+                    buttonText = getString(R.string.action_set_group_photo)
                 ) { bitmap ->
                     val uri = FileUtils.saveBitmapToTempUri(this, bitmap)
                     if (uri != null) {
                         uploadGroupPicture(uri)
                     } else {
-                        Toast.makeText(this, "Errore durante la preparazione dell'immagine.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, getString(R.string.error_preparing_image), Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -2345,15 +2345,15 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             dialogBinding.buttonRemoveGroupPicture.setOnClickListener { removeGroupPicture() }
         }
 
-        fun updateLabel(value: Float) { dialogBinding.autoDeleteLabel.text = if (value == 0f) "Mai" else "Dopo ${value.toInt()} minuti" }
+        fun updateLabel(value: Float) { dialogBinding.autoDeleteLabel.text = if (value == 0f) getString(R.string.auto_delete_never) else getString(R.string.auto_delete_after_mins, value.toInt()) }
         dialogBinding.autoDeleteSlider.value = currentAutoDeleteMinutes.toFloat()
         updateLabel(dialogBinding.autoDeleteSlider.value)
         dialogBinding.autoDeleteSlider.addOnChangeListener { _, value, _ -> updateLabel(value) }
 
         groupSettingsDialog = MaterialAlertDialogBuilder(this)
-            .setTitle(if (isPrivateChat) "Impostazioni Chat" else "Impostazioni Gruppo")
+            .setTitle(if (isPrivateChat) getString(R.string.title_chat_settings) else getString(R.string.menu_group_settings))
             .setView(dialogBinding.root)
-            .setPositiveButton("Salva") { _, _ ->
+            .setPositiveButton(getString(R.string.action_save)) { _, _ ->
                 val newMinutes = dialogBinding.autoDeleteSlider.value.toInt()
                 if (newMinutes != currentAutoDeleteMinutes) setAutoDelete(newMinutes)
                 if (!isPrivateChat) {
@@ -2363,14 +2363,14 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                     if (newAdminsOnly != currentAdminsOnlyChat) setGroupChatMode(newAdminsOnly)
                 }
             }
-            .setNegativeButton("Annulla", null)
+            .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null)
             .setOnDismissListener { activeSettingsDialogBinding = null; groupSettingsDialog = null }
             .show()
     }
 
     private fun changeGroupName(newName: String) {
         ApiClient.instance.changeGroupName(userId = userId, groupId = groupId, newName = newName).enqueue(object : Callback<ChangeGroupNameResponse> {
-            override fun onResponse(call: Call<ChangeGroupNameResponse>, response: Response<ChangeGroupNameResponse>) { if (response.isSuccessful && response.body()?.status == "success") { groupName = response.body()?.data?.newName ?: newName; updateToolbarUI(); Toast.makeText(this@ChatActivity, "Nome aggiornato", Toast.LENGTH_SHORT).show() } }
+            override fun onResponse(call: Call<ChangeGroupNameResponse>, response: Response<ChangeGroupNameResponse>) { if (response.isSuccessful && response.body()?.status == "success") { groupName = response.body()?.data?.newName ?: newName; updateToolbarUI(); Toast.makeText(this@ChatActivity, getString(R.string.name_updated_toast), Toast.LENGTH_SHORT).show() } }
             override fun onFailure(call: Call<ChangeGroupNameResponse>, t: Throwable) {}
         })
     }
@@ -2390,7 +2390,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         lifecycleScope.launch {
             val file = withContext(Dispatchers.IO) { FileUtils.getFileFromUri(this@ChatActivity, uri) } ?: run {
                 progressIndicator?.visibility = View.GONE
-                Toast.makeText(this@ChatActivity, "Impossibile aprire l'immagine selezionata.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@ChatActivity, getString(R.string.cannot_open_selected_image), Toast.LENGTH_SHORT).show()
                 return@launch
             }
 
@@ -2420,7 +2420,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                             Glide.with(this@ChatActivity).load(ApiClient.BASE_URL + newUrl).into(it.groupPicturePreview)
                         }
                     } else {
-                        Toast.makeText(this@ChatActivity, "Errore caricamento immagine gruppo", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@ChatActivity, getString(R.string.group_image_upload_error), Toast.LENGTH_SHORT).show()
                     }
                 }
 
@@ -2454,10 +2454,10 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
     private fun showClearChatConfirmationDialog() {
         if (isFinishing || isDestroyed) return
         MaterialAlertDialogBuilder(this)
-            .setTitle("Svuota Chat")
-            .setMessage("Eliminare tutti i messaggi?")
-            .setPositiveButton("Sì") { _, _ -> clearChat() }
-            .setNegativeButton("No", null)
+            .setTitle(getString(R.string.menu_clear_chat))
+            .setMessage(getString(R.string.clear_chat_confirm_msg))
+            .setPositiveButton(getString(R.string.yes_label)) { _, _ -> clearChat() }
+            .setNegativeButton(getString(R.string.no_label), null)
             .show()
     }
 
@@ -2496,13 +2496,13 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                 if (response.isSuccessful && response.body()?.status == "success") {
                     messageAdapter.updateItems(emptyList())
                     lastServerMessages = emptyList()
-                    Toast.makeText(this@ChatActivity, "Chat svuotata", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ChatActivity, getString(R.string.chat_cleared_toast), Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(this@ChatActivity, "Errore: ${response.body()?.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ChatActivity, getString(R.string.error_prefix, response.body()?.message ?: ""), Toast.LENGTH_SHORT).show()
                 }
             }
             override fun onFailure(call: Call<BaseResponse>, t: Throwable) {
-                Toast.makeText(this@ChatActivity, "Errore di rete", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@ChatActivity, getString(R.string.error_network_short), Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -2517,27 +2517,27 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
 
         when {
             isPrivateChat && currentE2eeVersion >= 2 -> {
-                badge.text = "X3DH + Double Ratchet"
-                detailsTitle.text = "Nuova sessione privata E2EE"
-                detailsBody.text = "• Crea una nuova sessione crittografica con questo contatto\n• Ruota la tua Signed PreKey locale sul server\n• Mantiene il Safety Number identitario e i messaggi già decifrati"
+                badge.text = getString(R.string.rekey_protocol_label)
+                detailsTitle.text = getString(R.string.rekey_private_title)
+                detailsBody.text = getString(R.string.rekey_private_details)
             }
             currentE2eeVersion >= 2 -> {
-                badge.text = "Sender Keys Gruppo v2"
-                detailsTitle.text = "Rotazione Sender Key di gruppo"
-                detailsBody.text = "• Genera una nuova Sender Key per i prossimi messaggi\n• Rinegozia i canali X3DH con i membri attuali del gruppo\n• I messaggi precedenti già decifrati restano leggibili"
+                badge.text = getString(R.string.rekey_group_badge)
+                detailsTitle.text = getString(R.string.rekey_group_title)
+                detailsBody.text = getString(R.string.rekey_group_details)
             }
             else -> {
-                badge.text = "Crittografia Legacy"
-                detailsTitle.text = "Rigenerazione chiavi gruppo"
-                detailsBody.text = "• Sostituisce le chiavi simmetriche correnti della chat\n• Azione irreversibile per i nuovi messaggi"
+                badge.text = getString(R.string.rekey_legacy_badge)
+                detailsTitle.text = getString(R.string.rekey_legacy_title)
+                detailsBody.text = getString(R.string.rekey_legacy_details)
             }
         }
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("Rigenera Chiavi Cifratura")
+            .setTitle(getString(R.string.menu_regen_encryption_keys))
             .setView(dialogView)
-            .setPositiveButton("Rigenera ora") { _, _ -> regenerateEncryptionKeys() }
-            .setNegativeButton("Annulla", null)
+            .setPositiveButton(getString(R.string.action_regenerate_now)) { _, _ -> regenerateEncryptionKeys() }
+            .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null)
             .show()
     }
 
@@ -2547,7 +2547,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                 ?: groupMembers.firstOrNull { it.userId != userId }?.userId
                 ?: -1
             if (resolvedPeerId <= 0) {
-                Toast.makeText(this, "Interlocutore non ancora caricato. Riprova tra un istante.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.peer_not_loaded_retry), Toast.LENGTH_SHORT).show()
                 fetchGroupMembersForMentions()
                 return
             }
@@ -2567,21 +2567,21 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                         when {
                             res.keyChanged -> {
                                 refreshTofuBlockingUi(listOf(resolvedPeerId))
-                                Toast.makeText(this@ChatActivity, "Chiave identitaria cambiata: verifica prima il Safety Number.", Toast.LENGTH_LONG).show()
+                                Toast.makeText(this@ChatActivity, getString(R.string.rekey_identity_changed_verify), Toast.LENGTH_LONG).show()
                             }
                             res.ready -> {
                                 fetchMessages(true)
-                                Toast.makeText(this@ChatActivity, "Sessione E2EE (X3DH + Double Ratchet) rigenerata.", Toast.LENGTH_LONG).show()
+                                Toast.makeText(this@ChatActivity, getString(R.string.rekey_e2ee_regenerated), Toast.LENGTH_LONG).show()
                             }
                             else -> {
-                                Toast.makeText(this@ChatActivity, "PreKey locali ruotate; nuova sessione pronta al prossimo messaggio.", Toast.LENGTH_LONG).show()
+                                Toast.makeText(this@ChatActivity, getString(R.string.rekey_prekeys_rotated_ready), Toast.LENGTH_LONG).show()
                             }
                         }
                     }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
                         if (!isFinishing && !isDestroyed) {
-                            Toast.makeText(this@ChatActivity, "Errore rigenerazione chiavi: ${e.message}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@ChatActivity, getString(R.string.rekey_error_msg, e.message ?: ""), Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -2615,12 +2615,12 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                     withContext(Dispatchers.Main) {
                         if (isFinishing || isDestroyed) return@withContext
                         refreshTofuBlockingUi(res.blockedPeers)
-                        Toast.makeText(this@ChatActivity, "Sender Key ruotata e distribuita ai membri attuali.", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@ChatActivity, getString(R.string.rekey_sender_key_distributed), Toast.LENGTH_LONG).show()
                     }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
                         if (!isFinishing && !isDestroyed) {
-                            Toast.makeText(this@ChatActivity, "Errore rotazione chiave: ${e.message}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@ChatActivity, getString(R.string.rekey_rotation_error_msg, e.message ?: ""), Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -2629,7 +2629,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         }
 
         ApiClient.instance.regenerateKeys(groupId = groupId, userId = userId).enqueue(object: Callback<BaseResponse> {
-            override fun onResponse(call: Call<BaseResponse>, response: Response<BaseResponse>) { if (response.isSuccessful) Toast.makeText(this@ChatActivity, "Chiavi rigenerate.", Toast.LENGTH_LONG).show() }
+            override fun onResponse(call: Call<BaseResponse>, response: Response<BaseResponse>) { if (response.isSuccessful) Toast.makeText(this@ChatActivity, getString(R.string.keys_regenerated_toast), Toast.LENGTH_LONG).show() }
             override fun onFailure(call: Call<BaseResponse>, t: Throwable) {}
         })
     }
@@ -2658,7 +2658,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         groupMembers.forEach { member ->
             options.add(member.username)
         }
-        MaterialAlertDialogBuilder(this).setTitle("Membri del Gruppo").setItems(options.toTypedArray()) { _, which ->
+        MaterialAlertDialogBuilder(this).setTitle(getString(R.string.group_members_title)).setItems(options.toTypedArray()) { _, which ->
             val member = groupMembers[which]
             if (member.userId != userId) {
                 if (isCurrentUserAdmin) {
@@ -2685,22 +2685,25 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             }
         }
         recyclerView.layoutManager = LinearLayoutManager(this); recyclerView.adapter = adapter
-        membersDialog = MaterialAlertDialogBuilder(this).setView(dialogView).setPositiveButton("Chiudi", null).show()
+        membersDialog = MaterialAlertDialogBuilder(this).setView(dialogView).setPositiveButton(getString(R.string.action_close), null).show()
         membersDialog?.setOnDismissListener { membersDialog = null }
     }
 
     private fun showAdminOptionsDialog(member: GroupMember) {
         if (isFinishing || isDestroyed) return
-        val options = mutableListOf("Verifica Identità / Safety Number", if (member.isAdmin) "Rimuovi Admin" else "Rendi Admin")
-        if (!member.isAdmin) options.add("Espelli dal gruppo")
+        val optVerify = getString(R.string.admin_opt_verify_identity)
+        val optAdminToggle = if (member.isAdmin) getString(R.string.admin_opt_remove_admin) else getString(R.string.admin_opt_make_admin)
+        val optKick = getString(R.string.admin_opt_kick)
+        val options = mutableListOf(optVerify, optAdminToggle)
+        if (!member.isAdmin) options.add(optKick)
         MaterialAlertDialogBuilder(this).setTitle(member.username).setItems(options.toTypedArray()) { _, which ->
             when (options[which]) {
-                "Verifica Identità / Safety Number" -> {
+                optVerify -> {
                     membersDialog?.dismiss()
                     showSafetyEmojisDialog(targetPeerId = member.userId)
                 }
-                "Rimuovi Admin", "Rendi Admin" -> setAdminStatus(member, !member.isAdmin)
-                "Espelli dal gruppo" -> kickUserFromGroup(member)
+                optAdminToggle -> setAdminStatus(member, !member.isAdmin)
+                optKick -> kickUserFromGroup(member)
             }
         }.show()
     }
@@ -2714,12 +2717,12 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                     membersDialog?.dismiss()
                     fetchAndShowCustomGroupMembersDialog()
                 } else {
-                    Toast.makeText(this@ChatActivity, "Errore: ${response.body()?.message ?: "Impossibile aggiornare lo stato di amministratore"}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ChatActivity, getString(R.string.error_prefix, response.body()?.message ?: getString(R.string.admin_status_update_failed)), Toast.LENGTH_SHORT).show()
                 }
             }
             override fun onFailure(call: Call<BaseResponse>, t: Throwable) {
                 if (isFinishing || isDestroyed) return
-                Toast.makeText(this@ChatActivity, "Errore di rete.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@ChatActivity, getString(R.string.error_network_short), Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -2733,12 +2736,12 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                     membersDialog?.dismiss()
                     fetchAndShowCustomGroupMembersDialog()
                 } else {
-                    Toast.makeText(this@ChatActivity, "Errore: ${response.body()?.message ?: "Impossibile espellere l'utente"}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ChatActivity, getString(R.string.error_prefix, response.body()?.message ?: getString(R.string.kick_user_failed)), Toast.LENGTH_SHORT).show()
                 }
             }
             override fun onFailure(call: Call<BaseResponse>, t: Throwable) {
                 if (isFinishing || isDestroyed) return
-                Toast.makeText(this@ChatActivity, "Errore di rete.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@ChatActivity, getString(R.string.error_network_short), Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -2752,12 +2755,12 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                     groupMembers = response.body()?.data ?: emptyList()
                     displayMembersDialog(groupMembers)
                 } else {
-                    Toast.makeText(this@ChatActivity, "Errore caricamento membri.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ChatActivity, getString(R.string.error_loading_members), Toast.LENGTH_SHORT).show()
                 }
             }
             override fun onFailure(call: Call<GetGroupMembersResponse>, t: Throwable) {
                 if (isFinishing || isDestroyed) return
-                Toast.makeText(this@ChatActivity, "Errore di rete.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@ChatActivity, getString(R.string.error_network_short), Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -2952,7 +2955,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                             cachedApiGroups[groupName] = fallbackFlags
                             renderEmojiList(fallbackFlags)
                         } else {
-                            Toast.makeText(this@ChatActivity, "Connessione assente o errore API.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@ChatActivity, getString(R.string.no_connection_or_api_error), Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -3018,11 +3021,11 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         btnToggleMoreEmojis?.setOnClickListener {
             if (allEmojisCard?.visibility == View.VISIBLE) {
                 allEmojisCard.visibility = View.GONE
-                btnToggleMoreEmojis.text = "Mostra altre emoji"
+                btnToggleMoreEmojis.text = getString(R.string.action_show_more_emojis)
                 btnToggleMoreEmojis.setIconResource(R.drawable.ic_arrow_down)
             } else {
                 allEmojisCard?.visibility = View.VISIBLE
-                btnToggleMoreEmojis.text = "Nascondi altre emoji"
+                btnToggleMoreEmojis.text = getString(R.string.action_hide_more_emojis)
                 btnToggleMoreEmojis.icon = null
 
                 renderCategoryTabs()
@@ -3047,7 +3050,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                 sendReaction(message, emoji)
                 dialog.dismiss()
             } else {
-                Toast.makeText(this, "Inserisci una singola emoji", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.enter_single_emoji), Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -3058,7 +3061,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             val isFav = isFavoriteSticker(safeName)
 
             btnActionFavSticker?.visibility = View.VISIBLE
-            btnActionFavSticker?.text = if (isFav) "Rimuovi dai Preferiti ⭐" else "Aggiungi ai Preferiti ⭐"
+            btnActionFavSticker?.text = if (isFav) getString(R.string.action_remove_from_favorites_star) else getString(R.string.action_add_to_favorites_star)
             btnActionFavSticker?.setIconResource(if (isFav) R.drawable.ic_close else R.drawable.ic_check)
 
             btnActionFavSticker?.setOnClickListener {
@@ -3078,10 +3081,10 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             dialogBinding.btnActionDelete.setOnClickListener {
                 dialog.dismiss()
                 MaterialAlertDialogBuilder(this@ChatActivity)
-                    .setTitle("Elimina")
-                    .setMessage("Eliminare per tutti?")
-                    .setPositiveButton("Sì") { _, _ -> deleteMessage(message) }
-                    .setNegativeButton("No", null)
+                    .setTitle(getString(R.string.action_delete_short))
+                    .setMessage(getString(R.string.delete_for_everyone_msg))
+                    .setPositiveButton(getString(R.string.yes_label)) { _, _ -> deleteMessage(message) }
+                    .setNegativeButton(getString(R.string.no_label), null)
                     .show()
             }
             if (message.messageType == "text" && !message.isViewOnce) {
@@ -3096,8 +3099,8 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         val copyReactions = message.reactions?.filter { it.reactionEmoji == "📋" }
         if (!copyReactions.isNullOrEmpty()) {
             dialogBinding.layoutCopiedBy.visibility = View.VISIBLE
-            val names = copyReactions.joinToString(", ") { if (it.userId == userId) "Tu" else it.username }
-            dialogBinding.tvCopiedByList.text = "Copiato da: $names"
+            val names = copyReactions.joinToString(", ") { if (it.userId == userId) getString(R.string.reply_author_you) else it.username }
+            dialogBinding.tvCopiedByList.text = getString(R.string.copied_by_fmt, names)
         } else {
             dialogBinding.layoutCopiedBy.visibility = View.GONE
         }
@@ -3117,8 +3120,8 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                 if (response.isSuccessful) {
                     val readers = response.body()?.data ?: emptyList()
                     if (isPrivateChat) {
-                        if (readers.isNotEmpty()) Toast.makeText(this@ChatActivity, "Letto ${TimeUtils.formatReadTimestamp(readers.first().readAt).lowercase()}", Toast.LENGTH_SHORT).show()
-                        else Toast.makeText(this@ChatActivity, "Non ancora letto.", Toast.LENGTH_SHORT).show()
+                        if (readers.isNotEmpty()) Toast.makeText(this@ChatActivity, getString(R.string.read_at_fmt, TimeUtils.formatReadTimestamp(readers.first().readAt).lowercase()), Toast.LENGTH_SHORT).show()
+                        else Toast.makeText(this@ChatActivity, getString(R.string.not_read_yet), Toast.LENGTH_SHORT).show()
                     } else {
                         showReadReceiptsDialog(readers)
                     }
@@ -3135,7 +3138,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_reaction_details, null)
         val recyclerView = dialogView.findViewById<RecyclerView>(R.id.reactions_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(this); recyclerView.adapter = ReactionDetailAdapter(reactions)
-        MaterialAlertDialogBuilder(this).setView(dialogView).setPositiveButton("Chiudi", null).show()
+        MaterialAlertDialogBuilder(this).setView(dialogView).setPositiveButton(getString(R.string.action_close), null).show()
     }
 
     private fun showReadReceiptsDialog(readers: List<ReadReceiptInfo>) {
@@ -3144,7 +3147,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         dialogBinding.readReceiptsRecyclerView.layoutManager = LinearLayoutManager(this); dialogBinding.readReceiptsRecyclerView.adapter = ReadReceiptsAdapter(readers)
         dialogBinding.emptyView.visibility = if (readers.isEmpty()) View.VISIBLE else View.GONE
         dialogBinding.readReceiptsRecyclerView.visibility = if (readers.isEmpty()) View.GONE else View.VISIBLE
-        MaterialAlertDialogBuilder(this).setTitle("Letto da").setView(dialogBinding.root).setPositiveButton("Chiudi", null).show()
+        MaterialAlertDialogBuilder(this).setTitle(getString(R.string.read_by_title)).setView(dialogBinding.root).setPositiveButton(getString(R.string.action_close), null).show()
     }
 
     private fun sendReaction(message: Message, emoji: String?) {
@@ -3158,22 +3161,25 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         if (isFinishing || isDestroyed) return
         val options = mutableListOf<String>()
 
+        val optCopy = getString(R.string.action_copy_text)
+        val optEdit = getString(R.string.action_edit_message)
+        val optDelete = getString(R.string.action_delete_message)
         if (message.messageType == "text" && !message.isViewOnce) {
-            options.add("Copia Testo")
+            options.add(optCopy)
         }
 
         if (message.userId == userId) {
             if (message.messageType == "text" && !message.isViewOnce) {
-                options.add("Modifica Messaggio")
+                options.add(optEdit)
             }
-            options.add("Elimina Messaggio")
+            options.add(optDelete)
         }
 
         MaterialAlertDialogBuilder(this).setItems(options.toTypedArray()) { _, which ->
             when (options[which]) {
-                "Copia Testo" -> copyMessageText(message)
-                "Modifica Messaggio" -> showEditMessageDialog(message)
-                "Elimina Messaggio" -> showEditDeleteOptions(message)
+                optCopy -> copyMessageText(message)
+                optEdit -> showEditMessageDialog(message)
+                optDelete -> showEditDeleteOptions(message)
             }
         }.show()
     }
@@ -3182,14 +3188,14 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         val decryptedMessage = decryptMessageText(message, currentGroupKey, currentGroupIv)
 
         if (decryptedMessage == null) {
-            Toast.makeText(this, "Impossibile decifrare il messaggio.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.cannot_decrypt_message), Toast.LENGTH_SHORT).show()
             return
         }
 
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-        val clip = android.content.ClipData.newPlainText("CryptionChat Copia", decryptedMessage)
+        val clip = android.content.ClipData.newPlainText(getString(R.string.clipboard_copy_label), decryptedMessage)
         clipboard.setPrimaryClip(clip)
-        Toast.makeText(this, "Testo copiato negli appunti", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, getString(R.string.text_copied_toast), Toast.LENGTH_SHORT).show()
 
         if (message.userId != userId) {
             sendReaction(message, "📋")
@@ -3198,12 +3204,12 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
 
     private fun showAttachmentOptions() {
         val options = if (isPrivateChat) {
-            arrayOf("Fotocamera", "Galleria", "File", "La mia Posizione", "Richiedi Posizione")
+            arrayOf(getString(R.string.attach_camera), getString(R.string.action_gallery), getString(R.string.attach_file), getString(R.string.attach_my_location), getString(R.string.attach_request_location))
         } else {
-            arrayOf("Fotocamera", "Galleria", "File", "La mia Posizione")
+            arrayOf(getString(R.string.attach_camera), getString(R.string.action_gallery), getString(R.string.attach_file), getString(R.string.attach_my_location))
         }
 
-        MaterialAlertDialogBuilder(this).setTitle("Allega").setItems(options) { _, which ->
+        MaterialAlertDialogBuilder(this).setTitle(getString(R.string.cd_attach)).setItems(options) { _, which ->
             when (which) {
                 0 -> if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) launchCamera() else requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                 1 -> pickMediaLauncher.launch(arrayOf("image/*", "video/*"))
@@ -3273,7 +3279,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         val btnDelete = if (btnDeleteId != 0) dialogView.findViewById<MaterialButton>(btnDeleteId) else null
 
         val isFav = isFavoriteSticker(file.name)
-        btnToggleFav?.text = if (isFav) "Rimuovi dai Preferiti" else "Aggiungi ai Preferiti ⭐"
+        btnToggleFav?.text = if (isFav) getString(R.string.action_remove_from_favorites) else getString(R.string.action_add_to_favorites_star)
         btnToggleFav?.setIconResource(if (isFav) R.drawable.ic_close else R.drawable.ic_check)
 
         if (imgPreview != null) {
@@ -3302,16 +3308,16 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
 
         btnToggleFav?.setOnClickListener {
             val nowFav = toggleFavoriteSticker(file.name)
-            Toast.makeText(this, if (nowFav) "Aggiunto ai Preferiti ⭐" else "Rimosso dai Preferiti", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, if (nowFav) getString(R.string.added_to_favorites_star) else getString(R.string.removed_from_favorites), Toast.LENGTH_SHORT).show()
             previewDialog.dismiss()
             onReloadStickers()
         }
 
         btnDelete?.setOnClickListener {
             MaterialAlertDialogBuilder(this)
-                .setTitle("Elimina Sticker")
-                .setMessage("Sei sicuro di voler eliminare definitivamente questo sticker?")
-                .setPositiveButton("Elimina") { _, _ ->
+                .setTitle(getString(R.string.action_delete_sticker))
+                .setMessage(getString(R.string.delete_sticker_confirm_msg))
+                .setPositiveButton(getString(R.string.action_delete_short)) { _, _ ->
                     if (file.exists()) {
                         file.delete()
                     }
@@ -3319,11 +3325,11 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                     if (isFavoriteSticker(file.name)) {
                         toggleFavoriteSticker(file.name)
                     }
-                    Toast.makeText(this, "Sticker eliminato", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.sticker_deleted_toast), Toast.LENGTH_SHORT).show()
                     previewDialog.dismiss()
                     onReloadStickers()
                 }
-                .setNegativeButton("Annulla", null)
+                .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null)
                 .show()
         }
 
@@ -3384,9 +3390,9 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         var currentSelectedTab = savedTab.coerceIn(0, 2)
 
         tabLayout.removeAllTabs()
-        tabLayout.addTab(tabLayout.newTab().setText("Tutti"), currentSelectedTab == 0)
-        tabLayout.addTab(tabLayout.newTab().setText("Preferiti ⭐"), currentSelectedTab == 1)
-        tabLayout.addTab(tabLayout.newTab().setText("Recenti 🕒"), currentSelectedTab == 2)
+        tabLayout.addTab(tabLayout.newTab().setText(getString(R.string.stickers_tab_all)), currentSelectedTab == 0)
+        tabLayout.addTab(tabLayout.newTab().setText(getString(R.string.stickers_tab_favorites)), currentSelectedTab == 1)
+        tabLayout.addTab(tabLayout.newTab().setText(getString(R.string.stickers_tab_recent)), currentSelectedTab == 2)
 
         data class FileWithMeta(val file: File, val lastModified: Long, val nameLower: String)
 
@@ -3420,9 +3426,9 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
 
             if (listItems.isEmpty()) {
                 tvEmpty.text = when (currentSelectedTab) {
-                    1 -> "Nessun sticker nei Preferiti ⭐"
-                    2 -> "Nessun sticker nei Recenti 🕒"
-                    else -> "Nessuno sticker trovato."
+                    1 -> getString(R.string.stickers_empty_favorites)
+                    2 -> getString(R.string.stickers_empty_recent)
+                    else -> getString(R.string.no_stickers_found)
                 }
                 tvEmpty.visibility = View.VISIBLE
                 recyclerView.visibility = View.GONE
@@ -3431,9 +3437,9 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                 tvEmpty.visibility = View.GONE
                 recyclerView.visibility = View.VISIBLE
                 val categoryName = when (currentSelectedTab) {
-                    1 -> "Preferiti ⭐"
-                    2 -> "Recenti 🕒"
-                    else -> "Tutti"
+                    1 -> getString(R.string.stickers_tab_favorites)
+                    2 -> getString(R.string.stickers_tab_recent)
+                    else -> getString(R.string.stickers_tab_all)
                 }
                 tvTitle.text = "$categoryName (${listItems.size})"
                 adapter.updateItems(listItems)
@@ -3484,14 +3490,14 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
 
         btnSort?.setOnClickListener {
             val sortOptions = arrayOf(
-                "📅 Dal più recente (Default)",
-                "⏳ Dal meno recente",
-                "🔤 Nome (A - Z)",
-                "🔤 Nome (Z - A)"
+                getString(R.string.stickers_sort_newest),
+                getString(R.string.stickers_sort_oldest),
+                getString(R.string.stickers_sort_az),
+                getString(R.string.stickers_sort_za)
             )
 
             MaterialAlertDialogBuilder(this@ChatActivity)
-                .setTitle("Ordina Sticker")
+                .setTitle(getString(R.string.stickers_sort_title))
                 .setSingleChoiceItems(sortOptions, currentSortMode) { dialogSort, which ->
                     currentSortMode = which
                     SecurePrefs.get(this@ChatActivity).edit().putInt("sticker_sort_mode", which).apply()
@@ -3502,7 +3508,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                     }
                     dialogSort.dismiss()
                 }
-                .setNegativeButton("Annulla", null)
+                .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null)
                 .show()
         }
 
@@ -3516,30 +3522,30 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 requestMediaPermissionLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS))
-                Toast.makeText(this, "Abilita il permesso notifiche per vedere la barra di avanzamento!", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, getString(R.string.sticker_export_enable_notif), Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
-            Toast.makeText(this, "Esportazione avviata in background. Guarda la barra delle notifiche!", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.sticker_export_started_bg), Toast.LENGTH_LONG).show()
             StickerExportService.startExport(this@ChatActivity)
         }
 
         btnDeleteAll?.setOnClickListener {
             MaterialAlertDialogBuilder(this@ChatActivity)
-                .setTitle("Elimina Tutti gli Sticker")
-                .setMessage("Sei sicuro di voler eliminare tutti gli sticker salvati e la cronologia? L'azione è irreversibile.")
-                .setPositiveButton("Elimina") { _, _ ->
+                .setTitle(getString(R.string.stickers_delete_all_title))
+                .setMessage(getString(R.string.stickers_delete_all_msg))
+                .setPositiveButton(getString(R.string.action_delete_short)) { _, _ ->
                     lifecycleScope.launch {
                         val success = StickerZipManager.deleteAllStickers(this@ChatActivity)
                         if (success) {
-                            Toast.makeText(this@ChatActivity, "Tutti gli sticker sono stati eliminati.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@ChatActivity, getString(R.string.stickers_all_deleted_toast), Toast.LENGTH_SHORT).show()
                             cachedStickerFiles = emptyList()
                             loadAndDisplayStickers(forceDiskScan = true)
                         } else {
-                            Toast.makeText(this@ChatActivity, "Errore durante l'eliminazione.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@ChatActivity, getString(R.string.error_during_delete), Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
-                .setNegativeButton("Annulla", null)
+                .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null)
                 .show()
         }
 
@@ -3579,7 +3585,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
     }
 
     private fun launchCamera() {
-        lifecycleScope.launch { try { createImageFile()?.let { uri -> photoUri = uri; takePictureLauncher.launch(uri) } } catch (ex: IOException) { Toast.makeText(this@ChatActivity, "Errore file foto.", Toast.LENGTH_SHORT).show() } }
+        lifecycleScope.launch { try { createImageFile()?.let { uri -> photoUri = uri; takePictureLauncher.launch(uri) } } catch (ex: IOException) { Toast.makeText(this@ChatActivity, getString(R.string.photo_file_error), Toast.LENGTH_SHORT).show() } }
     }
 
     private fun isStickerMessage(message: Message): Boolean {
@@ -3591,7 +3597,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
     private fun toggleFavoriteStickerFromChat(message: Message) {
         val localFile = FileUtils.getLocalFile(this, message)
         if (!localFile.exists() || localFile.length() == 0L) {
-            Toast.makeText(this, "Scarica prima lo sticker.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.download_sticker_first), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -3614,7 +3620,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         }
 
         val nowFav = toggleFavoriteSticker(destFile.name)
-        Toast.makeText(this, if (nowFav) "Sticker aggiunto ai Preferiti ⭐" else "Sticker rimosso dai Preferiti", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, if (nowFav) getString(R.string.sticker_added_fav_toast) else getString(R.string.sticker_removed_fav_toast), Toast.LENGTH_SHORT).show()
     }
 
 
@@ -3628,7 +3634,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
 
     private fun getFormattedDate(context: Context, date: Date): String {
         val cal = Calendar.getInstance(); val today = cal.time; cal.add(Calendar.DAY_OF_YEAR, -1); val yesterday = cal.time; val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        return when (sdf.format(date)) { sdf.format(today) -> "Oggi"; sdf.format(yesterday) -> "Ieri"; else -> SimpleDateFormat("EEEE, d MMMM yyyy", Locale.ITALIAN).format(date) }
+        return when (sdf.format(date)) { sdf.format(today) -> context.getString(R.string.date_today); sdf.format(yesterday) -> context.getString(R.string.date_yesterday); else -> SimpleDateFormat("EEEE, d MMMM yyyy", Locale.getDefault()).format(date) }
     }
 
     private fun processMessagesWithDateHeaders(messages: List<Message>): List<ListItem> {
@@ -3645,13 +3651,13 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
     }
 
     override fun onViewOnceMessageClicked(message: Message) {
-        if (message.userId == userId) { Toast.makeText(this, "Non puoi aprirlo.", Toast.LENGTH_SHORT).show(); return }
-        if (message.isViewedByMe) { Toast.makeText(this, "Già aperto.", Toast.LENGTH_SHORT).show(); return }
+        if (message.userId == userId) { Toast.makeText(this, getString(R.string.view_once_cannot_open), Toast.LENGTH_SHORT).show(); return }
+        if (message.isViewedByMe) { Toast.makeText(this, getString(R.string.view_once_already_opened), Toast.LENGTH_SHORT).show(); return }
         when (message.messageType) {
             "text" -> showViewOnceTextDialog(message)
             "image" -> showViewOnceImageDialog(message)
             "file", "audio" -> showViewOnceFileDialog(message)
-            else -> Toast.makeText(this, "Non supportato.", Toast.LENGTH_SHORT).show()
+            else -> Toast.makeText(this, getString(R.string.view_once_unsupported), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -3723,7 +3729,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                     }
                 }, { e ->
                     if (!isFinishing && !isDestroyed) {
-                        Toast.makeText(this@ChatActivity, "Errore: ${e.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@ChatActivity, getString(R.string.error_prefix, e.message ?: ""), Toast.LENGTH_SHORT).show()
                     }
                 })
             }
@@ -3749,7 +3755,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             val btnOpenFile = dialogView.findViewById<MaterialButton>(R.id.btn_open_file)
             val btnClose = dialogView.findViewById<MaterialButton>(R.id.close_button)
 
-            fileNameText.text = message.fileName ?: "Documento"
+            fileNameText.text = message.fileName ?: getString(R.string.default_document_name)
             fileSizeText.text = FileUtils.getFormattedFileSize(message.fileSize ?: file.length())
 
             markAsViewed(message)
@@ -3763,7 +3769,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                     }
                     startActivity(intent)
                 } catch (e: Exception) {
-                    Toast.makeText(this@ChatActivity, "Nessuna app trovata per aprire questo formato.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@ChatActivity, getString(R.string.no_app_for_file), Toast.LENGTH_LONG).show()
                 }
             }
 
@@ -3784,12 +3790,12 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         if (localFile.exists() && localFile.length() > 0) {
             showDialog(localFile)
         } else {
-            Toast.makeText(this, "Download file sicuro in corso...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.secure_download_in_progress), Toast.LENGTH_SHORT).show()
             lifecycleScope.launch {
                 downloadAndDecryptFile(
                     message,
                     onFinish = { f -> showDialog(f) },
-                    onError = { e -> Toast.makeText(this@ChatActivity, "Errore: ${e.message}", Toast.LENGTH_SHORT).show() }
+                    onError = { e -> Toast.makeText(this@ChatActivity, getString(R.string.error_prefix, e.message ?: ""), Toast.LENGTH_SHORT).show() }
                 )
             }
         }
@@ -3822,7 +3828,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             dialogBinding.durationText.text = "00:00 / ${formatDuration(duration)}"
         } catch (e: Exception) {
             Log.e(TAG, "Errore caricamento audio effimero", e)
-            Toast.makeText(this, "Impossibile caricare l'audio.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.cannot_load_audio), Toast.LENGTH_SHORT).show()
         }
 
         updateProgressRunnable = object : Runnable {
@@ -3905,7 +3911,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         }
         val key = meta?.fileKeyHex?.takeIf { it.isNotBlank() } ?: currentGroupKey
         val iv = meta?.fileIvHex?.takeIf { it.isNotBlank() } ?: currentGroupIv
-        if (key.isNullOrBlank() || iv.isNullOrBlank() || fileId == null) { onError(Exception("Dati mancanti")); return }
+        if (key.isNullOrBlank() || iv.isNullOrBlank() || fileId == null) { onError(Exception(getString(R.string.err_missing_data))); return }
 
         val temp = File(cacheDir, "temp_vo_${fileId}_${System.currentTimeMillis()}.enc")
         val final = FileUtils.getLocalFile(this, message)
@@ -3921,10 +3927,10 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                     val resp = ApiClient.instance.downloadFile("${ApiClient.BASE_URL}download.php?user_id=$userId&file_id=$fileId").execute()
                     if (!resp.isSuccessful) throw IOException("DL err: ${resp.code()}")
 
-                    val body = resp.body() ?: throw IOException("Corpo vuoto")
+                    val body = resp.body() ?: throw IOException(getString(R.string.err_empty_body_short))
                     val contentType = body.contentType()
                     if (contentType != null && (contentType.type == "text" || contentType.subtype.contains("json") || contentType.subtype.contains("html"))) {
-                        throw IOException("Il file non esiste più sul server o è inaccessibile.")
+                        throw IOException(getString(R.string.err_file_missing_inaccessible))
                     }
 
                     val totalSize = body.contentLength()
@@ -3935,7 +3941,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                     }
 
                     if (totalSize > 0 && copiedSize != totalSize) {
-                        throw IOException("La connessione si è interrotta prima della fine del download.")
+                        throw IOException(getString(R.string.err_conn_interrupted_download))
                     }
 
                     FileInputStream(temp).use { i ->
@@ -3961,7 +3967,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             if (success) {
                 onFinish(final)
             } else {
-                val errorMsg = lastException?.message ?: "Errore di rete persistente"
+                val errorMsg = lastException?.message ?: getString(R.string.err_persistent_network)
                 onError(Exception(errorMsg, lastException))
             }
         }
@@ -3972,17 +3978,18 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         if (mentionDialog?.isShowing == true) return
         if (groupMembers.isEmpty() || isFinishing || isDestroyed) return
 
-        val names = mutableListOf("Tutti")
+        val mentionAllLabel = getString(R.string.mention_all)
+        val names = mutableListOf(mentionAllLabel)
         names.addAll(groupMembers.filter { it.userId != userId }.map { it.username })
 
-        mentionDialog = AlertDialog.Builder(this).setTitle("Menziona").setItems(names.toTypedArray()) { _, which ->
+        mentionDialog = AlertDialog.Builder(this).setTitle(getString(R.string.mention_dialog_title)).setItems(names.toTypedArray()) { _, which ->
             val name = names[which]
             val text = binding.editTextMessage.text.toString()
             val newText = text.substring(0, text.lastIndexOf("@")) + "@$name "
             binding.editTextMessage.setText(newText)
             binding.editTextMessage.setSelection(newText.length)
-            if (name == "Tutti") {
-                mentionedUsersMap["@Tutti"] = 0
+            if (name == mentionAllLabel) {
+                mentionedUsersMap["@$mentionAllLabel"] = 0
             } else {
                 groupMembers.find { it.username == name }?.let {
                     mentionedUsersMap["@$name"] = it.userId
@@ -4101,7 +4108,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                             isRecordingCancelled = true
                             audioRecorderHelper.cancelRecording()
                             resetRecordingUI()
-                            Toast.makeText(this, "Annullato", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, getString(R.string.recording_cancelled_toast), Toast.LENGTH_SHORT).show()
                         }
                         else if (diffY > 150f && diffY > diffX) {
                             isRecordingLocked = true
@@ -4166,14 +4173,14 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         binding.recordingMicIcon.visibility = View.VISIBLE
         binding.buttonDeleteRecording.visibility = View.GONE
         binding.swipeHintText.visibility = View.VISIBLE
-        binding.swipeHintText.text = "< Annulla  |  Blocca ^"
+        binding.swipeHintText.text = getString(R.string.chat_slide_cancel_lock)
 
         audioFilePath = audioRecorderHelper.startRecording()
         recordStartTime = System.currentTimeMillis()
         if (audioFilePath != null) {
             startRecordingTimer()
         } else {
-            Toast.makeText(this, "Errore avvio", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.recording_start_error), Toast.LENGTH_SHORT).show()
             resetRecordingUI()
         }
     }
@@ -4246,13 +4253,13 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         val content = decryptMessageText(message, currentGroupKey, currentGroupIv)
 
         binding.replyPreviewMessage.text = when {
-            message.isViewOnce -> "Messaggio effimero"
-            message.messageType == "image" -> "📷 Foto"
-            message.messageType == "audio" -> "🎤 Audio"
+            message.isViewOnce -> getString(R.string.msg_ephemeral_label)
+            message.messageType == "image" -> getString(R.string.media_photo_label)
+            message.messageType == "audio" -> getString(R.string.media_mic_audio_label)
             message.messageType == "file" -> "📁 File"
-            content?.contains("[REQ_LOC]") == true -> "📍 Richiesta posizione"
-            content?.contains("https://maps.google.com/?q=") == true -> "📍 Posizione condivisa"
-            else -> content ?: "Messaggio"
+            content?.contains("[REQ_LOC]") == true -> getString(R.string.chat_location_request_preview)
+            content?.contains("https://maps.google.com/?q=") == true -> getString(R.string.chat_location_shared_preview)
+            else -> content ?: getString(R.string.message_word)
         }
 
         binding.replyPreviewLayout.setOnClickListener {
@@ -4268,7 +4275,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                 }
                 uiHandler.postDelayed({ highlightMessageAt(position) }, 200)
             } else {
-                Toast.makeText(this, "Messaggio non trovato nella cronologia recente.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.msg_not_found_recent), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -4290,7 +4297,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             }
             uiHandler.postDelayed({ highlightMessageAt(position) }, 200)
         } else {
-            Toast.makeText(this, "Messaggio non trovato.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.msg_not_found), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -4308,9 +4315,9 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         val others = users.filter { it != username }
         if (others.isNotEmpty()) {
             val typingText = if (others.size == 1) {
-                "${others[0]} sta scrivendo..."
+                getString(R.string.typing_single_fmt, others[0])
             } else {
-                "Più persone stanno scrivendo..."
+                getString(R.string.typing_multiple)
             }
             toolbarBinding.toolbarSubtitleStatus.text = typingText
 
@@ -4334,7 +4341,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         binding.buttonSticker.isEnabled = enabled // <-- AGGIUNGI QUESTA RIGA
         binding.buttonSend.isEnabled = enabled
         binding.buttonRecordAudio.isEnabled = enabled
-        binding.editTextMessage.hint = if (!enabled && hint != null) hint else "Scrivi un messaggio..."
+        binding.editTextMessage.hint = if (!enabled && hint != null) hint else getString(R.string.hint_type_message)
     }
 
     private fun setupToolbar() {
@@ -4403,7 +4410,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         }
 
         if (resolvedPeerId <= 0) {
-            Toast.makeText(this, "Caricamento identità di sicurezza in corso...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.safety_loading_toast), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -4425,13 +4432,13 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             val myIdentity = loaded.first
             val peerEntity = loaded.second
             if (peerEntity == null) {
-                Toast.makeText(this@ChatActivity, "Chiave identità del contatto non ancora disponibile.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@ChatActivity, getString(R.string.safety_peer_key_unavailable), Toast.LENGTH_LONG).show()
                 return@launch
             }
 
             val peerName = groupMembers.find { it.userId == resolvedPeerId }?.username
-                ?: if (isPrivateChat) extractPeerNameFromPrivateGroupName().ifBlank { "Utente #$resolvedPeerId" }
-                else "Utente #$resolvedPeerId"
+                ?: if (isPrivateChat) extractPeerNameFromPrivateGroupName().ifBlank { getString(R.string.user_id_label_fmt, resolvedPeerId) }
+                else getString(R.string.user_id_label_fmt, resolvedPeerId)
 
             val safetyNumber = EcdhHelper.getSafetyNumber60Digits(
                 userId, myIdentity.ikSignPubB64, myIdentity.ikDhPubB64,
@@ -4481,23 +4488,23 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             tvPeerName.text = peerName
             when (peerEntity.trustState) {
                 TrustedIdentityEntity.STATE_VERIFIED -> {
-                    tvStatusBadge.text = "✅ Identità Verificata"
+                    tvStatusBadge.text = getString(R.string.safety_status_verified)
                     tvStatusBadge.setTextColor(Color.parseColor("#66BB6A"))
                     cardStatusPill.setCardBackgroundColor(Color.parseColor("#1F2E7D32"))
-                    tvStatusDesc.text = "Hai confermato personalmente l'identità crittografica di $peerName."
+                    tvStatusDesc.text = getString(R.string.safety_desc_verified, peerName)
                 }
                 TrustedIdentityEntity.STATE_KEY_CHANGED -> {
-                    tvStatusBadge.text = "🚨 Chiave Cambiata · Invio Bloccato"
+                    tvStatusBadge.text = getString(R.string.safety_status_key_changed)
                     tvStatusBadge.setTextColor(Color.parseColor("#EF5350"))
                     cardStatusPill.setCardBackgroundColor(Color.parseColor("#29C62828"))
-                    tvStatusDesc.text = "La chiave identitaria di $peerName è cambiata. Verifica il codice qui sotto prima di continuare a scrivere."
+                    tvStatusDesc.text = getString(R.string.safety_desc_key_changed, peerName)
                     cardStatus.strokeColor = Color.parseColor("#EF5350")
                 }
                 else -> {
-                    tvStatusBadge.text = "⚠️ Non Verificato"
+                    tvStatusBadge.text = getString(R.string.safety_status_unverified)
                     tvStatusBadge.setTextColor(Color.parseColor("#FFA726"))
                     cardStatusPill.setCardBackgroundColor(Color.parseColor("#24EF6C00"))
-                    tvStatusDesc.text = "La chat è già cifrata E2EE, ma non hai ancora confrontato il Safety Number con $peerName."
+                    tvStatusDesc.text = getString(R.string.safety_desc_unverified, peerName)
                 }
             }
 
@@ -4507,7 +4514,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             btnCopyNumber.setOnClickListener {
                 val cm = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                 cm.setPrimaryClip(android.content.ClipData.newPlainText("Safety Number", safetyNumber))
-                Toast.makeText(this@ChatActivity, "Safety Number copiato negli appunti.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@ChatActivity, getString(R.string.safety_copied_toast), Toast.LENGTH_SHORT).show()
             }
 
             if (qrBitmap != null) {
@@ -4516,12 +4523,12 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             } else {
                 cardQrFrame.visibility = View.GONE
             }
-            btnScanQr.text = "Scansiona QR di $peerName"
+            btnScanQr.text = getString(R.string.safety_scan_peer_qr, peerName)
 
             when (peerEntity.trustState) {
                 TrustedIdentityEntity.STATE_KEY_CHANGED -> {
                     btnConfirmVerify.visibility = View.VISIBLE
-                    btnConfirmVerify.text = "Conferma e Verifica"
+                    btnConfirmVerify.text = getString(R.string.safety_confirm_and_verify)
                     btnConfirmVerify.setOnClickListener {
                         sheet.dismiss()
                         lifecycleScope.launch(Dispatchers.IO) {
@@ -4530,7 +4537,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                             withContext(Dispatchers.Main) {
                                 refreshTofuBlockingUi()
                                 fetchMessages(false)
-                                Toast.makeText(this@ChatActivity, "Identità verificata e confermata!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@ChatActivity, getString(R.string.safety_identity_confirmed_toast), Toast.LENGTH_SHORT).show()
                             }
                         }
                     }
@@ -4544,7 +4551,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                             withContext(Dispatchers.Main) {
                                 refreshTofuBlockingUi()
                                 fetchMessages(false)
-                                Toast.makeText(this@ChatActivity, "Nuova chiave accettata (stato Non Verificato).", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@ChatActivity, getString(R.string.safety_new_key_accepted_toast), Toast.LENGTH_SHORT).show()
                             }
                         }
                     }
@@ -4555,14 +4562,14 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                 }
                 else -> {
                     btnConfirmVerify.visibility = View.VISIBLE
-                    btnConfirmVerify.text = "Segna come Verificato"
+                    btnConfirmVerify.text = getString(R.string.action_mark_verified)
                     btnConfirmVerify.setOnClickListener {
                         sheet.dismiss()
                         lifecycleScope.launch(Dispatchers.IO) {
                             IdentityKeyManager.confirmVerifiedIdentity(applicationContext, resolvedPeerId)
                             withContext(Dispatchers.Main) {
                                 refreshTofuBlockingUi()
-                                Toast.makeText(this@ChatActivity, "Identità di $peerName verificata!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@ChatActivity, getString(R.string.safety_peer_verified_toast, peerName), Toast.LENGTH_SHORT).show()
                             }
                         }
                     }
@@ -4585,7 +4592,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                 sheet.dismiss()
                 val options = ScanOptions().apply {
                     setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-                    setPrompt("Inquadra il QR di sicurezza di $peerName")
+                    setPrompt(getString(R.string.safety_qr_scan_prompt, peerName))
                     setBeepEnabled(false)
                     setOrientationLocked(true)
                 }
@@ -4720,23 +4727,23 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         }
 
         val builder = MaterialAlertDialogBuilder(this)
-            .setTitle("Sicurezza E2EE Gruppo")
+            .setTitle(getString(R.string.group_e2ee_security_title))
             .setMessage(
                 if (currentE2eeVersion >= 2) {
-                    "Questo gruppo utilizza crittografia Zero-Knowledge con Sender Keys (epoch $currentMembershipEpoch).\n\nPuoi verificare il Safety Number dei singoli membri o ruotare la tua Sender Key locale."
+                    getString(R.string.group_e2ee_v2_desc, currentMembershipEpoch)
                 } else {
-                    "Questo gruppo utilizza la cifratura legacy v1. Puoi comunque verificare l'identità dei membri."
+                    getString(R.string.group_e2ee_v1_desc)
                 }
             )
-            .setPositiveButton("Verifica Membri") { _, _ ->
+            .setPositiveButton(getString(R.string.group_verify_members_btn)) { _, _ ->
                 fetchAndShowCustomGroupMembersDialog()
             }
         if (currentE2eeVersion >= 2) {
-            builder.setNeutralButton("Ruota Sender Key") { _, _ ->
+            builder.setNeutralButton(getString(R.string.group_rotate_sender_key_btn)) { _, _ ->
                 showRegenerateKeysConfirmationDialog()
             }
         }
-        builder.setNegativeButton("Chiudi", null).show()
+        builder.setNegativeButton(getString(R.string.action_close), null).show()
     }
 
     private fun handleZkQrCode(content: String, isSilent: Boolean = false) {
@@ -4750,11 +4757,11 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                 pendingVerifyPeerId = -1
 
                 if (version != 2 || scannedUid <= 0 || scannedFp.isBlank()) {
-                    Toast.makeText(this, "QR di verifica non valido.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.qr_verify_invalid), Toast.LENGTH_SHORT).show()
                     return
                 }
                 if (expectedPeer > 0 && scannedUid != expectedPeer) {
-                    Toast.makeText(this, "Il QR appartiene a un altro utente (#$scannedUid).", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, getString(R.string.qr_verify_wrong_user, scannedUid), Toast.LENGTH_LONG).show()
                     return
                 }
 
@@ -4772,22 +4779,22 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                         if (matches) {
                             refreshTofuBlockingUi()
                             if (!isSilent) {
-                                Toast.makeText(this@ChatActivity, "✅ Safety Number verificato tramite QR!", Toast.LENGTH_LONG).show()
+                                Toast.makeText(this@ChatActivity, getString(R.string.qr_verify_success), Toast.LENGTH_LONG).show()
                             }
                         } else {
                             MaterialAlertDialogBuilder(this@ChatActivity)
-                                .setTitle("🚨 Verifica QR Fallita")
-                                .setMessage("L'impronta crittografica del QR scansionato NON corrisponde alla chiave registrata per l'utente #$scannedUid.\n\nPossibile cambio dispositivo o attacco Man-in-the-Middle!")
-                                .setPositiveButton("OK", null)
+                                .setTitle(getString(R.string.qr_verify_failed_title))
+                                .setMessage(getString(R.string.qr_verify_failed_msg, scannedUid))
+                                .setPositiveButton(getString(R.string.ok), null)
                                 .show()
                         }
                     }
                 }
             } else {
-                Toast.makeText(this, "Formato QR di verifica non riconosciuto.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.qr_verify_unrecognized), Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
-            Toast.makeText(this, "Errore lettura codice di sicurezza.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.qr_verify_read_error), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -4812,12 +4819,12 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
     private fun showLocationConfirmationDialog() {
         if (isFinishing || isDestroyed) return
         MaterialAlertDialogBuilder(this)
-            .setTitle("Invia Posizione")
-            .setMessage("Verrà inviata la tua posizione in questo esatto momento come punto sulla mappa.\n\nLa posizione è STATICA: l'app NON ti traccerà mentre ti sposti.")
-            .setPositiveButton("Invia") { _, _ ->
+            .setTitle(getString(R.string.send_location_title))
+            .setMessage(getString(R.string.send_location_msg))
+            .setPositiveButton(getString(R.string.cd_send)) { _, _ ->
                 fetchAndSendLocation()
             }
-            .setNegativeButton("Annulla") { dialog, _ ->
+            .setNegativeButton(getString(R.string.call_dialog_btn_cancel)) { dialog, _ ->
                 dialog.dismiss()
                 clearReplyState()
             }
@@ -4844,12 +4851,12 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
     private fun fetchAndSendLocation() {
         val hasFineLocation = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
         if (!hasFineLocation) {
-            Toast.makeText(this, "Per un'elevata precisione è necessario il permesso di Posizione Precisa.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.fine_location_required_toast), Toast.LENGTH_SHORT).show()
             clearReplyState()
             return
         }
 
-        Toast.makeText(this, "🎯 Aggancio satelliti GPS per alta precisione...", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, getString(R.string.gps_locking_toast), Toast.LENGTH_SHORT).show()
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         val targetAccuracyMeters = 15.0f // Target: margine di errore <= 15 metri
@@ -4875,11 +4882,11 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
 
             if (locationToSend != null) {
                 val acc = locationToSend.accuracy.toInt()
-                val mapsLink = "📍 Posizione condivisa (Precisione: ~${acc}m):\nhttps://maps.google.com/?q=${locationToSend.latitude},${locationToSend.longitude}"
+                val mapsLink = getString(R.string.location_shared_msg_fmt, acc, "https://maps.google.com/?q=${locationToSend.latitude},${locationToSend.longitude}")
                 sendMessage(mapsLink)
-                Toast.makeText(this, "📍 Posizione inviata con precisione di ${acc} metri!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.location_sent_toast_fmt, acc), Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(this, "Impossibile ottenere una posizione precisa. Controlla che il GPS sia attivo.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, getString(R.string.location_unavailable_toast), Toast.LENGTH_LONG).show()
                 clearReplyState()
             }
         }
@@ -4920,7 +4927,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             locationTimeoutHandler?.postDelayed(locationTimeoutRunnable!!, maxWaitTimeMs)
 
         } catch (e: SecurityException) {
-            Toast.makeText(this, "Errore di sicurezza GPS: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.gps_security_error_fmt, e.message ?: ""), Toast.LENGTH_SHORT).show()
             clearReplyState()
         }
     }
@@ -4932,7 +4939,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
 
     override fun onDeclineLocationRequest(message: Message) {
         replyingToMessage = message
-        sendMessage("❌ Ho rifiutato la tua richiesta di posizione.")
+        sendMessage(getString(R.string.location_declined_msg))
     }
 
     private fun applyCurrentChatBackground() {
@@ -4957,18 +4964,18 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         val currentOpacity = ChatBackgroundManager.getOpacity(this, ChatBackgroundManager.TARGET_CHAT, groupId)
         val currentPercentage = (currentOpacity * 100).toInt()
         sliderOpacity.value = currentPercentage.toFloat()
-        labelOpacity.text = "Opacità Sfondo: $currentPercentage%"
+        labelOpacity.text = getString(R.string.bg_opacity_fmt, currentPercentage)
 
         sliderOpacity.addOnChangeListener { _, value, _ ->
             val intValue = value.toInt()
-            labelOpacity.text = "Opacità Sfondo: $intValue%"
+            labelOpacity.text = getString(R.string.bg_opacity_fmt, intValue)
             // Salva l'opacità specificando la destinazione TARGET_CHAT ed il groupId
             ChatBackgroundManager.setOpacity(this, value / 100f, ChatBackgroundManager.TARGET_CHAT, groupId)
             applyCurrentChatBackground()
         }
 
         val dialog = MaterialAlertDialogBuilder(this)
-            .setTitle("Sfondo di questa Chat")
+            .setTitle(getString(R.string.menu_chat_background))
             .setView(dialogView)
             .show()
 
@@ -4996,7 +5003,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             dialog.dismiss()
             ChatBackgroundManager.removeBackground(this, ChatBackgroundManager.TARGET_CHAT, groupId)
             applyCurrentChatBackground()
-            Toast.makeText(this, "Sfondo ripristinato", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.chat_bg_reset_toast), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -5004,7 +5011,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
         if (isFinishing || isDestroyed) return
 
         val progressDialog = MaterialAlertDialogBuilder(this)
-            .setTitle("Caricamento sfondi...")
+            .setTitle(getString(R.string.bg_loading_title))
             .setView(ProgressBar(this).apply { setPadding(50, 50, 50, 50) })
             .setCancelable(false)
             .show()
@@ -5020,7 +5027,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                 val urls = if (response.isSuccessful && response.body() != null) response.body()!!.images else emptyList()
 
                 if (urls.isEmpty()) {
-                    Toast.makeText(this@ChatActivity, "Nessuno sfondo disponibile.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ChatActivity, getString(R.string.no_wallpapers_available), Toast.LENGTH_SHORT).show()
                     return
                 }
 
@@ -5036,7 +5043,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                     dialog.dismiss()
                     ChatBackgroundManager.setPredefinedBackground(this@ChatActivity, selectedUrl, ChatBackgroundManager.TARGET_CHAT, groupId)
                     applyCurrentChatBackground()
-                    Toast.makeText(this@ChatActivity, "Sfondo applicato a questa chat!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ChatActivity, getString(R.string.chat_bg_applied_here), Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -5046,7 +5053,7 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                     return
                 }
                 try { progressDialog.dismiss() } catch (e: Exception) {}
-                Toast.makeText(this@ChatActivity, "Errore di connessione.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@ChatActivity, getString(R.string.err_server_connection), Toast.LENGTH_SHORT).show()
             }
         })
     }

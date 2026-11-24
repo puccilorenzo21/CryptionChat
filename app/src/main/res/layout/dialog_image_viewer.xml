@@ -14,7 +14,7 @@
         android:layout_gravity="center"
         android:adjustViewBounds="true"
         tools:src="@tools:sample/backgrounds/scenic"
-        android:contentDescription="Visualizzatore interno con zoom"/>
+        android:contentDescription="@string/cd_internal_zoom_viewer"/>
 
     <ImageButton
         android:id="@+id/close_button"
@@ -26,6 +26,6 @@
         android:src="@drawable/ic_close"
         app:tint="@android:color/white"
         android:elevation="4dp"
-        android:contentDescription="Chiudi"/>
+        android:contentDescription="@string/action_close"/>
 
 </FrameLayout>

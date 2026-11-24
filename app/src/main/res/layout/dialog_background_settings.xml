@@ -10,7 +10,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Personalizza Sfondo"
+        android:text="@string/bg_settings_title"
         android:textAppearance="?attr/textAppearanceHeadlineSmall"
         android:textColor="?attr/colorOnSurface"
         android:textStyle="bold"
@@ -51,14 +51,14 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Genera con IA"
+                    android:text="@string/action_generate_with_ai"
                     android:textStyle="bold"
                     android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textColor="?attr/colorOnPrimaryContainer"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Crea un'immagine unica"
+                    android:text="@string/bg_create_unique_image"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnPrimaryContainer"
                     android:alpha="0.8"/>
@@ -104,7 +104,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Galleria"
+                    android:text="@string/action_gallery"
                     android:textAlignment="center"
                     android:textAppearance="?attr/textAppearanceLabelLarge"
                     android:textColor="?attr/colorOnSurface"/>
@@ -142,7 +142,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Libreria"
+                    android:text="@string/action_library"
                     android:textAlignment="center"
                     android:textAppearance="?attr/textAppearanceLabelLarge"
                     android:textColor="?attr/colorOnSurface"/>
@@ -156,7 +156,7 @@
         android:id="@+id/opacity_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Luminosità Sfondo: 60%"
+        android:text="@string/bg_brightness_default"
         android:textAppearance="?attr/textAppearanceTitleSmall"
         android:textColor="?attr/colorOnSurface"
         android:layout_marginBottom="4dp"/>
@@ -164,7 +164,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Regola la luminosità per leggere meglio i messaggi."
+        android:text="@string/bg_brightness_hint"
         android:textAppearance="?attr/textAppearanceBodySmall"
         android:textColor="?attr/colorOnSurfaceVariant"
         android:layout_marginBottom="8dp"/>
@@ -194,7 +194,7 @@
         style="@style/Widget.Material3.Button.TextButton.Icon"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Ripristina sfondo di default"
+        android:text="@string/action_reset_default_bg"
         android:textColor="?attr/colorError"
         app:icon="@drawable/ic_delete_sweep"
         app:iconTint="?attr/colorError" />

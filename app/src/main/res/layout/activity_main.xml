@@ -35,7 +35,7 @@
             app:cardBackgroundColor="?attr/colorErrorContainer"
             app:cardElevation="0dp"
             app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.None">
-            <TextView android:id="@+id/network_status_text" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:text="Rete assente." android:textColor="?attr/colorOnErrorContainer" />
+            <TextView android:id="@+id/network_status_text" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:text="@string/network_offline_short" android:textColor="?attr/colorOnErrorContainer" />
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.appbar.MaterialToolbar
@@ -77,7 +77,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
             <ImageView android:layout_width="80dp" android:layout_height="80dp" android:layout_marginBottom="16dp" android:src="@drawable/ic_chat_bubble" app:tint="?attr/colorOnSurfaceVariant" />
-            <TextView android:id="@+id/textViewEmptyGroups" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Nessuna chat attiva" android:textAppearance="?attr/textAppearanceTitleMedium" android:textColor="?attr/colorOnSurface" />
+            <TextView android:id="@+id/textViewEmptyGroups" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/main_no_active_chats" android:textAppearance="?attr/textAppearanceTitleMedium" android:textColor="?attr/colorOnSurface" />
         </LinearLayout>
 
         <ProgressBar
@@ -173,7 +173,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Account Attivo"
+                android:text="@string/profile_active_account"
                 android:textColor="?attr/colorPrimary"
                 android:layout_marginBottom="32dp"/>
 
@@ -194,7 +194,7 @@
                         android:id="@+id/btn_me_change_photo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Cambia Immagine"
+                        android:text="@string/action_change_image"
                         android:drawablePadding="16dp"
                         app:drawableStartCompat="@drawable/ic_camera"
                         app:drawableTint="?attr/colorOnSurface"
@@ -208,7 +208,7 @@
                         android:id="@+id/btn_me_ai_photo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Genera Foto Profilo con IA"
+                        android:text="@string/action_generate_ai_avatar"
                         android:drawablePadding="16dp"
                         app:drawableStartCompat="@drawable/ic_transcribe"
                         app:drawableTint="?attr/colorPrimary"
@@ -223,7 +223,7 @@
                         android:id="@+id/btn_me_remove_photo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Rimuovi Immagine"
+                        android:text="@string/action_remove_image"
                         android:drawablePadding="16dp"
                         app:drawableStartCompat="@drawable/ic_delete_sweep"
                         app:drawableTint="?attr/colorError"
@@ -238,7 +238,7 @@
                         android:id="@+id/btn_me_change_username"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Cambia Nome Utente"
+                        android:text="@string/action_change_username"
                         android:drawablePadding="16dp"
                         app:drawableStartCompat="@drawable/ic_edit"
                         app:drawableTint="?attr/colorOnSurface"
@@ -255,7 +255,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Disconnetti"
+                android:text="@string/action_logout"
                 android:textColor="?attr/colorError"
                 app:backgroundTint="?attr/colorErrorContainer"
                 app:icon="@drawable/ic_login"
@@ -291,9 +291,9 @@
                 app:strokeWidth="0dp"
                 android:layout_marginBottom="16dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-                    <TextView android:id="@+id/btn_set_security" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Account, Privacy &amp; Sicurezza" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_lock" app:drawableTint="?attr/colorOnSurface" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
+                    <TextView android:id="@+id/btn_set_security" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings_account_privacy_security" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_lock" app:drawableTint="?attr/colorOnSurface" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:alpha="0.3"/>
-                    <TextView android:id="@+id/btn_set_biometric" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Accesso Biometrico" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_fingerprint" app:drawableTint="?attr/colorOnSurface" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
+                    <TextView android:id="@+id/btn_set_biometric" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings_biometric_login" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_fingerprint" app:drawableTint="?attr/colorOnSurface" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -305,15 +305,15 @@
                 app:strokeWidth="0dp"
                 android:layout_marginBottom="16dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-                    <TextView android:id="@+id/btn_set_notifications" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Notifiche e Suoni" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_volume_up" app:drawableTint="?attr/colorOnSurface" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
+                    <TextView android:id="@+id/btn_set_notifications" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings_notifications_sounds" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_volume_up" app:drawableTint="?attr/colorOnSurface" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:alpha="0.3"/>
 
-                    <TextView android:id="@+id/btn_set_background" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Sfondo App" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_wallpaper" app:drawableTint="?attr/colorOnSurface" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
+                    <TextView android:id="@+id/btn_set_background" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings_app_background" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_wallpaper" app:drawableTint="?attr/colorOnSurface" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:alpha="0.3"/>
-                    <TextView android:id="@+id/btn_set_oled" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Tema Nero OLED" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_settings" app:drawableTint="?attr/colorOnSurface" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
+                    <TextView android:id="@+id/btn_set_oled" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings_oled_theme" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_settings" app:drawableTint="?attr/colorOnSurface" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:alpha="0.3"/>
 
-                    <TextView android:id="@+id/btn_set_transcription" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Modello Vocale (Vosk/Whisper)" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_transcribe" app:drawableTint="?attr/colorOnSurface" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
+                    <TextView android:id="@+id/btn_set_transcription" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings_voice_model" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_transcribe" app:drawableTint="?attr/colorOnSurface" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -325,9 +325,9 @@
                 app:strokeWidth="0dp"
                 android:layout_marginBottom="16dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-                    <TextView android:id="@+id/btn_set_cache" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Gestisci Spazio (Svuota Cache)" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_broom" app:drawableTint="?attr/colorOnSurface" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
+                    <TextView android:id="@+id/btn_set_cache" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings_manage_storage" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_broom" app:drawableTint="?attr/colorOnSurface" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
                     <View android:id="@+id/div_root_tools" android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:alpha="0.3" android:visibility="gone"/>
-                    <TextView android:id="@+id/btn_set_root" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Strumenti Avanzati (Root)" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_settings" app:drawableTint="?attr/colorError" android:textColor="?attr/colorError" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge" android:visibility="gone"/>
+                    <TextView android:id="@+id/btn_set_root" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings_root_tools" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_settings" app:drawableTint="?attr/colorError" android:textColor="?attr/colorError" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge" android:visibility="gone"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -340,14 +340,14 @@
                 android:layout_marginBottom="16dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-                    <TextView android:id="@+id/btn_set_update" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Forza Aggiornamento" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_system_update" app:drawableTint="?attr/colorOnSurface" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
+                    <TextView android:id="@+id/btn_set_update" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings_force_update" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_system_update" app:drawableTint="?attr/colorOnSurface" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:alpha="0.3"/>
-                    <TextView android:id="@+id/btn_set_beta" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Programma Beta" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_help_outline" app:drawableTint="?attr/colorOnSurface" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
+                    <TextView android:id="@+id/btn_set_beta" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings_beta_program" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_help_outline" app:drawableTint="?attr/colorOnSurface" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:alpha="0.3"/>
 
-                    <TextView android:id="@+id/btn_set_bug" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Segnala un Problema" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_feedback" app:drawableTint="?attr/colorOnSurface" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
+                    <TextView android:id="@+id/btn_set_bug" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings_report_problem" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_feedback" app:drawableTint="?attr/colorOnSurface" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?attr/colorOutlineVariant" android:alpha="0.3"/>
-                    <TextView android:id="@+id/btn_set_delete" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Elimina Account Definitivamente" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_close" app:drawableTint="?attr/colorError" android:textColor="?attr/colorError" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
+                    <TextView android:id="@+id/btn_set_delete" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings_delete_account" android:drawablePadding="16dp" app:drawableStartCompat="@drawable/ic_close" app:drawableTint="?attr/colorError" android:textColor="?attr/colorError" android:padding="16dp" android:background="?attr/selectableItemBackground" android:textAppearance="?attr/textAppearanceBodyLarge"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -415,7 +415,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:text="Novità &amp; Changelog"
+                        android:text="@string/settings_whats_new_changelog"
                         app:icon="@drawable/ic_help_outline"
                         app:cornerRadius="16dp" />
 
@@ -429,7 +429,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="CryptionChat Security Platform • Protezione Totale"
+                        android:text="@string/settings_footer_brand"
                         android:textAppearance="?attr/textAppearanceLabelSmall"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:alpha="0.7" />

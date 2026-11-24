@@ -10,7 +10,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Guida a Shizuku e ADB"
+        android:text="@string/shizuku_guide_title"
         android:textAppearance="?attr/textAppearanceTitleLarge"
         android:textColor="?attr/colorOnSurface"
         android:padding="24dp"
@@ -69,7 +69,7 @@
                         android:src="@drawable/ic_content_copy"
                         android:background="?attr/selectableItemBackgroundBorderless"
                         app:tint="?attr/colorPrimary"
-                        android:contentDescription="Copia comando ADB"/>
+                        android:contentDescription="@string/cd_copy_adb"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -101,7 +101,7 @@
             style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Ho capito" />
+            android:text="@string/action_got_it" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -116,7 +116,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="8dp"
-                android:text="Scarica"
+                android:text="@string/action_download"
                 app:icon="@drawable/ic_file_download" />
 
             <com.google.android.material.button.MaterialButton
@@ -125,7 +125,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Guida Ufficiale"
+                android:text="@string/action_official_guide"
                 app:icon="@drawable/ic_help_outline" />
         </LinearLayout>
 

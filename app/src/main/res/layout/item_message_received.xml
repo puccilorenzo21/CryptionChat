@@ -121,7 +121,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:text="Condividi"
+                android:text="@string/action_share"
                 app:icon="@drawable/ic_check" />
 
             <com.google.android.material.button.MaterialButton
@@ -130,7 +130,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="?attr/colorError"
-                android:text="Rifiuta" />
+                android:text="@string/action_decline" />
         </LinearLayout>
 
         <!-- Contenitore Reazioni -->
@@ -156,7 +156,7 @@
                 android:id="@+id/textViewEditedStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="(modificato)"
+                android:text="@string/message_edited_tag"
                 android:textAppearance="?attr/textAppearanceLabelSmall"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:layout_marginEnd="6dp"

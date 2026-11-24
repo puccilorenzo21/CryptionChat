@@ -36,7 +36,7 @@ object CallManager {
     var groupId: Int = -1
     var groupKey: String? = null
     var groupIv: String? = null
-    var otherUserName: String = "Utente"
+    var otherUserName: String = "User"
     var otherUserProfilePic: String? = null
     var isIncoming: Boolean = false
 
@@ -163,7 +163,7 @@ object CallManager {
                 uiHandler.post {
                     stateListener?.onNetworkQualityChanged(status)
                     sendNetworkStatusSignal(status == NetworkQualityMonitor.NetworkStatus.POOR)
-                    if (status == NetworkQualityMonitor.NetworkStatus.DISCONNECTED) updateStatus("Rete assente...")
+                    if (status == NetworkQualityMonitor.NetworkStatus.DISCONNECTED) updateStatus(appContext?.getString(R.string.call_status_no_network) ?: "No network...")
                 }
             }
         }
@@ -177,8 +177,8 @@ object CallManager {
     }
 
     fun startOutgoingCall(context: Context, targetId: Int, gId: Int, key: String?, iv: String?, targetName: String?, targetPic: String?) {
-        reset(); isActive = true; isIncoming = false; isAnswered = true; otherUserId = targetId; groupId = gId; groupKey = key; groupIv = iv; otherUserName = targetName ?: "Utente"; otherUserProfilePic = targetPic; this.appContext = context.applicationContext
-        networkQualityMonitor?.register(); updateStatus("Squillando...")
+        reset(); isActive = true; isIncoming = false; isAnswered = true; otherUserId = targetId; groupId = gId; groupKey = key; groupIv = iv; otherUserName = targetName ?: context.getString(R.string.default_user_label); otherUserProfilePic = targetPic; this.appContext = context.applicationContext
+        networkQualityMonitor?.register(); updateStatus(context.getString(R.string.call_status_ringing))
         acquireCallLocks(context)
         setupAudioManager(context)
 
@@ -206,8 +206,8 @@ object CallManager {
 
     fun prepareIncomingCall(context: Context, cId: Int, gId: Int, callerId: Int, key: String?, iv: String?, callerName: String?, callerPic: String?) {
         if (isActive && callId == cId) return
-        reset(); isActive = true; isIncoming = true; isAnswered = false; callId = cId; groupId = gId; otherUserId = callerId; groupKey = key; groupIv = iv; otherUserName = callerName ?: "Utente"; otherUserProfilePic = callerPic; this.appContext = context.applicationContext
-        NotificationService.activeCallIdForPolling = callId; networkQualityMonitor?.register(); updateStatus("Chiamata in arrivo")
+        reset(); isActive = true; isIncoming = true; isAnswered = false; callId = cId; groupId = gId; otherUserId = callerId; groupKey = key; groupIv = iv; otherUserName = callerName ?: context.getString(R.string.default_user_label); otherUserProfilePic = callerPic; this.appContext = context.applicationContext
+        NotificationService.activeCallIdForPolling = callId; networkQualityMonitor?.register(); updateStatus(context.getString(R.string.call_status_incoming))
         acquireCallLocks(context)
         setupAudioManager(context)
 
@@ -217,7 +217,7 @@ object CallManager {
     }
 
     fun acceptCall() {
-        updateStatus("Connessione...")
+        updateStatus(appContext?.getString(R.string.call_status_connecting) ?: "Connecting...")
         userAcceptedCall = true
         isAnswered = true
 
@@ -357,16 +357,17 @@ object CallManager {
                                 poorConnectionCounter = 0
                                 uiHandler.post(statsRunnable)
                             }
-                            updateStatus("Connesso")
+                            updateStatus(appContext?.getString(R.string.call_status_connected) ?: "Connected")
                         }
                         PeerConnection.IceConnectionState.DISCONNECTED -> {
-                            updateStatus("Riconnessione...")
+                            updateStatus(appContext?.getString(R.string.call_status_reconnecting) ?: "Reconnecting...")
                             uiHandler.removeCallbacks(reconnectionRunnable)
                             uiHandler.postDelayed(reconnectionRunnable, RECONNECTION_TIMEOUT_MS)
                         }
                         PeerConnection.IceConnectionState.FAILED -> {
-                            updateStatus("Riprovo connessione...")
-                            sendSignal("call_status", WebRtcSignal(type = "call_status", callStatus = "Riprovo connessione..."))
+                            val retryingText = appContext?.getString(R.string.call_status_retrying) ?: "Retrying connection..."
+                            updateStatus(retryingText)
+                            sendSignal("call_status", WebRtcSignal(type = "call_status", callStatus = retryingText))
                             webRtcClient?.restartIce()
                             webRtcClient?.createOffer { sendSignal("offer", it) }
 
@@ -425,7 +426,10 @@ object CallManager {
 
                 val rtcSignal = Gson().fromJson(decrypted, WebRtcSignal::class.java) ?: return@post
                 when (rtcSignal.type) {
-                    "call_status" -> rtcSignal.callStatus?.let { updateStatus(it) }
+                    "call_status" -> rtcSignal.callStatus?.let {
+                        val localized = if (it == "Riprovo connessione..." || it == "Retrying connection...") (appContext?.getString(R.string.call_status_retrying) ?: it) else it
+                        updateStatus(localized)
+                    }
                     "offer" -> {
                         webRtcClient?.setRemoteDescription(SessionDescription(SessionDescription.Type.OFFER, rtcSignal.sdp)) {
                             if (isIncoming) {
@@ -447,7 +451,7 @@ object CallManager {
                         if (webRtcClient?.getSignalingState() != PeerConnection.SignalingState.STABLE) {
                             webRtcClient?.setRemoteDescription(SessionDescription(SessionDescription.Type.ANSWER, rtcSignal.sdp))
                         }
-                        updateStatus("Connessione...")
+                        updateStatus(appContext?.getString(R.string.call_status_connecting) ?: "Connecting...")
                     }
                     "candidate" -> {
                         if (rtcSignal.candidate != null) webRtcClient?.addIceCandidate(IceCandidate(rtcSignal.sdpMid, rtcSignal.sdpMLineIndex, rtcSignal.candidate))

@@ -130,7 +130,7 @@
             style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:text="Aggiorna ora"
+            android:text="@string/action_update_now"
             android:textStyle="bold"
             app:cornerRadius="16dp"
             app:icon="@drawable/ic_system_update"
@@ -142,7 +142,7 @@
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:text="Rimanda"
+            android:text="@string/action_postpone"
             app:cornerRadius="16dp"
             app:icon="@drawable/ic_clock"
             app:iconGravity="textStart" />

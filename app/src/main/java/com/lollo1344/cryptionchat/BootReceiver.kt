@@ -18,6 +18,16 @@ class BootReceiver : BroadcastReceiver() {
 
             Log.i("BootReceiver", "Evento di avvio ricevuto ($action). Programmo l'avvio del servizio.")
 
+            try {
+                if (action == Intent.ACTION_MY_PACKAGE_REPLACED) {
+                    AutoUpdateManager.getInstance(context).onPackageReplaced()
+                } else {
+                    AutoUpdateManager.getInstance(context).cleanupIfUpdatedOrObsolete()
+                }
+            } catch (e: Exception) {
+                Log.w("BootReceiver", "Errore pulizia APK post-aggiornamento: ${e.message}")
+            }
+
             val prefs = SecurePrefs.get(context)
             val userId = prefs.getInt("user_id", -1)
 

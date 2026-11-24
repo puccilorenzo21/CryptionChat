@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="channel_beta_text">#FFB74D</color>
+    <color name="channel_stable_text">#70B1FF</color>
+    <color name="update_pill_track">#26FFFFFF</color>
+</resources>

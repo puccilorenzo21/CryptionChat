@@ -16,12 +16,12 @@
         android:src="@drawable/ic_settings"
         app:tint="?attr/colorPrimary"
         android:layout_marginBottom="24dp"
-        android:contentDescription="Icona manutenzione"/>
+        android:contentDescription="@string/cd_maintenance_icon"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Manutenzione in Corso"
+        android:text="@string/maintenance_title"
         android:textAppearance="?attr/textAppearanceHeadlineMedium"
         android:textColor="?attr/colorOnSurface"
         android:layout_marginBottom="16dp"/>

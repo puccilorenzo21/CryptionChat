@@ -208,7 +208,7 @@
                         app:iconTint="?attr/colorOnSecondaryContainer"
                         app:rippleColor="?attr/colorOnSecondaryContainer"
                         android:background="@android:color/transparent"
-                        android:contentDescription="Trascrivi audio"/>
+                        android:contentDescription="@string/cd_transcribe_audio"/>
 
                 </LinearLayout>
 

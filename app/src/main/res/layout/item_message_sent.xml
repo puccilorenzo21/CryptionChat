@@ -89,7 +89,7 @@
             android:id="@+id/textViewEditedStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="(modificato)"
+            android:text="@string/message_edited_tag"
             android:textAppearance="?attr/textAppearanceLabelSmall"
             android:textColor="?attr/colorOnSurfaceVariant"
             android:layout_marginEnd="6dp"
@@ -111,7 +111,7 @@
             android:layout_marginStart="6dp"
             tools:src="@drawable/ic_check_all"
             app:tint="@color/read_receipt_yellow"
-            android:contentDescription="Stato del messaggio"
+            android:contentDescription="@string/cd_message_status"
             android:clickable="true"
             android:focusable="true"
             android:background="?attr/selectableItemBackgroundBorderless"/>

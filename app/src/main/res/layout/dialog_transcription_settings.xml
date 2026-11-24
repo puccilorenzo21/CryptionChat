@@ -48,7 +48,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Motore Vocale"
+                    android:text="@string/voice_engine_title"
                     android:textAppearance="?attr/textAppearanceHeadlineSmall"
                     android:textStyle="bold"
                     android:textColor="?attr/colorOnSurface"/>
@@ -129,7 +129,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="MOTORE STANDARD (OFFLINE SUPER VELOCE)"
+                android:text="@string/voice_section_standard"
                 android:textAppearance="?attr/textAppearanceLabelMedium"
                 android:textColor="?attr/colorPrimary"
                 android:letterSpacing="0.05"
@@ -149,8 +149,8 @@
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:padding="14dp">
                     <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rb_vosk" android:layout_width="wrap_content" android:layout_height="wrap_content" android:clickable="false" android:minWidth="0dp" android:minHeight="0dp"/>
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="12dp">
-                        <TextView android:id="@+id/tv_vosk_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Vosk (Legacy)" android:textAppearance="?attr/textAppearanceTitleMedium" android:textStyle="bold" />
-                        <TextView android:id="@+id/tv_vosk_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dimensioni: ~45 MB\n⚡ Velocità: 5/5 | ⭐ Precisione: 2/5" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginTop="2dp"/>
+                        <TextView android:id="@+id/tv_vosk_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/voice_vosk_title" android:textAppearance="?attr/textAppearanceTitleMedium" android:textStyle="bold" />
+                        <TextView android:id="@+id/tv_vosk_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/voice_vosk_desc" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginTop="2dp"/>
                     </LinearLayout>
                     <ImageButton android:id="@+id/help_vosk" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_help_outline" app:tint="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
@@ -160,7 +160,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="MODELLI NEURALI AI (ALTA PRECISIONE)"
+                android:text="@string/voice_section_neural"
                 android:textAppearance="?attr/textAppearanceLabelMedium"
                 android:textColor="?attr/colorPrimary"
                 android:letterSpacing="0.05"
@@ -180,8 +180,8 @@
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:padding="14dp">
                     <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rb_whisper_base" android:layout_width="wrap_content" android:layout_height="wrap_content" android:clickable="false" android:minWidth="0dp" android:minHeight="0dp"/>
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="12dp">
-                        <TextView android:id="@+id/tv_whisper_base_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Whisper Base" android:textAppearance="?attr/textAppearanceTitleMedium" android:textStyle="bold" />
-                        <TextView android:id="@+id/tv_whisper_base_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dimensioni: ~148 MB\n⚡ Velocità: 4/5 | ⭐ Precisione: 3/5" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginTop="2dp"/>
+                        <TextView android:id="@+id/tv_whisper_base_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/voice_whisper_base_title" android:textAppearance="?attr/textAppearanceTitleMedium" android:textStyle="bold" />
+                        <TextView android:id="@+id/tv_whisper_base_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/voice_whisper_base_desc" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginTop="2dp"/>
                     </LinearLayout>
                     <ImageButton android:id="@+id/help_whisper_base" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_help_outline" app:tint="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
@@ -200,8 +200,8 @@
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:padding="14dp">
                     <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rb_whisper_small_q5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:clickable="false" android:minWidth="0dp" android:minHeight="0dp"/>
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="12dp">
-                        <TextView android:id="@+id/tv_whisper_q5_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Whisper Small Q5 (Consigliato)" android:textAppearance="?attr/textAppearanceTitleMedium" android:textColor="?attr/colorPrimary" android:textStyle="bold"/>
-                        <TextView android:id="@+id/tv_whisper_q5_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dimensioni: ~190 MB\n⚡ Velocità: 3.5/5 | ⭐ Precisione: 4/5" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginTop="2dp"/>
+                        <TextView android:id="@+id/tv_whisper_q5_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/voice_whisper_small_q5_title" android:textAppearance="?attr/textAppearanceTitleMedium" android:textColor="?attr/colorPrimary" android:textStyle="bold"/>
+                        <TextView android:id="@+id/tv_whisper_q5_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/voice_whisper_small_q5_desc" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginTop="2dp"/>
                     </LinearLayout>
                     <ImageButton android:id="@+id/help_whisper_small_q5" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_help_outline" app:tint="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
@@ -220,8 +220,8 @@
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:padding="14dp">
                     <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rb_whisper_small_q8" android:layout_width="wrap_content" android:layout_height="wrap_content" android:clickable="false" android:minWidth="0dp" android:minHeight="0dp"/>
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="12dp">
-                        <TextView android:id="@+id/tv_whisper_q8_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Whisper Small Q8" android:textAppearance="?attr/textAppearanceTitleMedium" android:textStyle="bold" />
-                        <TextView android:id="@+id/tv_whisper_q8_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dimensioni: ~264 MB\n⚡ Velocità: 2.5/5 | ⭐ Precisione: 4.5/5" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginTop="2dp"/>
+                        <TextView android:id="@+id/tv_whisper_q8_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/voice_whisper_small_q8_title" android:textAppearance="?attr/textAppearanceTitleMedium" android:textStyle="bold" />
+                        <TextView android:id="@+id/tv_whisper_q8_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/voice_whisper_small_q8_desc" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginTop="2dp"/>
                     </LinearLayout>
                     <ImageButton android:id="@+id/help_whisper_small_q8" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_help_outline" app:tint="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
@@ -240,8 +240,8 @@
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:padding="14dp">
                     <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rb_whisper_small" android:layout_width="wrap_content" android:layout_height="wrap_content" android:clickable="false" android:minWidth="0dp" android:minHeight="0dp"/>
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="12dp">
-                        <TextView android:id="@+id/tv_whisper_small_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Whisper Small Full" android:textAppearance="?attr/textAppearanceTitleMedium" android:textStyle="bold" />
-                        <TextView android:id="@+id/tv_whisper_small_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dimensioni: ~488 MB\n⚡ Velocità: 1.5/5 | ⭐ Precisione: 5/5" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginTop="2dp"/>
+                        <TextView android:id="@+id/tv_whisper_small_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/voice_whisper_small_full_title" android:textAppearance="?attr/textAppearanceTitleMedium" android:textStyle="bold" />
+                        <TextView android:id="@+id/tv_whisper_small_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/voice_whisper_small_full_desc" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginTop="2dp"/>
                     </LinearLayout>
                     <ImageButton android:id="@+id/help_whisper_small" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_help_outline" app:tint="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
@@ -260,8 +260,8 @@
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:padding="14dp">
                     <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rb_whisper_turbo_q5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:clickable="false" android:minWidth="0dp" android:minHeight="0dp"/>
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="12dp">
-                        <TextView android:id="@+id/tv_whisper_turbo_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Whisper Large-v3-Turbo Q5 🚀" android:textAppearance="?attr/textAppearanceTitleMedium" android:textStyle="bold"/>
-                        <TextView android:id="@+id/tv_whisper_turbo_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dimensioni: ~547 MB\n⚡ Velocità: 4/5 | ⭐ Precisione: 5/5 (Top Mondiale)" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginTop="2dp"/>
+                        <TextView android:id="@+id/tv_whisper_turbo_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/voice_whisper_large_title" android:textAppearance="?attr/textAppearanceTitleMedium" android:textStyle="bold"/>
+                        <TextView android:id="@+id/tv_whisper_turbo_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/voice_whisper_large_desc" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginTop="2dp"/>
                     </LinearLayout>
                     <ImageButton android:id="@+id/help_whisper_turbo_q5" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_help_outline" app:tint="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
@@ -280,8 +280,8 @@
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:padding="14dp">
                     <com.google.android.material.radiobutton.MaterialRadioButton android:id="@+id/rb_hybrid" android:layout_width="wrap_content" android:layout_height="wrap_content" android:clickable="false" android:minWidth="0dp" android:minHeight="0dp"/>
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="12dp">
-                        <TextView android:id="@+id/tv_hybrid_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Modalità Ibrida" android:textAppearance="?attr/textAppearanceTitleMedium" android:textStyle="bold" />
-                        <TextView android:id="@+id/tv_hybrid_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Confronto simultaneo Vosk + Whisper\nIdeale per test di sviluppatori." android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginTop="2dp"/>
+                        <TextView android:id="@+id/tv_hybrid_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/voice_hybrid_title" android:textAppearance="?attr/textAppearanceTitleMedium" android:textStyle="bold" />
+                        <TextView android:id="@+id/tv_hybrid_desc" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/voice_hybrid_desc" android:textAppearance="?attr/textAppearanceBodySmall" android:textColor="?attr/colorOnSurfaceVariant" android:layout_marginTop="2dp"/>
                     </LinearLayout>
                     <ImageButton android:id="@+id/help_hybrid" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_help_outline" app:tint="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
@@ -341,7 +341,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
                 android:layout_marginBottom="12dp"
-                android:text="Scarica"
+                android:text="@string/action_download"
                 app:icon="@drawable/ic_file_download"
                 app:iconGravity="textStart" />
 
@@ -359,7 +359,7 @@
                     android:layout_height="52dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="6dp"
-                    android:text="Rimuovi"
+                    android:text="@string/action_remove"
                     android:textColor="?attr/colorError"
                     tools:visibility="visible" />
 
@@ -370,7 +370,7 @@
                     android:layout_height="52dp"
                     android:layout_weight="1"
                     android:layout_marginStart="6dp"
-                    android:text="Chiudi" />
+                    android:text="@string/action_close" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

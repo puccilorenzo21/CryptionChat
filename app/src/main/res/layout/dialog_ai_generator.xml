@@ -29,7 +29,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Genera con IA"
+                android:text="@string/action_generate_with_ai"
                 android:textAppearance="?attr/textAppearanceTitleLarge"
                 android:textColor="?attr/colorOnSurface"
                 android:textStyle="bold" />
@@ -41,13 +41,13 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_settings"
                 app:tint="?attr/colorControlNormal"
-                android:contentDescription="Impostazioni IA" />
+                android:contentDescription="@string/cd_ai_settings" />
         </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Descrivi cosa vuoi vedere. Il motore IA creerà un'opera d'arte unica e ad alta risoluzione."
+            android:text="@string/ai_generator_desc"
             android:textAppearance="?attr/textAppearanceBodyMedium"
             android:textColor="?attr/colorOnSurfaceVariant"
             android:layout_marginBottom="24dp"/>
@@ -62,7 +62,7 @@
             app:boxCornerRadiusBottomStart="16dp"
             app:boxCornerRadiusBottomEnd="16dp"
             android:layout_marginBottom="16dp"
-            android:hint="Es: Un gatto ninja in una città neon...">
+            android:hint="@string/ai_prompt_hint">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/edit_text_ai_prompt"
@@ -76,7 +76,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Stili rapidi:"
+            android:text="@string/ai_quick_styles"
             android:textAppearance="?attr/textAppearanceLabelMedium"
             android:textColor="?attr/colorOnSurfaceVariant"
             android:layout_marginBottom="8dp"/>
@@ -102,70 +102,70 @@
                     style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Cyberpunk" />
+                    android:text="@string/ai_style_cyberpunk" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/preset_landscape"
                     style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Paesaggio" />
+                    android:text="@string/ai_style_landscape" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/preset_abstract"
                     style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Astratto" />
+                    android:text="@string/ai_style_abstract" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/preset_space"
                     style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Spazio" />
+                    android:text="@string/ai_style_space" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/preset_rainy"
                     style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Pioggia Lofi" />
+                    android:text="@string/ai_style_lofi_rain" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/preset_anime"
                     style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Anime" />
+                    android:text="@string/ai_style_anime" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/preset_3d_avatar"
                     style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Render 3D" />
+                    android:text="@string/ai_style_3d_render" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/preset_fantasy"
                     style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Fantasy" />
+                    android:text="@string/ai_style_fantasy" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/preset_synthwave"
                     style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Synthwave 80s" />
+                    android:text="@string/ai_style_synthwave" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/preset_dark_gothic"
                     style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Gothic" />
+                    android:text="@string/ai_style_gothic" />
 
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>
@@ -176,7 +176,7 @@
             style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:text="Genera Immagine"
+            android:text="@string/action_generate_image"
             android:textSize="16sp"
             app:cornerRadius="16dp"
             app:icon="@drawable/ic_wallpaper"
@@ -200,7 +200,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Creazione capolavoro in corso...\nAttendere 5-10 secondi."
+                android:text="@string/ai_generating_wait"
                 android:textAlignment="center"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="?attr/colorPrimary"/>
@@ -222,7 +222,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
-                android:contentDescription="Anteprima Sfondo Generato"/>
+                android:contentDescription="@string/cd_ai_preview"/>
 
         </com.google.android.material.card.MaterialCardView>
 
@@ -232,7 +232,7 @@
             style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:text="Imposta come Sfondo"
+            android:text="@string/action_set_as_background"
             app:cornerRadius="16dp"
             app:icon="@drawable/ic_check"
             android:visibility="gone"/>

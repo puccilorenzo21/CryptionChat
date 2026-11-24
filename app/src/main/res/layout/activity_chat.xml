@@ -22,7 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:contentDescription="Sfondo Chat" />
+            android:contentDescription="@string/cd_chat_background" />
 
         <VideoView
             android:id="@+id/chat_background_video"
@@ -89,7 +89,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        android:contentDescription="Torna giù"
+        android:contentDescription="@string/cd_scroll_bottom"
         android:visibility="gone"
         app:fabCustomSize="40dp"
         app:maxImageSize="24dp"
@@ -140,7 +140,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Solo gli amministratori possono inviare messaggi"
+                    android:text="@string/chat_only_admins_can_send"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:textColor="?attr/colorOnSurfaceVariant" />
             </LinearLayout>
@@ -170,7 +170,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Caricamento media..."
+                    android:text="@string/chat_uploading_media"
                     android:textAppearance="?attr/textAppearanceLabelMedium"
                     android:textColor="?attr/colorPrimary" />
 
@@ -189,7 +189,7 @@
                     android:layout_height="28dp"
                     android:layout_marginStart="8dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Annulla caricamento"
+                    android:contentDescription="@string/cd_cancel_upload"
                     android:src="@drawable/ic_close"
                     app:tint="?attr/colorError" />
             </LinearLayout>
@@ -248,7 +248,7 @@
                         android:id="@+id/replyPreviewUsername"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Rispondi a..."
+                        android:text="@string/chat_reply_to_placeholder"
                         android:textColor="?attr/colorPrimary"
                         android:textStyle="bold"
                         android:textAppearance="?attr/textAppearanceLabelMedium" />
@@ -259,7 +259,7 @@
                         android:layout_height="wrap_content"
                         android:ellipsize="end"
                         android:maxLines="1"
-                        android:text="Messaggio originale"
+                        android:text="@string/chat_original_message"
                         android:textAppearance="?attr/textAppearanceBodySmall"
                         android:textColor="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
@@ -272,7 +272,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:layout_marginEnd="8dp"
                     app:tint="?attr/colorOnSurfaceVariant"
-                    android:contentDescription="Chiudi risposta" />
+                    android:contentDescription="@string/cd_close_reply" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -326,7 +326,7 @@
                             app:iconSize="22dp"
                             app:iconTint="?attr/colorOnSurfaceVariant"
                             app:rippleColor="?attr/colorControlHighlight"
-                            android:contentDescription="Allega" />
+                            android:contentDescription="@string/cd_attach" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonSticker"
@@ -340,7 +340,7 @@
                             app:iconSize="22dp"
                             app:iconTint="?attr/colorOnSurfaceVariant"
                             app:rippleColor="?attr/colorControlHighlight"
-                            android:contentDescription="Sticker" />
+                            android:contentDescription="@string/cd_sticker" />
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/editTextMessage"
@@ -348,7 +348,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:background="@android:color/transparent"
-                            android:hint="Scrivi un messaggio..."
+                            android:hint="@string/hint_type_message"
                             android:imeOptions="flagNoPersonalizedLearning"
                             android:inputType="textCapSentences|textMultiLine|textNoSuggestions"
                             android:maxLines="6"
@@ -373,7 +373,7 @@
                             app:iconSize="22dp"
                             app:iconTint="@color/view_once_icon_tint"
                             android:checkable="true"
-                            android:contentDescription="Visualizza una volta" />
+                            android:contentDescription="@string/cd_view_once" />
                     </LinearLayout>
 
                     <!-- LAYOUT REGISTRAZIONE VOCALE -->
@@ -416,13 +416,13 @@
                             android:background="?attr/selectableItemBackgroundBorderless"
                             app:tint="?attr/colorError"
                             android:visibility="gone"
-                            android:contentDescription="Elimina registrazione" />
+                            android:contentDescription="@string/cd_delete_recording" />
 
                         <TextView
                             android:id="@+id/swipe_hint_text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="&lt; Annulla | Blocca ^"
+                            android:text="@string/chat_slide_cancel_lock"
                             android:textAppearance="?attr/textAppearanceBodySmall"
                             android:textColor="?attr/colorOnSurfaceVariant"
                             android:textStyle="bold"
@@ -444,7 +444,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:contentDescription="Invia"
+                    android:contentDescription="@string/cd_send"
                     android:visibility="gone"
                     app:backgroundTint="?attr/colorPrimary"
                     app:tint="?attr/colorOnPrimary"
@@ -459,7 +459,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:contentDescription="Registra Audio"
+                    android:contentDescription="@string/cd_record_audio"
                     app:backgroundTint="?attr/colorSecondaryContainer"
                     app:tint="?attr/colorOnSecondaryContainer"
                     app:elevation="3dp"
@@ -472,7 +472,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:contentDescription="Invia Audio"
+                    android:contentDescription="@string/cd_send_audio"
                     android:visibility="gone"
                     app:backgroundTint="?attr/colorPrimary"
                     app:tint="?attr/colorOnPrimary"

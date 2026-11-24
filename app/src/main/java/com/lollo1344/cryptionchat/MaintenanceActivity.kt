@@ -28,7 +28,7 @@ class MaintenanceActivity : BaseActivity() {
         setContentView(binding.root)
 
         val message = intent.getStringExtra("MAINTENANCE_MESSAGE")
-            ?: "Il servizio è temporaneamente non disponibile per manutenzione. Riprova più tardi."
+            ?: getString(R.string.maintenance_default_message)
 
         binding.textViewMaintenanceMessage.text = message
 

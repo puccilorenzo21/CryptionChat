@@ -27,7 +27,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Foto Effimera"
+            android:text="@string/view_once_photo_title"
             android:textAppearance="?attr/textAppearanceHeadlineSmall"
             android:textStyle="bold"
             android:textColor="@android:color/white" />
@@ -51,7 +51,7 @@
             android:layout_height="match_parent"
             android:scaleType="fitCenter"
             tools:src="@tools:sample/backgrounds/scenic"
-            android:contentDescription="Immagine effimera con zoom"/>
+            android:contentDescription="@string/cd_view_once_image"/>
 
     </com.google.android.material.card.MaterialCardView>
 
@@ -59,7 +59,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="⚠️ Questa foto verrà distrutta permanentemente appena chiuderai questa finestra."
+        android:text="@string/view_once_photo_warning"
         android:textAppearance="?attr/textAppearanceBodySmall"
         android:textColor="#FF8A8A"
         android:textAlignment="center"
@@ -71,7 +71,7 @@
         style="@style/Widget.Material3.Button.TonalButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Chiudi e Distruggi"
+        android:text="@string/action_close_and_destroy"
         android:textColor="#FFB4AB"
         android:textStyle="bold"
         android:paddingVertical="12dp"

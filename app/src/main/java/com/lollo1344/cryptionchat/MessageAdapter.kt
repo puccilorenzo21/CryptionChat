@@ -284,18 +284,18 @@ class MessageAdapter(
         }
     }
 
-    private fun getReadableErrorMessage(e: Throwable?): String {
-        if (e == null) return "Errore durante il download"
+    private fun getReadableErrorMessage(context: Context, e: Throwable?): String {
+        if (e == null) return context.getString(R.string.err_download_generic)
         val msg = e.localizedMessage?.trim() ?: e.message?.trim() ?: ""
         if (msg.isNotEmpty() && msg != "null") return msg
         val causeMsg = e.cause?.localizedMessage?.trim() ?: e.cause?.message?.trim() ?: ""
         if (causeMsg.isNotEmpty() && causeMsg != "null") return causeMsg
         return when (e) {
-            is java.io.EOFException -> "Connessione interrotta dal server (download incompleto)"
-            is java.net.SocketTimeoutException -> "Tempo di attesa dal server scaduto"
-            is java.net.UnknownHostException -> "Impossibile raggiungere il server (rete assente)"
-            is javax.crypto.BadPaddingException -> "Chiave di decifratura errata o file corrotto"
-            is javax.crypto.IllegalBlockSizeException -> "Dimensione blocco cifrato non valida"
+            is java.io.EOFException -> context.getString(R.string.err_eof)
+            is java.net.SocketTimeoutException -> context.getString(R.string.err_timeout)
+            is java.net.UnknownHostException -> context.getString(R.string.err_unknown_host)
+            is javax.crypto.BadPaddingException -> context.getString(R.string.err_bad_padding)
+            is javax.crypto.IllegalBlockSizeException -> context.getString(R.string.err_illegal_block_size)
             else -> e.javaClass.simpleName
         }
     }
@@ -353,7 +353,7 @@ class MessageAdapter(
             }
 
             if (primaryKey.isNullOrBlank() || (metaKey == null && primaryIv == null)) {
-                withContext(Dispatchers.Main) { onError(Exception("Chiavi di cifratura mancanti.")) }
+                withContext(Dispatchers.Main) { onError(Exception(context.getString(R.string.err_missing_encryption_keys))) }
                 DownloadTracker.finishDownload(fileId)
                 return@launch
             }
@@ -382,7 +382,7 @@ class MessageAdapter(
                     val activeCaps = cm?.getNetworkCapabilities(cm.activeNetwork)
                     val onlineNow = activeCaps != null && activeCaps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)
                     if (!onlineNow) {
-                        throw java.net.UnknownHostException("Rete disconnessa")
+                        throw java.net.UnknownHostException(context.getString(R.string.err_network_disconnected))
                     }
 
                     val existingLength = if (tempEncryptedFile.exists()) tempEncryptedFile.length() else 0L
@@ -395,19 +395,19 @@ class MessageAdapter(
 
                     if (response.code() == 416) {
                         if (tempEncryptedFile.exists()) tempEncryptedFile.delete()
-                        throw IOException("Range non valido o file modificato. Riavvio da zero.")
+                        throw IOException(context.getString(R.string.err_invalid_range))
                     }
 
                     if (!response.isSuccessful && response.code() != 206) {
-                        throw IOException("Errore server HTTP ${response.code()}")
+                        throw IOException(context.getString(R.string.err_http_server_code, response.code()))
                     }
 
-                    val body = response.body() ?: throw IOException("Risposta vuota dal server")
+                    val body = response.body() ?: throw IOException(context.getString(R.string.err_empty_server_response))
 
                     val contentType = body.contentType()
                     if (contentType != null && (contentType.type == "text" || contentType.subtype.contains("html") || contentType.subtype.contains("json"))) {
                         if (tempEncryptedFile.exists()) tempEncryptedFile.delete()
-                        throw IOException("Il file non esiste più sul server o l'accesso è negato.")
+                        throw IOException(context.getString(R.string.err_file_missing_or_denied))
                     }
 
                     val isPartial = response.code() == 206
@@ -450,13 +450,13 @@ class MessageAdapter(
                     }
 
                     if (readError != null || (totalSize > 0 && bytesCopied < totalSize)) {
-                        val errMsg = readError?.message ?: "Connessione chiusa prematuramente"
+                        val errMsg = readError?.message ?: context.getString(R.string.err_conn_closed_early)
                         throw java.io.EOFException(errMsg)
                     }
 
                     if (tempEncryptedFile.length() < 16) {
                         if (tempEncryptedFile.exists()) tempEncryptedFile.delete()
-                        throw IOException("File scaricato incompleto o non valido (${tempEncryptedFile.length()} byte).")
+                        throw IOException(context.getString(R.string.err_incomplete_file_bytes, tempEncryptedFile.length()))
                     }
 
                     DownloadTracker.updateProgress(fileId, 90)
@@ -490,7 +490,7 @@ class MessageAdapter(
                     } else {
                         if (tempEncryptedFile.exists()) tempEncryptedFile.delete()
                         if (finalDecryptedFile.exists()) finalDecryptedFile.delete()
-                        throw IOException("Chiavi di cifratura errate o file corrotto.")
+                        throw IOException(context.getString(R.string.err_wrong_keys_or_corrupt))
                     }
 
                 } catch (e: Exception) {
@@ -502,7 +502,7 @@ class MessageAdapter(
                     }
 
                     val msgLower = (e.message ?: "").lowercase(Locale.ROOT)
-                    if (msgLower.contains("non esiste") || msgLower.contains("negato") || msgLower.contains("chiavi di cifratura errate")) {
+                    if (msgLower.contains("non esiste") || msgLower.contains("negato") || msgLower.contains("chiavi di cifratura errate") || msgLower.contains("no longer exists") || msgLower.contains("access is denied") || msgLower.contains("wrong encryption keys")) {
                         if (tempEncryptedFile.exists()) tempEncryptedFile.delete()
                         if (finalDecryptedFile.exists()) finalDecryptedFile.delete()
                         break
@@ -527,7 +527,7 @@ class MessageAdapter(
                     val finalCaps = cm?.getNetworkCapabilities(cm.activeNetwork)
                     val isOnlineNow = finalCaps != null && finalCaps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)
                     if (isOnlineNow) {
-                        val errorMsg = getReadableErrorMessage(lastException)
+                        val errorMsg = getReadableErrorMessage(context, lastException)
                         onError(Exception(errorMsg, lastException))
                     }
                 }
@@ -778,9 +778,9 @@ class MessageAdapter(
         val yesterday = cal.time
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         return when (sdf.format(date)) {
-            sdf.format(today) -> "Oggi"
-            sdf.format(yesterday) -> "Ieri"
-            else -> SimpleDateFormat("EEEE, d MMMM yyyy", Locale.ITALIAN).format(date)
+            sdf.format(today) -> context.getString(R.string.date_today)
+            sdf.format(yesterday) -> context.getString(R.string.date_yesterday)
+            else -> SimpleDateFormat("EEEE, d MMMM yyyy", Locale.getDefault()).format(date)
         }
     }
 
@@ -819,7 +819,7 @@ class MessageAdapter(
     }
 
     private fun getDecryptedReplyContent(message: Message, context: Context? = null): String? {
-        if (message.replyToIsViewOnce == true) return "Messaggio effimero"
+        if (message.replyToIsViewOnce == true) return context?.getString(R.string.msg_ephemeral_label)
         val rawReply = message.replyToMessageContent
         if (message.replyToMessageType != "text") {
             val isEncryptedPayload = rawReply?.startsWith(SenderKeyHelper.SK_PREFIX) == true ||
@@ -831,9 +831,9 @@ class MessageAdapter(
                         val meta = Gson().fromJson(decryptedMeta, FileMetadata::class.java)
                         if (meta != null) {
                             return when {
-                                meta.msgType == "image" || meta.mime.startsWith("image/") -> "📷 Foto"
-                                meta.msgType == "audio" || meta.mime.startsWith("audio/") -> "🎵 Messaggio vocale"
-                                meta.msgType == "video" || meta.mime.startsWith("video/") -> "🎥 Video"
+                                meta.msgType == "image" || meta.mime.startsWith("image/") -> context?.getString(R.string.media_photo_label) ?: "📷 Photo"
+                                meta.msgType == "audio" || meta.mime.startsWith("audio/") -> context?.getString(R.string.media_voice_label) ?: "🎵 Voice message"
+                                meta.msgType == "video" || meta.mime.startsWith("video/") -> context?.getString(R.string.media_video_label) ?: "🎥 Video"
                                 meta.name.isNotBlank() -> "📎 ${meta.name}"
                                 else -> "📎 File"
                             }
@@ -848,13 +848,13 @@ class MessageAdapter(
         val decrypted = decryptPayload(context, rawReply)
 
         if (decrypted?.contains("[REQ_LOC]") == true) {
-            return "📍 Richiesta posizione"
+            return context?.getString(R.string.chat_location_request_preview)
         }
         if (decrypted?.contains("https://maps.google.com/?q=") == true) {
-            return "📍 Posizione condivisa"
+            return context?.getString(R.string.chat_location_shared_preview)
         }
 
-        return decrypted ?: "[Contenuto non disponibile]"
+        return decrypted ?: context?.getString(R.string.msg_content_unavailable)
     }
 
     inner class DateHeaderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -894,9 +894,9 @@ class MessageAdapter(
             val decryptedMessage = if (message.tempId != null) message.message else decryptPayload(itemView.context, message.message)
 
             if (decryptedMessage?.contains("[REQ_LOC]") == true) {
-                messageText.text = "📍 Hai richiesto la posizione."
+                messageText.text = itemView.context.getString(R.string.loc_requested_by_me)
             } else {
-                messageText.text = decryptedMessage ?: "[Messaggio non decifrabile]"
+                messageText.text = decryptedMessage ?: itemView.context.getString(R.string.msg_undecryptable)
             }
 
             timestampText.text = formatTimestamp(message.timestamp)
@@ -949,7 +949,7 @@ class MessageAdapter(
 
             if (decryptedMessage != null) {
                 if (decryptedMessage.contains("[REQ_LOC]")) {
-                    messageText.text = "📍 Ti ha richiesto la posizione."
+                    messageText.text = itemView.context.getString(R.string.loc_requested_by_other)
                     val hasAlreadyReplied = items.filterIsInstance<ListItem.MessageItem>().any {
                         it.message.replyToMessageId == message.id && it.message.userId == currentUserId
                     }
@@ -973,7 +973,7 @@ class MessageAdapter(
                     locationRequestLayout?.visibility = View.GONE
 
                     textDistanceInfo?.visibility = View.VISIBLE
-                    textDistanceInfo?.text = "🔄 Calcolo distanza..."
+                    textDistanceInfo?.text = itemView.context.getString(R.string.loc_calculating_distance)
 
                     val regex = Regex("q=(-?\\d+\\.\\d+),(-?\\d+\\.\\d+)")
                     val match = regex.find(decryptedMessage)
@@ -995,13 +995,13 @@ class MessageAdapter(
                                             val results = FloatArray(1)
                                             android.location.Location.distanceBetween(location.latitude, location.longitude, targetLat, targetLng, results)
                                             val distanceKm = String.format(Locale.getDefault(), "%.1f", results[0] / 1000.0)
-                                            textDistanceInfo.text = "📍 Distanza in linea d'aria: $distanceKm km"
+                                            textDistanceInfo.text = context.getString(R.string.loc_distance_km, distanceKm)
                                         } else {
-                                            textDistanceInfo?.text = "📍 Distanza GPS non disponibile"
+                                            textDistanceInfo?.text = context.getString(R.string.loc_gps_unavailable)
                                         }
                                     }
                             } else {
-                                textDistanceInfo?.text = "📍 Distanza nascosta (GPS non concesso)"
+                                textDistanceInfo?.text = context.getString(R.string.loc_gps_hidden)
                             }
                         }
                     }
@@ -1010,7 +1010,7 @@ class MessageAdapter(
                     locationRequestLayout?.visibility = View.GONE
                 }
             } else {
-                messageText.text = "[Messaggio non decifrabile]"
+                messageText.text = itemView.context.getString(R.string.msg_undecryptable)
                 locationRequestLayout?.visibility = View.GONE
             }
 
@@ -1027,7 +1027,7 @@ class MessageAdapter(
 
             if (message.replyToMessageId != null) {
                 replyContextLayout.visibility = View.VISIBLE
-                replyAuthorText.text = if (message.replyToUsername == currentUsername) "Tu" else message.replyToUsername
+                replyAuthorText.text = if (message.replyToUsername == currentUsername) itemView.context.getString(R.string.reply_author_you) else message.replyToUsername
                 replyContentText.text = getDecryptedReplyContent(message, itemView.context)
                 replyContextLayout.setOnClickListener { this@MessageAdapter.listener.onReplyClicked(message.replyToMessageId) }
             } else {
@@ -1222,7 +1222,7 @@ class MessageAdapter(
 
                 val fileId = message.fileId
                 if (fileId == null) {
-                    Toast.makeText(itemView.context, "File non ancora pronto sul server.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(itemView.context, itemView.context.getString(R.string.file_not_ready_on_server), Toast.LENGTH_SHORT).show()
                     return@OnClickListener
                 }
 
@@ -1302,7 +1302,7 @@ class MessageAdapter(
                         progressText.visibility = View.GONE
                         initialIcon.visibility = View.VISIBLE
                         finishedIcon?.visibility = View.GONE
-                        Toast.makeText(itemView.context, "Errore download: ${e.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(itemView.context, itemView.context.getString(R.string.download_error_msg, e.message ?: ""), Toast.LENGTH_SHORT).show()
                     }
                 )
             }
@@ -1326,9 +1326,9 @@ class MessageAdapter(
                 }
                 context.startActivity(intent)
             } catch (e: ActivityNotFoundException) {
-                Toast.makeText(context, "Nessuna app trovata per aprire questo formato di file.", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(R.string.no_app_for_file), Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
-                Toast.makeText(context, "Impossibile aprire il file: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.cannot_open_file_msg, e.message ?: ""), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -1434,7 +1434,7 @@ class MessageAdapter(
                             detachProgressListener()
                             progressContainer.visibility = View.GONE
                             downloadIcon.visibility = View.VISIBLE
-                            Toast.makeText(itemView.context, "Errore: ${e.message}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(itemView.context, itemView.context.getString(R.string.error_prefix, e.message ?: ""), Toast.LENGTH_SHORT).show()
                         }
                     )
                 }
@@ -1544,7 +1544,7 @@ class MessageAdapter(
             super.bind(message)
 
             val resolvedMessage = resolveMessageWithMetadata(itemView.context, message)
-            fileName.text = resolvedMessage.fileName ?: "Documento"
+            fileName.text = resolvedMessage.fileName ?: itemView.context.getString(R.string.default_document_name)
             fileSize.text = FileUtils.getFormattedFileSize(resolvedMessage.fileSize ?: 0L)
 
             timestampText.text = formatTimestamp(message.timestamp)
@@ -1594,7 +1594,7 @@ class MessageAdapter(
             super.bind(message)
 
             val resolvedMessage = resolveMessageWithMetadata(itemView.context, message)
-            fileName.text = resolvedMessage.fileName ?: "Documento"
+            fileName.text = resolvedMessage.fileName ?: itemView.context.getString(R.string.default_document_name)
             fileSize.text = FileUtils.getFormattedFileSize(resolvedMessage.fileSize ?: 0L)
 
             timestampText.text = formatTimestamp(message.timestamp)
@@ -1798,7 +1798,7 @@ class MessageAdapter(
         private fun downloadAndPlay(message: Message) {
             val fileId = message.fileId ?: return
             if (DownloadTracker.isDownloading(fileId)) {
-                Toast.makeText(itemView.context, "Download già in corso.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(itemView.context, itemView.context.getString(R.string.download_already_in_progress), Toast.LENGTH_SHORT).show()
                 return
             }
 
@@ -1828,7 +1828,7 @@ class MessageAdapter(
                 onError = { e ->
                     playPauseButton.isEnabled = true
                     playPauseButton.setIconResource(R.drawable.ic_play_arrow)
-                    Toast.makeText(itemView.context, "Errore: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(itemView.context, itemView.context.getString(R.string.error_prefix, e.message ?: ""), Toast.LENGTH_SHORT).show()
                 }
             )
         }
@@ -1890,7 +1890,7 @@ class MessageAdapter(
                 }
             } else profileImage.setImageResource(R.drawable.ic_person)
             bindReactions(reactionsLayout, message)
-            if (message.replyToMessageId != null) { replyContextLayout.visibility = View.VISIBLE; replyAuthorText.text = if (message.replyToUsername == currentUsername) "Tu" else message.replyToUsername; replyContentText.text = getDecryptedReplyContent(message, itemView.context); replyContextLayout.setOnClickListener { this@MessageAdapter.listener.onReplyClicked(message.replyToMessageId) } } else replyContextLayout.visibility = View.GONE
+            if (message.replyToMessageId != null) { replyContextLayout.visibility = View.VISIBLE; replyAuthorText.text = if (message.replyToUsername == currentUsername) itemView.context.getString(R.string.reply_author_you) else message.replyToUsername; replyContentText.text = getDecryptedReplyContent(message, itemView.context); replyContextLayout.setOnClickListener { this@MessageAdapter.listener.onReplyClicked(message.replyToMessageId) } } else replyContextLayout.visibility = View.GONE
             bindAudio(message)
         }
     }
@@ -1900,7 +1900,7 @@ class MessageAdapter(
         override fun bind(message: Message) {
             super.bind(message)
             val resolvedMessage = resolveMessageWithMetadata(itemView.context, message)
-            label.text = when(resolvedMessage.messageType) { "image" -> "Foto • Inviata"; "file" -> "File • Inviato"; "audio" -> "Messaggio vocale • Inviato"; else -> "Messaggio • Inviato" }; timestampText.text = formatTimestamp(message.timestamp)
+            label.text = when(resolvedMessage.messageType) { "image" -> itemView.context.getString(R.string.view_once_photo_sent); "file" -> itemView.context.getString(R.string.view_once_file_sent); "audio" -> itemView.context.getString(R.string.view_once_audio_sent); else -> itemView.context.getString(R.string.view_once_msg_sent) }; timestampText.text = formatTimestamp(message.timestamp)
             val context = itemView.context; val readColor = ContextCompat.getColor(context, R.color.read_receipt_yellow); val typedValue = TypedValue().also { context.theme.resolveAttribute(com.google.android.material.R.attr.colorOutline, it, true) }; val grayColor = typedValue.data
             when (message.status) { -1 -> { statusImage.setImageResource(R.drawable.ic_clock); statusImage.imageTintList = ColorStateList.valueOf(grayColor) }; 0 -> { statusImage.setImageResource(R.drawable.ic_check); statusImage.imageTintList = ColorStateList.valueOf(grayColor) }; 1 -> { statusImage.setImageResource(R.drawable.ic_check_all); statusImage.imageTintList = ColorStateList.valueOf(grayColor) }; 2 -> { statusImage.setImageResource(R.drawable.ic_check_all); statusImage.imageTintList = ColorStateList.valueOf(readColor) } }
             if (message.status > 0) statusImage.setOnClickListener { this@MessageAdapter.listener.onStatusIconClicked(message) } else statusImage.setOnClickListener(null)
@@ -1918,7 +1918,7 @@ class MessageAdapter(
             } else profileImage.setImageResource(R.drawable.ic_person)
             val resolvedMessage = resolveMessageWithMetadata(itemView.context, message)
             val defaultColor = ContextCompat.getColor(itemView.context, R.color.on_secondary_container_light).let { if (it == 0) android.graphics.Color.BLACK else it }; val disabledColor = ContextCompat.getColor(itemView.context, android.R.color.darker_gray)
-            if (message.isViewedByMe) { label.text = "Aperto"; label.setTextColor(disabledColor); icon.imageTintList = ColorStateList.valueOf(disabledColor); bubble.setOnClickListener { Toast.makeText(itemView.context, "Già visualizzato.", Toast.LENGTH_SHORT).show() } } else { label.setTextColor(defaultColor); icon.imageTintList = ColorStateList.valueOf(defaultColor); label.text = when(resolvedMessage.messageType) { "image" -> "Foto • Tocca per visualizzare"; "file" -> "File • Tocca per visualizzare"; "audio" -> "Messaggio vocale • Tocca per ascoltare"; else -> "Messaggio • Tocca per visualizzare" }; bubble.setOnClickListener { this@MessageAdapter.listener.onViewOnceMessageClicked(message) } }
+            if (message.isViewedByMe) { label.text = itemView.context.getString(R.string.view_once_opened); label.setTextColor(disabledColor); icon.imageTintList = ColorStateList.valueOf(disabledColor); bubble.setOnClickListener { Toast.makeText(itemView.context, itemView.context.getString(R.string.view_once_already_viewed), Toast.LENGTH_SHORT).show() } } else { label.setTextColor(defaultColor); icon.imageTintList = ColorStateList.valueOf(defaultColor); label.text = when(resolvedMessage.messageType) { "image" -> itemView.context.getString(R.string.view_once_photo_tap); "file" -> itemView.context.getString(R.string.view_once_file_tap); "audio" -> itemView.context.getString(R.string.view_once_audio_tap); else -> itemView.context.getString(R.string.view_once_msg_tap) }; bubble.setOnClickListener { this@MessageAdapter.listener.onViewOnceMessageClicked(message) } }
         }
     }
 

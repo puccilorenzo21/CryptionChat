@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:navigationIcon="@drawable/ic_arrow_back"
-            app:title="Verifica il tuo Account" />
+            app:title="@string/verify_account_title" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -32,7 +32,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Abbiamo inviato un codice di 6 cifre al tuo indirizzo email. Inseriscilo qui sotto per completare la registrazione."
+            android:text="@string/verify_account_desc"
             android:textAppearance="?attr/textAppearanceBodyLarge"
             android:gravity="center"
             android:layout_marginBottom="24dp"/>
@@ -42,7 +42,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
-            android:hint="Codice di verifica">
+            android:hint="@string/hint_verification_code">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editTextVerificationCode"
@@ -58,7 +58,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingVertical="12dp"
-            android:text="Verifica e Registrati"/>
+            android:text="@string/action_verify_and_register"/>
 
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

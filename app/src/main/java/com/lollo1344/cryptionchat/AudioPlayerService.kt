@@ -216,7 +216,7 @@ class AudioPlayerService : Service() {
         val stopPending = PendingIntent.getService(this, 1, stopIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
         val icon = if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play_arrow
-        val label = if (isPlaying) "Pausa" else "Riprendi"
+        val label = if (isPlaying) getString(R.string.audio_action_pause) else getString(R.string.audio_action_resume)
 
         val contentIntent = Intent(this, ChatActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
@@ -226,11 +226,11 @@ class AudioPlayerService : Service() {
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_mic)
             .setContentTitle(currentUsername)
-            .setContentText(if (isPlaying) "Riproduzione audio..." else "In pausa")
+            .setContentText(if (isPlaying) getString(R.string.audio_status_playing) else getString(R.string.audio_status_paused))
             .setOngoing(isPlaying)
             .setContentIntent(pendingContentIntent)
             .addAction(icon, label, playPausePending)
-            .addAction(R.drawable.ic_stop, "Stop", stopPending)
+            .addAction(R.drawable.ic_stop, getString(R.string.audio_action_stop), stopPending)
             .setStyle(androidx.media.app.NotificationCompat.MediaStyle()
                 .setShowActionsInCompactView(0, 1)
                 .setMediaSession(mediaSession?.sessionToken))
@@ -274,10 +274,10 @@ class AudioPlayerService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Riproduzione Audio",
+                getString(R.string.audio_channel_name),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Controlli per i messaggi vocali"
+                description = getString(R.string.audio_channel_desc)
                 setSound(null, null)
             }
             val manager = getSystemService(NotificationManager::class.java)

@@ -26,7 +26,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="File Effimero"
+            android:text="@string/view_once_file_title"
             android:textAppearance="?attr/textAppearanceHeadlineSmall"
             android:textStyle="bold"
             android:textColor="?attr/colorOnSurface" />
@@ -95,7 +95,7 @@
                 style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Apri File"
+                android:text="@string/action_open_file"
                 app:icon="@drawable/ic_file_download" />
 
         </LinearLayout>
@@ -105,7 +105,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="⚠️ Il file rimarrà accessibile solo finché questa finestra resterà aperta. Verrà distrutto alla chiusura."
+        android:text="@string/view_once_file_warning"
         android:textAppearance="?attr/textAppearanceBodySmall"
         android:textColor="?attr/colorError"
         android:textAlignment="center"
@@ -117,7 +117,7 @@
         style="@style/Widget.Material3.Button.TonalButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Chiudi e Distruggi"
+        android:text="@string/action_close_and_destroy"
         android:textColor="?attr/colorError"
         android:textStyle="bold"
         android:paddingVertical="12dp"

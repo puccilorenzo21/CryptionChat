@@ -315,7 +315,7 @@ object ScreenshotDestroyer {
 
         if (deleted) {
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(appContext, "🚫 Screenshot intercettato ed eliminato!", Toast.LENGTH_LONG).show()
+                Toast.makeText(appContext, appContext.getString(R.string.screenshot_intercepted_deleted), Toast.LENGTH_LONG).show()
             }
         }
 

@@ -54,7 +54,7 @@ class StickerExportService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val notification = createNotification("Preparazione esportazione...", 0, true)
+        val notification = createNotification(getString(R.string.sticker_export_preparing), 0, true)
 
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -79,14 +79,14 @@ class StickerExportService : Service() {
             try {
                 val appStickerDir = File(filesDir, "cryption_stickers")
                 if (!appStickerDir.exists() || !appStickerDir.isDirectory) {
-                    showFinishedNotification("Nessuno sticker da esportare.", null)
+                    showFinishedNotification(getString(R.string.sticker_export_none), null)
                     stopSelf()
                     return@launch
                 }
 
                 val stickerFiles = appStickerDir.listFiles { _, name -> name.lowercase().endsWith(".webp") }
                 if (stickerFiles.isNullOrEmpty()) {
-                    showFinishedNotification("Nessuno sticker da esportare.", null)
+                    showFinishedNotification(getString(R.string.sticker_export_none), null)
                     stopSelf()
                     return@launch
                 }
@@ -120,7 +120,7 @@ class StickerExportService : Service() {
 
                         if (now - lastProgressUpdate > 300 || index == totalFiles - 1) {
                             lastProgressUpdate = now
-                            val updatedNotif = createNotification("Compressi ${index + 1} di $totalFiles sticker ($progress%)", progress, false)
+                            val updatedNotif = createNotification(getString(R.string.sticker_export_progress, index + 1, totalFiles, progress), progress, false)
                             notificationManager.notify(NOTIFICATION_ID, updatedNotif)
                         }
                     }
@@ -179,14 +179,14 @@ class StickerExportService : Service() {
                         }
                     }
                     tempZipFile.delete()
-                    showFinishedNotification("Esportazione di $totalFiles sticker completata!", publicUri)
+                    showFinishedNotification(getString(R.string.sticker_export_done_count, totalFiles), publicUri)
                 } else {
-                    showFinishedNotification("Esportazione completata.", Uri.fromFile(tempZipFile))
+                    showFinishedNotification(getString(R.string.sticker_export_done), Uri.fromFile(tempZipFile))
                 }
 
             } catch (e: Exception) {
                 Log.e(TAG, "Errore durante l'esportazione ZIP in background", e)
-                showFinishedNotification("Errore durante l'esportazione dello ZIP.", null)
+                showFinishedNotification(getString(R.string.sticker_export_error), null)
             } finally {
                 stopSelf()
             }
@@ -196,7 +196,7 @@ class StickerExportService : Service() {
     private fun createNotification(text: String, progress: Int, isIndeterminate: Boolean): Notification {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_file_download)
-            .setContentTitle("Esportazione Sticker in corso")
+            .setContentTitle(getString(R.string.sticker_export_notif_ongoing))
             .setContentText(text)
             .setProgress(100, progress, isIndeterminate)
             .setOngoing(true)
@@ -218,7 +218,7 @@ class StickerExportService : Service() {
 
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_check_circle)
-            .setContentTitle("Esportazione Sticker")
+            .setContentTitle(getString(R.string.sticker_export_notif_title))
             .setContentText(text)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -231,11 +231,11 @@ class StickerExportService : Service() {
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             val pendingIntent = PendingIntent.getActivity(
-                this, 0, Intent.createChooser(shareIntent, "Condividi ZIP Sticker"),
+                this, 0, Intent.createChooser(shareIntent, getString(R.string.sticker_export_share_title)),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             builder.setContentIntent(pendingIntent)
-            builder.addAction(R.drawable.ic_send, "Condividi ZIP", pendingIntent)
+            builder.addAction(R.drawable.ic_send, getString(R.string.sticker_export_share_action), pendingIntent)
         }
 
         notificationManager.notify(FINISHED_NOTIFICATION_ID, builder.build())
@@ -245,10 +245,10 @@ class StickerExportService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Esportazione Sticker Background",
+                getString(R.string.sticker_export_channel_name),
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
-                description = "Mostra lo stato di avanzamento dell'esportazione dello ZIP degli sticker"
+                description = getString(R.string.sticker_export_channel_desc)
                 setShowBadge(true)
             }
             val manager = getSystemService(NotificationManager::class.java)

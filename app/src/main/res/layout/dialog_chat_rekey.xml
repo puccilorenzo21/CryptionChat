@@ -36,7 +36,7 @@
                 android:layout_height="wrap_content"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="4dp"
-                android:text="X3DH + Double Ratchet"
+                android:text="@string/rekey_protocol_label"
                 android:textAppearance="?attr/textAppearanceLabelSmall"
                 android:textColor="?attr/colorOnPrimaryContainer"
                 android:textStyle="bold" />
@@ -62,7 +62,7 @@
                 android:id="@+id/tv_chat_rekey_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Nuova sessione crittografica"
+                android:text="@string/rekey_new_session_label"
                 android:textAppearance="?attr/textAppearanceTitleSmall"
                 android:textColor="?attr/colorOnSurface"
                 android:textStyle="bold" />

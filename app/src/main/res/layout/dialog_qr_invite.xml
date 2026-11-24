@@ -11,7 +11,7 @@
         android:id="@+id/qr_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Invito al Gruppo"
+        android:text="@string/group_invite_title"
         android:textAppearance="?attr/textAppearanceHeadlineSmall"
         android:textColor="?attr/colorOnSurface"
         android:layout_marginBottom="8dp"
@@ -20,7 +20,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Fai scansionare questo codice per unire un altro utente."
+        android:text="@string/group_invite_desc"
         android:textAppearance="?attr/textAppearanceBodyMedium"
         android:textColor="?attr/colorOnSurfaceVariant"
         android:gravity="center"
@@ -41,7 +41,7 @@
             android:layout_height="250dp"
             android:scaleType="fitCenter"
             android:padding="16dp"
-            android:contentDescription="QR Code Invito" />
+            android:contentDescription="@string/cd_qr_invite" />
 
     </com.google.android.material.card.MaterialCardView>
 
@@ -51,7 +51,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:text="Condividi Link (Testo)"
+        android:text="@string/action_share_link_text"
         app:icon="@drawable/ic_send"/>
 
     <com.google.android.material.button.MaterialButton
@@ -60,6 +60,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="Chiudi"/>
+        android:text="@string/action_close"/>
 
 </LinearLayout>

@@ -62,7 +62,7 @@
             android:layout_marginStart="6dp"
             tools:src="@drawable/ic_check_all"
             app:tint="@color/read_receipt_yellow"
-            android:contentDescription="Stato del messaggio"
+            android:contentDescription="@string/cd_message_status"
             android:clickable="true"
             android:focusable="true"
             android:background="?attr/selectableItemBackgroundBorderless"/>

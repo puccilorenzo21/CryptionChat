@@ -10,6 +10,6 @@
         android:layout_height="match_parent"
         android:scaleType="fitCenter"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Sticker" />
+        android:contentDescription="@string/cd_sticker" />
 
 </FrameLayout>

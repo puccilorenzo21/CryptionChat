@@ -38,19 +38,22 @@ object TimeUtils {
             // Se l'ultimo accesso è stato oggi
             if (today.get(Calendar.YEAR) == lastSeenCal.get(Calendar.YEAR) &&
                 today.get(Calendar.DAY_OF_YEAR) == lastSeenCal.get(Calendar.DAY_OF_YEAR)) {
-                return "oggi alle ${timeFormat.format(lastSeenDate)}"
+                val isIt = Locale.getDefault().language.equals("it", ignoreCase = true)
+                return if (isIt) "oggi alle ${timeFormat.format(lastSeenDate)}" else "today at ${timeFormat.format(lastSeenDate)}"
             }
 
             // Se l'ultimo accesso è stato ieri
             today.add(Calendar.DAY_OF_YEAR, -1)
             if (today.get(Calendar.YEAR) == lastSeenCal.get(Calendar.YEAR) &&
                 today.get(Calendar.DAY_OF_YEAR) == lastSeenCal.get(Calendar.DAY_OF_YEAR)) {
-                return "ieri alle ${timeFormat.format(lastSeenDate)}"
+                val isIt = Locale.getDefault().language.equals("it", ignoreCase = true)
+                return if (isIt) "ieri alle ${timeFormat.format(lastSeenDate)}" else "yesterday at ${timeFormat.format(lastSeenDate)}"
             }
 
             // Altrimenti, mostra la data completa
-            val dateFormat = SimpleDateFormat("dd/MM/yy 'alle' HH:mm", Locale.getDefault())
-            return "Ultimo il ${dateFormat.format(lastSeenDate)}"
+            val isIt = Locale.getDefault().language.equals("it", ignoreCase = true)
+            val dateFormat = SimpleDateFormat(if (isIt) "dd/MM/yy 'alle' HH:mm" else "MM/dd/yy 'at' HH:mm", Locale.getDefault())
+            return if (isIt) "Ultimo il ${dateFormat.format(lastSeenDate)}" else "Last seen ${dateFormat.format(lastSeenDate)}"
 
         } catch (e: Exception) {
             e.printStackTrace()
@@ -65,14 +68,15 @@ object TimeUtils {
      * @return Una stringa formattata come "Oggi alle 18:30", "Ieri alle 10:15", ecc.
      */
     fun formatReadTimestamp(utcTimestamp: String?): String {
+        val na = if (Locale.getDefault().language.equals("it", ignoreCase = true)) "N/D" else "N/A"
         if (utcTimestamp.isNullOrBlank()) {
-            return "N/D"
+            return na
         }
 
         try {
             val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
             sdf.timeZone = TimeZone.getTimeZone("UTC")
-            val readDate = sdf.parse(utcTimestamp) ?: return "N/D"
+            val readDate = sdf.parse(utcTimestamp) ?: return na
 
             val today = Calendar.getInstance()
             val readCal = Calendar.getInstance().apply { time = readDate }
@@ -81,21 +85,24 @@ object TimeUtils {
 
             if (today.get(Calendar.YEAR) == readCal.get(Calendar.YEAR) &&
                 today.get(Calendar.DAY_OF_YEAR) == readCal.get(Calendar.DAY_OF_YEAR)) {
-                return "Oggi alle ${timeFormat.format(readDate)}"
+                val isIt = Locale.getDefault().language.equals("it", ignoreCase = true)
+                return if (isIt) "Oggi alle ${timeFormat.format(readDate)}" else "Today at ${timeFormat.format(readDate)}"
             }
 
             today.add(Calendar.DAY_OF_YEAR, -1)
             if (today.get(Calendar.YEAR) == readCal.get(Calendar.YEAR) &&
                 today.get(Calendar.DAY_OF_YEAR) == readCal.get(Calendar.DAY_OF_YEAR)) {
-                return "Ieri alle ${timeFormat.format(readDate)}"
+                val isIt = Locale.getDefault().language.equals("it", ignoreCase = true)
+                return if (isIt) "Ieri alle ${timeFormat.format(readDate)}" else "Yesterday at ${timeFormat.format(readDate)}"
             }
 
-            val dateFormat = SimpleDateFormat("dd/MM/yy 'alle' HH:mm", Locale.getDefault())
+            val isIt = Locale.getDefault().language.equals("it", ignoreCase = true)
+            val dateFormat = SimpleDateFormat(if (isIt) "dd/MM/yy 'alle' HH:mm" else "MM/dd/yy 'at' HH:mm", Locale.getDefault())
             return dateFormat.format(readDate)
 
         } catch (e: Exception) {
             e.printStackTrace()
-            return "N/D"
+            return na
         }
     }
     // --- FINE NUOVA FUNZIONE ---

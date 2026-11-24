@@ -35,7 +35,8 @@ object TranscriptionTracker {
     }
 
     fun start(messageId: Int) {
-        val state = TranscriptionState(progress = 0, status = "Inizializzazione...")
+        val initText = if (java.util.Locale.getDefault().language.equals("it", ignoreCase = true)) "Inizializzazione..." else "Initializing..."
+        val state = TranscriptionState(progress = 0, status = initText)
         states[messageId] = state
         notifyListeners(messageId, state)
     }
@@ -47,7 +48,8 @@ object TranscriptionTracker {
     }
 
     fun finish(messageId: Int, text: String) {
-        val state = TranscriptionState(progress = 100, status = "Completato", isCompleted = true, text = text)
+        val doneText = if (java.util.Locale.getDefault().language.equals("it", ignoreCase = true)) "Completato" else "Completed"
+        val state = TranscriptionState(progress = 100, status = doneText, isCompleted = true, text = text)
         states[messageId] = state
         notifyListeners(messageId, state)
     }

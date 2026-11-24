@@ -172,7 +172,7 @@ object BackgroundUploadManager {
 
         val uploadJob = scope.launch {
             var isSuccess = false
-            var fileName = "Allegato"
+            var fileName = context.getString(R.string.upload_default_attachment_name)
 
             try {
                 val fileDetails = FileUtils.getFileDetails(context, uri)
@@ -180,9 +180,9 @@ object BackgroundUploadManager {
                     fileName = fileDetails.name
                 }
 
-                notifyProgress(context, tempId, "Preparazione file...", 0, fileName)
+                notifyProgress(context, tempId, context.getString(R.string.upload_preparing_file), 0, fileName)
 
-                var fileToSend = FileUtils.getFileFromUri(context, uri) ?: throw IOException("Impossibile recuperare il file temporaneo")
+                var fileToSend = FileUtils.getFileFromUri(context, uri) ?: throw IOException(context.getString(R.string.upload_temp_file_error))
                 tempFileToSend = fileToSend
                 var audioDuration: Int? = null
 
@@ -209,7 +209,7 @@ object BackgroundUploadManager {
                 val uploadLabel: String
 
                 if (mimeType.startsWith("video/")) {
-                    notifyProgress(context, tempId, "Compressione video...", 0, fileName)
+                    notifyProgress(context, tempId, context.getString(R.string.upload_compressing_video), 0, fileName)
 
                     compressedVideoFile = File(context.cacheDir, "vid_${System.currentTimeMillis()}.mp4")
 
@@ -217,7 +217,7 @@ object BackgroundUploadManager {
                         withTimeout(45000L) {
                             compressVideo(context, fileToSend, compressedVideoFile!!) { progress ->
                                 val progressPercent = (progress * 100).toInt().coerceIn(0, 100)
-                                notifyProgress(context, tempId, "Compressione video...", progressPercent, fileName)
+                                notifyProgress(context, tempId, context.getString(R.string.upload_compressing_video), progressPercent, fileName)
                             }
                         }
                     } catch (e: TimeoutCancellationException) {
@@ -234,10 +234,10 @@ object BackgroundUploadManager {
                         Log.i(TAG, "Uso file originale.")
                         fileToSend
                     }
-                    uploadLabel = "Invio video..."
+                    uploadLabel = context.getString(R.string.upload_sending_video)
                 } else {
                     if (mimeType.startsWith("image/") && mimeType != "image/gif" && mimeType != "image/webp") {
-                        notifyProgress(context, tempId, "Elaborazione immagine...", 20, fileName)
+                        notifyProgress(context, tempId, context.getString(R.string.upload_processing_image), 20, fileName)
                         fileToSend = compressImageSafely(context, fileToSend)
                     } else if (mimeType.startsWith("audio/")) {
                         val retriever = MediaMetadataRetriever()
@@ -251,7 +251,7 @@ object BackgroundUploadManager {
                         }
                     }
                     finalFileToUpload = fileToSend
-                    uploadLabel = "Invio file..."
+                    uploadLabel = context.getString(R.string.upload_sending_file)
                 }
 
                 val pendingMsg = PendingMessage(
@@ -307,7 +307,7 @@ object BackgroundUploadManager {
             } catch (e: Exception) {
                 Log.e(TAG, "Caricamento in background fallito", e)
                 Handler(Looper.getMainLooper()).post {
-                    Toast.makeText(context, "Errore caricamento: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.upload_error_toast, e.message ?: ""), Toast.LENGTH_SHORT).show()
                 }
             } finally {
                 activeCalls.remove(tempId)
@@ -373,7 +373,7 @@ object BackgroundUploadManager {
         val metadataJson = Gson().toJson(metadata)
         val encMetadata = metadataEncryptor?.invoke(metadataJson)
             ?: EncryptionHelper.encrypt(metadataJson, currentGroupKey, currentGroupIv)
-            ?: throw SecurityException("Errore cifratura metadati")
+            ?: throw SecurityException(context.getString(R.string.upload_metadata_encrypt_error))
 
         // Per upload v2 inviamo message_type opaco "file" al server: il tipo reale viaggia cifrato in FileMetadata
         val wireMessageType = if (isV2Upload) "file" else typeStr
@@ -382,7 +382,7 @@ object BackgroundUploadManager {
         val tempEncFile = File(context.cacheDir, "temp_enc_${System.currentTimeMillis()}.dat")
         try {
             if (mimeType.startsWith("video/")) {
-                notifyProgress(context, tempId, "Cifratura file...", 100, fileName)
+                notifyProgress(context, tempId, context.getString(R.string.upload_encrypting_file), 100, fileName)
             }
 
             FileInputStream(fileToUpload).use { fis ->
@@ -416,7 +416,7 @@ object BackgroundUploadManager {
             val response = withContext(Dispatchers.IO) { call.execute() }
 
             if (!response.isSuccessful || response.body()?.status != "success") {
-                throw IOException("Caricamento sul server fallito.")
+                throw IOException(context.getString(R.string.upload_server_failed))
             }
         } finally {
             PanicHelper.secureDelete(tempEncFile)
@@ -428,10 +428,10 @@ object BackgroundUploadManager {
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Invio File",
+                context.getString(R.string.upload_channel_name),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Mostra lo stato di caricamento e compressione dei file in chat"
+                description = context.getString(R.string.upload_channel_desc)
                 setShowBadge(false)
             }
             notificationManager.createNotificationChannel(channel)
@@ -475,7 +475,7 @@ object BackgroundUploadManager {
             .setContentText(fileName)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .setProgress(100, progress, progress == 0 && text.contains("Preparazione"))
+            .setProgress(100, progress, progress == 0 && text == context.getString(R.string.upload_preparing_file))
             .setContentIntent(pendingIntent)
 
         notificationManager.notify(notificationId, builder.build())
@@ -495,7 +495,7 @@ object BackgroundUploadManager {
         if (isSuccess) {
             val builder = NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_check_circle)
-                .setContentTitle("Invio completato!")
+                .setContentTitle(context.getString(R.string.upload_completed_title))
                 .setContentText(fileName)
                 .setOngoing(false)
                 .setAutoCancel(true)

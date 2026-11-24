@@ -1,6 +1,7 @@
 package com.lollo1344.cryptionchat
 
 import android.app.Activity
+import android.app.Dialog
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.os.Build
@@ -9,16 +10,31 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.util.TypedValue
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.webkit.WebChromeClient
+import android.webkit.WebSettings
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.FrameLayout
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.progressindicator.LinearProgressIndicator
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -33,6 +49,11 @@ open class BaseActivity : AppCompatActivity() {
     // Riferimento al monitor di rete e al banner globale
     protected lateinit var baseNetworkMonitor: NetworkQualityMonitor
     private var networkBannerView: View? = null
+
+    // Riferimento al mini pop-up flottante di avanzamento aggiornamento
+    private var updateBannerView: View? = null
+    private var updateProgressListener: AutoUpdateManager.UpdateProgressListener? = null
+    private var currentUpdatePillIsBeta: Boolean = false
 
     // Riferimento al dialog per chiuderlo correttamente in onDestroy
     private var rootDialog: AlertDialog? = null
@@ -130,13 +151,13 @@ open class BaseActivity : AppCompatActivity() {
         rootDialog?.dismiss()
 
         rootDialog = MaterialAlertDialogBuilder(this)
-            .setTitle("Dispositivo Non Sicuro Rilevato")
-            .setMessage("L'app è in esecuzione su un dispositivo con permessi di root. Per sicurezza, verrai disconnesso. Puoi anche scegliere di disinstallare l'app immediatamente utilizzando i permessi di root.")
+            .setTitle(getString(R.string.root_detected_title))
+            .setMessage(getString(R.string.root_detected_message))
             .setCancelable(false)
-            .setPositiveButton("Disinstalla (Root)") { _, _ ->
+            .setPositiveButton(getString(R.string.root_btn_uninstall)) { _, _ ->
                 performCleanupAndForceUninstall()
             }
-            .setNegativeButton("Solo Disconnetti") { _, _ ->
+            .setNegativeButton(getString(R.string.root_btn_logout_only)) { _, _ ->
                 performLogoutAndRedirect()
             }
             .show()
@@ -272,6 +293,189 @@ open class BaseActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateFloatingUpdatePill(
+        isVisible: Boolean,
+        isIndeterminate: Boolean,
+        progressPercent: Int,
+        isBeta: Boolean,
+        isReadyToInstall: Boolean,
+        statusLabel: String
+    ) {
+        if (isFinishing || isDestroyed) return
+        val mgr = AutoUpdateManager.getInstance(this)
+        if (!mgr.isEligiblePromptActivity(this)) return
+
+        val rootLayout = findViewById<ViewGroup>(android.R.id.content) ?: return
+
+        if (!isVisible) {
+            updateBannerView?.findViewById<View>(R.id.top_update_progress_banner)?.visibility = View.GONE
+            return
+        }
+
+        currentUpdatePillIsBeta = isBeta
+
+        var bannerWrapper = updateBannerView
+        if (bannerWrapper == null) {
+            bannerWrapper = LayoutInflater.from(this).inflate(R.layout.layout_global_update_banner, rootLayout, false)
+            rootLayout.addView(bannerWrapper)
+            updateBannerView = bannerWrapper
+        }
+
+        val card = bannerWrapper.findViewById<MaterialCardView>(R.id.top_update_progress_banner) ?: return
+        val iconView = bannerWrapper.findViewById<ImageView>(R.id.top_update_icon)
+        val textView = bannerWrapper.findViewById<TextView>(R.id.top_update_text)
+        val hintView = bannerWrapper.findViewById<TextView>(R.id.top_update_changelog_hint)
+        val progressBar = bannerWrapper.findViewById<LinearProgressIndicator>(R.id.top_update_progress_bar)
+
+        card.visibility = View.VISIBLE
+        card.setOnClickListener {
+            showChangelogDialog(isBetaOverride = currentUpdatePillIsBeta)
+        }
+
+        val params = (card.layoutParams as FrameLayout.LayoutParams).apply {
+            gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
+        }
+        card.layoutParams = params
+
+        rootLayout.post {
+            if (isFinishing || isDestroyed || updateBannerView == null) return@post
+            val appBar = findViewById<View>(R.id.appBarLayout) ?: findViewById<View>(R.id.toolbar)
+            val dp8 = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8f, resources.displayMetrics).toInt()
+            val updatedParams = card.layoutParams as FrameLayout.LayoutParams
+            var topMarginPx = dp8
+            if (appBar != null && appBar.visibility == View.VISIBLE && appBar.height > 0) {
+                val appBarLocation = IntArray(2)
+                appBar.getLocationInWindow(appBarLocation)
+                val contentLocation = IntArray(2)
+                rootLayout.getLocationInWindow(contentLocation)
+                val relativeTop = (appBarLocation[1] + appBar.height) - contentLocation[1]
+                topMarginPx = maxOf(dp8, relativeTop + dp8)
+            }
+            updatedParams.topMargin = topMarginPx
+            card.layoutParams = updatedParams
+        }
+
+        val accentColor = ContextCompat.getColor(
+            this,
+            if (isBeta) R.color.channel_beta_accent else R.color.channel_stable_accent
+        )
+        val strokeColor = ContextCompat.getColor(
+            this,
+            if (isBeta) R.color.channel_beta_stroke else R.color.channel_stable_stroke
+        )
+        val hintColor = ContextCompat.getColor(
+            this,
+            if (isBeta) R.color.channel_beta_text else R.color.channel_stable_text
+        )
+
+        card.strokeColor = strokeColor
+        iconView?.setImageResource(if (isReadyToInstall) R.drawable.ic_check_circle else R.drawable.ic_file_download)
+        iconView?.imageTintList = ColorStateList.valueOf(accentColor)
+        textView?.text = statusLabel.ifEmpty {
+            getString(R.string.update_pill_downloading_fallback_fmt, maxOf(0, progressPercent))
+        }
+        hintView?.setTextColor(hintColor)
+
+        if (progressBar != null) {
+            progressBar.setIndicatorColor(accentColor)
+            if (isIndeterminate && !isReadyToInstall) {
+                if (!progressBar.isIndeterminate) {
+                    progressBar.visibility = View.INVISIBLE
+                    progressBar.isIndeterminate = true
+                    progressBar.visibility = View.VISIBLE
+                }
+            } else {
+                if (progressBar.isIndeterminate) {
+                    progressBar.isIndeterminate = false
+                }
+                progressBar.setProgressCompat(if (isReadyToInstall) 100 else progressPercent.coerceIn(0, 100), true)
+            }
+        }
+    }
+
+    protected fun showChangelogDialog(isBetaOverride: Boolean? = null) {
+        if (isFinishing || isDestroyed) return
+        val dialog = Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_webview, null)
+        dialog.setContentView(view)
+
+        val webView = view.findViewById<WebView>(R.id.changelogWebView)
+        val btnClose = view.findViewById<ImageButton>(R.id.btnCloseWeb)
+        val progressBar = view.findViewById<ProgressBar>(R.id.progressBarWeb)
+        val tvDialogTitle = view.findViewById<TextView>(R.id.tv_dialog_title)
+
+        btnClose.setOnClickListener { dialog.dismiss() }
+        webView.settings.apply {
+            javaScriptEnabled = true
+            domStorageEnabled = true
+            allowFileAccess = false
+            allowContentAccess = false
+            cacheMode = WebSettings.LOAD_NO_CACHE
+        }
+        webView.clearCache(true)
+
+        webView.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView?, url: String?) {
+                progressBar.visibility = View.GONE
+            }
+        }
+        webView.webChromeClient = object : WebChromeClient() {
+            override fun onProgressChanged(view: WebView?, newProgress: Int) {
+                if (newProgress < 100) {
+                    progressBar.visibility = View.VISIBLE
+                    progressBar.progress = newProgress
+                } else {
+                    progressBar.visibility = View.GONE
+                }
+            }
+        }
+
+        val prefs = SecurePrefs.get(this)
+        val isBeta = isBetaOverride ?: prefs.getBoolean("is_beta_tester", false)
+        val cacheBuster = System.currentTimeMillis()
+
+        val changelogUrl = if (isBeta) {
+            tvDialogTitle?.text = getString(R.string.changelog_beta_title)
+            "${ApiClient.BASE_URL}changelog-pre-relase.html?t=$cacheBuster"
+        } else {
+            tvDialogTitle?.text = getString(R.string.changelog_stable_title)
+            "${ApiClient.BASE_URL}changelog.html?t=$cacheBuster"
+        }
+
+        progressBar.visibility = View.VISIBLE
+        dialog.show()
+
+        lifecycleScope.launch {
+            val html = withContext(Dispatchers.IO) {
+                ApiClient.fetchUrlAsString(changelogUrl)
+            }
+            if (isFinishing || isDestroyed || !dialog.isShowing) return@launch
+            progressBar.visibility = View.GONE
+
+            if (!html.isNullOrBlank()) {
+                webView.loadDataWithBaseURL(ApiClient.BASE_URL, html, "text/html", "UTF-8", null)
+            } else {
+                val torBlocked = withContext(Dispatchers.IO) {
+                    OrbotHelper.isTorEnforcedAndUnavailable(this@BaseActivity)
+                }
+                if (isFinishing || isDestroyed || !dialog.isShowing) return@launch
+                val errorMsg = if (torBlocked) {
+                    getString(R.string.changelog_tor_blocked)
+                } else {
+                    getString(R.string.changelog_load_error)
+                }
+                val errorHtml = """
+                    <html><body style="background:#121212;color:#E0E0E0;font-family:sans-serif;padding:24px;">
+                    <h3>${getString(R.string.changelog_unavailable_heading)}</h3>
+                    <p>$errorMsg</p>
+                    </body></html>
+                """.trimIndent()
+                webView.loadDataWithBaseURL(null, errorHtml, "text/html", "UTF-8", null)
+                Toast.makeText(this@BaseActivity, errorMsg, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
     protected val isNetworkMonitorInitialized: Boolean
         get() = ::baseNetworkMonitor.isInitialized
 
@@ -336,6 +540,14 @@ open class BaseActivity : AppCompatActivity() {
             if (::maintenanceCheckRunnable.isInitialized) {
                 maintenanceHandler.post(maintenanceCheckRunnable)
             }
+
+            val updateMgr = AutoUpdateManager.getInstance(this)
+            if (updateMgr.isEligiblePromptActivity(this)) {
+                val listener = updateProgressListener ?: AutoUpdateManager.UpdateProgressListener { isVisible, isIndeterminate, progressPercent, _, isBeta, isReadyToInstall, statusLabel ->
+                    updateFloatingUpdatePill(isVisible, isIndeterminate, progressPercent, isBeta, isReadyToInstall, statusLabel)
+                }.also { updateProgressListener = it }
+                updateMgr.addProgressListener(listener)
+            }
         }
     }
 
@@ -396,6 +608,9 @@ open class BaseActivity : AppCompatActivity() {
         if (::maintenanceCheckRunnable.isInitialized) {
             maintenanceHandler.removeCallbacks(maintenanceCheckRunnable)
         }
+        updateProgressListener?.let {
+            AutoUpdateManager.getInstance(this).removeProgressListener(it)
+        }
     }
 
     override fun onDestroy() {
@@ -403,6 +618,11 @@ open class BaseActivity : AppCompatActivity() {
         if (::baseNetworkMonitor.isInitialized) {
             baseNetworkMonitor.unregister()
         }
+        updateProgressListener?.let {
+            AutoUpdateManager.getInstance(this).removeProgressListener(it)
+        }
+        updateProgressListener = null
+        updateBannerView = null
         rootDialog?.dismiss()
         rootDialog = null
         maintenanceHandler.removeCallbacksAndMessages(null)

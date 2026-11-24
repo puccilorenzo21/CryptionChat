@@ -36,10 +36,10 @@ object PowerSaverHelper {
 
     private fun showStandardBatteryOptimizationDialog(context: Context) {
         MaterialAlertDialogBuilder(context)
-            .setTitle("Permesso Batteria Necessario")
-            .setMessage("Per evitare che il sistema chiuda CryptionChat e blocchi le notifiche, è necessario escludere l'app dal risparmio energetico.\n\nIl sistema mostrerà un avviso di 'Alto Consumo': è normale per le app di messaggistica in tempo reale.")
+            .setTitle(context.getString(R.string.battery_perm_title))
+            .setMessage(context.getString(R.string.battery_perm_message))
             .setCancelable(false) // Rende il dialogo obbligatorio, non ignorabile toccando fuori
-            .setPositiveButton("Risolvi") { _, _ ->
+            .setPositiveButton(context.getString(R.string.battery_perm_fix)) { _, _ ->
                 try {
                     val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
                         data = Uri.parse("package:${context.packageName}")
@@ -61,10 +61,10 @@ object PowerSaverHelper {
         if (prefs.getBoolean("manufacturer_permission_asked_$manufacturer", false)) return
 
         MaterialAlertDialogBuilder(context)
-            .setTitle("Impostazioni $manufacturer")
-            .setMessage("Su dispositivi $manufacturer, è necessario abilitare 'Avvio Automatico' o 'Consenti attività in background' per ricevere le notifiche in modo affidabile.\n\nSi prega di abilitare questa opzione nella schermata successiva.")
+            .setTitle(context.getString(R.string.manufacturer_settings_title, manufacturer))
+            .setMessage(context.getString(R.string.manufacturer_settings_msg, manufacturer))
             .setCancelable(false) // Rende il dialogo obbligatorio
-            .setPositiveButton("Vai alle Impostazioni") { _, _ ->
+            .setPositiveButton(context.getString(R.string.settings_go_to)) { _, _ ->
                 try {
                     prefs.edit().putBoolean("manufacturer_permission_asked_$manufacturer", true).apply()
                     context.startActivity(intent)

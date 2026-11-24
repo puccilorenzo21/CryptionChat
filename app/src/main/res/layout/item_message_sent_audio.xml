@@ -186,7 +186,7 @@
                     app:iconTint="?attr/colorOnPrimary"
                     app:rippleColor="?attr/colorOnPrimary"
                     android:background="@android:color/transparent"
-                    android:contentDescription="Trascrivi audio"/>
+                    android:contentDescription="@string/cd_transcribe_audio"/>
 
             </LinearLayout>
 

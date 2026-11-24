@@ -53,9 +53,9 @@ object BiometricHelper {
             })
 
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Accesso Biometrico")
-            .setSubtitle("Usa la tua impronta o il volto per accedere")
-            .setNegativeButtonText("Annulla")
+            .setTitle(activity.getString(R.string.settings_biometric_login))
+            .setSubtitle(activity.getString(R.string.biometric_subtitle))
+            .setNegativeButtonText(activity.getString(R.string.call_dialog_btn_cancel))
             .build()
 
         // Ritardiamo leggermente l'autenticazione per permettere il rendering completo dell'activity
@@ -65,7 +65,7 @@ object BiometricHelper {
                     biometricPrompt.authenticate(promptInfo)
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    onError(0, "Errore avvio sensore")
+                    onError(0, activity.getString(R.string.biometric_sensor_error))
                 }
             }
         }, 150)

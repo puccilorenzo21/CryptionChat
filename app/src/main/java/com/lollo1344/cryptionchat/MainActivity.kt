@@ -130,12 +130,12 @@ class MainActivity : BaseActivity() {
 
     private val pickBackgroundLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         uri?.let {
-            promptBackgroundTarget("Dove vuoi applicare questa immagine?") { target ->
+            promptBackgroundTarget(getString(R.string.main_bg_target_apply_prompt)) { target ->
                 if (ChatBackgroundManager.setCustomBackground(this, it, target)) {
-                    Toast.makeText(this, "Sfondo applicato!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.ai_bg_applied), Toast.LENGTH_SHORT).show()
                     applyCurrentHomeBackground()
                 } else {
-                    Toast.makeText(this, "Errore nel salvataggio.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.main_bg_save_error), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -144,10 +144,10 @@ class MainActivity : BaseActivity() {
     private val installPermissionLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (packageManager.canRequestPackageInstalls()) {
-                Toast.makeText(this, "Permesso concesso. Avvio aggiornamento...", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.main_perm_granted_update), Toast.LENGTH_SHORT).show()
                 checkForUpdates()
             } else {
-                Toast.makeText(this, "Permesso non concesso. Impossibile aggiornare.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, getString(R.string.main_perm_denied_update), Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -158,11 +158,11 @@ class MainActivity : BaseActivity() {
         if (isFinishing || isDestroyed) return@registerForActivityResult
         val allGranted = permissions.entries.all { it.value }
         if (allGranted) {
-            Toast.makeText(this, "Permessi di base concessi.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.main_base_perms_granted), Toast.LENGTH_SHORT).show()
             checkAndRestoreService()
             ServiceScheduler.scheduleWatchdog(this)
         } else {
-            Toast.makeText(this, "I permessi di base sono necessari per il funzionamento.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.main_base_perms_required), Toast.LENGTH_LONG).show()
         }
         // Riesegue il controllo per passare alla fase successiva (Fase 2) o bloccare nuovamente
         checkAllMandatoryPermissions()
@@ -173,12 +173,12 @@ class MainActivity : BaseActivity() {
     ) {
         val prefs = SecurePrefs.get(this)
         if (Settings.canDrawOverlays(this)) {
-            Toast.makeText(this, "Permesso visualizzazione concesso.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.main_overlay_perm_granted), Toast.LENGTH_SHORT).show()
             prefs.edit().remove("skip_overlay_permission").remove("overlay_settings_visited").apply()
         } else {
             // Registra che l'utente è stato nelle impostazioni ed è tornato senza concedere il permesso
             prefs.edit().putBoolean("overlay_settings_visited", true).apply()
-            Toast.makeText(this, "Permesso non concesso. Ora puoi saltare questo passaggio.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.main_overlay_perm_denied_skip), Toast.LENGTH_LONG).show()
         }
         // Al rientro, ricontrolla i permessi: mostrerà il dialogo aggiornato col tasto "Salta"
         checkAllMandatoryPermissions()
@@ -294,14 +294,14 @@ class MainActivity : BaseActivity() {
                 binding.layoutChats.visibility = View.GONE
                 binding.layoutSettings.visibility = View.GONE
                 binding.layoutMe.visibility = View.VISIBLE
-                supportActionBar?.title = "Il Mio Profilo"
+                supportActionBar?.title = getString(R.string.title_my_profile)
                 updateMeTabUI()
             }
             R.id.nav_settings -> {
                 binding.layoutChats.visibility = View.GONE
                 binding.layoutMe.visibility = View.GONE
                 binding.layoutSettings.visibility = View.VISIBLE
-                supportActionBar?.title = "Impostazioni"
+                supportActionBar?.title = getString(R.string.nav_settings)
                 updateSettingsTabUI()
             }
         }
@@ -310,7 +310,7 @@ class MainActivity : BaseActivity() {
     private fun updateMeTabUI() {
         val prefs = SecurePrefs.get(this)
         val profilePicUrl = prefs.getString("profile_picture_url", null)
-        val currentUsername = prefs.getString("username", "Utente")
+        val currentUsername = prefs.getString("username", getString(R.string.default_user_label))
 
         val meProfilePic = findViewById<ShapeableImageView>(R.id.me_profile_picture)
         val meUsername = findViewById<TextView>(R.id.me_username)
@@ -337,13 +337,13 @@ class MainActivity : BaseActivity() {
         findViewById<View>(R.id.btn_me_ai_photo)?.setOnClickListener {
             AIDialogHelper.showAIGeneratorDialog(
                 activity = this,
-                buttonText = "Imposta Foto Profilo"
+                buttonText = getString(R.string.action_set_profile_photo)
             ) { bitmap ->
                 val uri = FileUtils.saveBitmapToTempUri(this, bitmap)
                 if (uri != null) {
                     uploadProfilePicture(uri)
                 } else {
-                    Toast.makeText(this, "Errore durante la preparazione dell'immagine.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.error_preparing_image), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -385,10 +385,10 @@ class MainActivity : BaseActivity() {
         val prefs = SecurePrefs.get(this)
         val isBeta = prefs.getBoolean("is_beta_tester", false)
 
-        val channelText = if (isBeta) "Canale Beta / Pre-release 🧪" else "Canale Stabile 🛡️"
+        val channelText = if (isBeta) getString(R.string.channel_beta_label) else getString(R.string.channel_stable_label)
 
-        tvVersion.text = "Versione $versionName (Build $versionCode)"
-        tvBuildType.text = "$channelText • Crittografia End-to-End"
+        tvVersion.text = getString(R.string.settings_version_fmt, versionName, versionCode)
+        tvBuildType.text = getString(R.string.settings_build_type_fmt, channelText)
 
         // Apre il changelog dinamico in base al canale dell'utente
         btnChangelog?.setOnClickListener {
@@ -426,7 +426,7 @@ class MainActivity : BaseActivity() {
             showRootToolsDialog()
         }
         findViewById<View>(R.id.btn_set_update).setOnClickListener {
-            Toast.makeText(this, "Ricerca aggiornamenti...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.checking_for_updates), Toast.LENGTH_SHORT).show()
             UpdateHandler(this, installPermissionLauncher).forceManualUpdate()
         }
         findViewById<View>(R.id.btn_set_beta).setOnClickListener {
@@ -442,7 +442,7 @@ class MainActivity : BaseActivity() {
         val settingsCardLayout = findViewById<View>(R.id.btn_set_background).parent as? LinearLayout
         val btnGlassmorphism = TextView(this).apply {
             id = View.generateViewId()
-            text = "Personalizzazione Trasparenza"
+            text = getString(R.string.settings_transparency_customization)
             compoundDrawablePadding = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16f, resources.displayMetrics).toInt()
             setCompoundDrawablesWithIntrinsicBounds(
                 ContextCompat.getDrawable(this@MainActivity, R.drawable.ic_wallpaper),
@@ -581,8 +581,8 @@ class MainActivity : BaseActivity() {
             return Pair(slider, label)
         }
 
-        addSectionHeader("Sfondo App", R.drawable.ic_wallpaper)
-        val (bgBlurSlider, _) = createSlider("Sfocatura Immagine (Blur)", "px", bgBlurRadius.toFloat(), 0f, 50f, 1f)
+        addSectionHeader(getString(R.string.glass_section_bg), R.drawable.ic_wallpaper)
+        val (bgBlurSlider, _) = createSlider(getString(R.string.glass_blur_label), "px", bgBlurRadius.toFloat(), 0f, 50f, 1f)
 
         bgBlurSlider.addOnChangeListener { _, value, _ ->
             val valInt = value.toInt()
@@ -600,10 +600,10 @@ class MainActivity : BaseActivity() {
             }
         }
 
-        addSectionHeader("Barre dell'Interfaccia", R.drawable.ic_settings)
-        val (toolbarSlider, _) = createSlider("Trasparenza Barra Superiore (Toolbar)", "%", toolbarTransparency.toFloat(), 0f, 100f, 5f)
-        val (navBarSlider, _) = createSlider("Trasparenza Navigazione Home (BottomNav)", "%", navBarTransparency.toFloat(), 0f, 100f, 5f)
-        val (chatInputSlider, _) = createSlider("Trasparenza Barra Digitazione Chat (In basso)", "%", chatInputTransparency.toFloat(), 0f, 100f, 5f)
+        addSectionHeader(getString(R.string.glass_section_bars), R.drawable.ic_settings)
+        val (toolbarSlider, _) = createSlider(getString(R.string.glass_toolbar_alpha), "%", toolbarTransparency.toFloat(), 0f, 100f, 5f)
+        val (navBarSlider, _) = createSlider(getString(R.string.glass_navbar_alpha), "%", navBarTransparency.toFloat(), 0f, 100f, 5f)
+        val (chatInputSlider, _) = createSlider(getString(R.string.glass_chat_input_alpha), "%", chatInputTransparency.toFloat(), 0f, 100f, 5f)
 
         toolbarSlider.addOnChangeListener { _, value, _ ->
             val percent = value.toInt()
@@ -643,17 +643,17 @@ class MainActivity : BaseActivity() {
             findViewById<View>(R.id.preview_bottom_bar)?.setBackgroundColor(color)
         }
 
-        addSectionHeader("Bolle dei Messaggi", R.drawable.ic_chat_bubble)
-        val (chatCardSlider, _) = createSlider("Trasparenza Messaggio", "%", chatCardTransparency.toFloat(), 0f, 100f, 5f)
-        val (strokeWidthSlider, _) = createSlider("Spessore Bordo Vetro", "dp", chatCardStrokeWidth.toFloat(), 0f, 10f, 1f)
-        val (reflectionSlider, _) = createSlider("Luminosità Bordo (Riflesso)", "%", chatCardReflection.toFloat(), 0f, 100f, 5f)
+        addSectionHeader(getString(R.string.glass_section_bubbles), R.drawable.ic_chat_bubble)
+        val (chatCardSlider, _) = createSlider(getString(R.string.glass_msg_alpha), "%", chatCardTransparency.toFloat(), 0f, 100f, 5f)
+        val (strokeWidthSlider, _) = createSlider(getString(R.string.glass_stroke_width), "dp", chatCardStrokeWidth.toFloat(), 0f, 10f, 1f)
+        val (reflectionSlider, _) = createSlider(getString(R.string.glass_reflection), "%", chatCardReflection.toFloat(), 0f, 100f, 5f)
 
         chatCardSlider.addOnChangeListener { _, value, _ -> updateFakeChatCardsAlpha(value.toInt()) }
         strokeWidthSlider.addOnChangeListener { _, value, _ -> updateFakeChatCardsStroke(value.toInt()) }
         reflectionSlider.addOnChangeListener { _, value, _ -> updateFakeChatCardsReflection(value.toInt()) }
 
-        addSectionHeader("Schermata Home Principale", R.drawable.ic_person)
-        val (homeCardSlider, _) = createSlider("Trasparenza Lista Chat", "%", homeCardTransparency.toFloat(), 0f, 100f, 5f)
+        addSectionHeader(getString(R.string.glass_section_home), R.drawable.ic_person)
+        val (homeCardSlider, _) = createSlider(getString(R.string.glass_chat_list_alpha), "%", homeCardTransparency.toFloat(), 0f, 100f, 5f)
 
         val chatTouchListener = object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {
@@ -716,7 +716,7 @@ class MainActivity : BaseActivity() {
 
         // PULSANTE RESET (Allineato ai nuovi predefiniti dello screenshot)
         val resetButton = com.google.android.material.button.MaterialButton(context, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
-            text = "↺  Reimposta Predefiniti"
+            text = getString(R.string.glass_reset_defaults)
             setTextColor(context.getColor(android.R.color.holo_red_light))
             strokeColor = android.content.res.ColorStateList.valueOf(context.getColor(android.R.color.holo_red_light))
             val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
@@ -761,9 +761,9 @@ class MainActivity : BaseActivity() {
         findViewById<View>(R.id.preview_bottom_bar)?.setBackgroundColor(ColorUtils.setAlphaComponent(tvSurfaceContInit.data, chatInputAlphaInit))
 
         val dialog = MaterialAlertDialogBuilder(context)
-            .setTitle("Trasparenza ed Effetto Vetro")
+            .setTitle(getString(R.string.glass_dialog_title))
             .setView(scrollView)
-            .setPositiveButton("Salva") { _, _ ->
+            .setPositiveButton(getString(R.string.action_save)) { _, _ ->
                 prefs.edit {
                     putInt("nav_bar_transparency", navBarSlider.value.toInt())
                     putInt("chat_input_transparency", chatInputSlider.value.toInt())
@@ -774,10 +774,10 @@ class MainActivity : BaseActivity() {
                     putInt("chat_card_stroke_width", strokeWidthSlider.value.toInt())
                     putInt("bg_blur_radius", bgBlurSlider.value.toInt())
                 }
-                Toast.makeText(context, "Impostazioni visive applicate con successo!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, getString(R.string.glass_applied_toast), Toast.LENGTH_SHORT).show()
                 fetchUserGroups(isInitialLoad = false)
             }
-            .setNegativeButton("Annulla") { _, _ ->
+            .setNegativeButton(getString(R.string.call_dialog_btn_cancel)) { _, _ ->
                 applyCurrentToolbarAndNavBarAlpha()
                 applyCurrentBackgroundBlur()
             }
@@ -900,90 +900,6 @@ class MainActivity : BaseActivity() {
     private fun setupActionBarTitle() {
         appTitleSpannable = SpannableString(getString(R.string.app_name))
         supportActionBar?.title = appTitleSpannable
-    }
-
-    private fun showChangelogDialog() {
-        if (isFinishing || isDestroyed) return
-        val dialog = Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
-        val view = LayoutInflater.from(this).inflate(R.layout.dialog_webview, null)
-        dialog.setContentView(view)
-
-        val webView = view.findViewById<WebView>(R.id.changelogWebView)
-        val btnClose = view.findViewById<ImageButton>(R.id.btnCloseWeb)
-        val progressBar = view.findViewById<ProgressBar>(R.id.progressBarWeb)
-        val tvDialogTitle = view.findViewById<TextView>(R.id.tv_dialog_title)
-
-        btnClose.setOnClickListener { dialog.dismiss() }
-        webView.settings.apply {
-            javaScriptEnabled = true
-            domStorageEnabled = true
-            allowFileAccess = false
-            allowContentAccess = false
-            cacheMode = WebSettings.LOAD_NO_CACHE
-        }
-        webView.clearCache(true)
-
-        webView.webViewClient = object : WebViewClient() {
-            override fun onPageFinished(view: WebView?, url: String?) {
-                progressBar.visibility = View.GONE
-            }
-        }
-        webView.webChromeClient = object : WebChromeClient() {
-            override fun onProgressChanged(view: WebView?, newProgress: Int) {
-                if (newProgress < 100) {
-                    progressBar.visibility = View.VISIBLE
-                    progressBar.progress = newProgress
-                } else {
-                    progressBar.visibility = View.GONE
-                }
-            }
-        }
-
-        val prefs = SecurePrefs.get(this)
-        val isBeta = prefs.getBoolean("is_beta_tester", false)
-        val cacheBuster = System.currentTimeMillis()
-
-        // Imposta dinamicamente sia il titolo in alto che l'URL del changelog
-        val changelogUrl = if (isBeta) {
-            tvDialogTitle?.text = "Novità Beta 🚀"
-            "${ApiClient.BASE_URL}changelog-pre-relase.html?t=$cacheBuster"
-        } else {
-            tvDialogTitle?.text = "Novità Versione Stabile 🛡️"
-            "${ApiClient.BASE_URL}changelog.html?t=$cacheBuster"
-        }
-
-        progressBar.visibility = View.VISIBLE
-        dialog.show()
-
-        lifecycleScope.launch {
-            val html = withContext(Dispatchers.IO) {
-                ApiClient.fetchUrlAsString(changelogUrl)
-            }
-            if (isFinishing || isDestroyed || !dialog.isShowing) return@launch
-            progressBar.visibility = View.GONE
-
-            if (!html.isNullOrBlank()) {
-                webView.loadDataWithBaseURL(ApiClient.BASE_URL, html, "text/html", "UTF-8", null)
-            } else {
-                val torBlocked = withContext(Dispatchers.IO) {
-                    OrbotHelper.isTorEnforcedAndUnavailable(this@MainActivity)
-                }
-                if (isFinishing || isDestroyed || !dialog.isShowing) return@launch
-                val errorMsg = if (torBlocked) {
-                    "Traffico bloccato (Tor fail-closed): avvia e connetti Orbot per scaricare il changelog."
-                } else {
-                    "Impossibile caricare il changelog. Verifica la connessione di rete."
-                }
-                val errorHtml = """
-                    <html><body style="background:#121212;color:#E0E0E0;font-family:sans-serif;padding:24px;">
-                    <h3>Changelog non disponibile</h3>
-                    <p>$errorMsg</p>
-                    </body></html>
-                """.trimIndent()
-                webView.loadDataWithBaseURL(null, errorHtml, "text/html", "UTF-8", null)
-                Toast.makeText(this@MainActivity, errorMsg, Toast.LENGTH_LONG).show()
-            }
-        }
     }
 
     override fun onResume() {
@@ -1124,7 +1040,7 @@ class MainActivity : BaseActivity() {
     }
 
     private fun promptBackgroundTarget(title: String, onTargetSelected: (String) -> Unit) {
-        val options = arrayOf("Solo Chat", "Solo Home Principale", "Entrambi")
+        val options = arrayOf(getString(R.string.bg_target_chat_only), getString(R.string.bg_target_home_only), getString(R.string.ai_bg_opt_both))
         MaterialAlertDialogBuilder(this)
             .setTitle(title)
             .setItems(options) { _, which ->
@@ -1149,18 +1065,18 @@ class MainActivity : BaseActivity() {
         val currentOpacity = ChatBackgroundManager.getOpacity(this, ChatBackgroundManager.TARGET_HOME)
         val currentPercentage = (currentOpacity * 100).toInt()
         sliderOpacity.value = currentPercentage.toFloat()
-        labelOpacity.text = "Opacità Sfondo: $currentPercentage%"
+        labelOpacity.text = getString(R.string.bg_opacity_fmt, currentPercentage)
 
         sliderOpacity.addOnChangeListener { _, value, _ ->
             val intValue = value.toInt()
-            labelOpacity.text = "Opacità Sfondo: $intValue%"
+            labelOpacity.text = getString(R.string.bg_opacity_fmt, intValue)
             // Salva l'opacità specificando la destinazione TARGET_HOME
             ChatBackgroundManager.setOpacity(this, value / 100f, ChatBackgroundManager.TARGET_HOME)
             applyCurrentHomeBackground()
         }
 
         val dialog = MaterialAlertDialogBuilder(this)
-            .setTitle("Sfondo App")
+            .setTitle(getString(R.string.settings_app_background))
             .setView(dialogView)
             .show()
 
@@ -1186,10 +1102,10 @@ class MainActivity : BaseActivity() {
 
         dialogView.findViewById<View>(R.id.option_remove).setOnClickListener {
             dialog.dismiss()
-            promptBackgroundTarget("Da dove vuoi rimuovere lo sfondo?") { target ->
+            promptBackgroundTarget(getString(R.string.bg_remove_prompt)) { target ->
                 ChatBackgroundManager.removeBackground(this, target)
                 applyCurrentHomeBackground()
-                Toast.makeText(this, "Sfondo rimosso", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.bg_removed_toast), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -1198,7 +1114,7 @@ class MainActivity : BaseActivity() {
         if (isFinishing || isDestroyed) return
 
         val progressDialog = MaterialAlertDialogBuilder(this)
-            .setTitle("Caricamento sfondi...")
+            .setTitle(getString(R.string.bg_loading_title))
             .setView(ProgressBar(this).apply { setPadding(50, 50, 50, 50) })
             .setCancelable(false)
             .show()
@@ -1214,7 +1130,7 @@ class MainActivity : BaseActivity() {
                 val urls = if (response.isSuccessful && response.body() != null) response.body()!!.images else emptyList()
 
                 if (urls.isEmpty()) {
-                    Toast.makeText(this@MainActivity, "Nessuno sfondo disponibile sul server.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, getString(R.string.bg_none_on_server), Toast.LENGTH_SHORT).show()
                     return
                 }
 
@@ -1228,10 +1144,10 @@ class MainActivity : BaseActivity() {
                 recyclerView.layoutManager = GridLayoutManager(this@MainActivity, 2)
                 recyclerView.adapter = PredefinedBackgroundAdapter(urls) { selectedUrl ->
                     dialog.dismiss()
-                    promptBackgroundTarget("Dove vuoi applicare questo sfondo?") { target ->
+                    promptBackgroundTarget(getString(R.string.bg_apply_prompt)) { target ->
                         ChatBackgroundManager.setPredefinedBackground(this@MainActivity, selectedUrl, target, null)
                         applyCurrentHomeBackground()
-                        Toast.makeText(this@MainActivity, "Sfondo applicato con successo", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@MainActivity, getString(R.string.bg_applied_success), Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -1242,7 +1158,7 @@ class MainActivity : BaseActivity() {
                     return
                 }
                 try { progressDialog.dismiss() } catch (e: Exception) {}
-                Toast.makeText(this@MainActivity, "Errore di connessione al server.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MainActivity, getString(R.string.err_server_connection), Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -1322,10 +1238,10 @@ class MainActivity : BaseActivity() {
             if (isChecked) {
                 if (!OrbotHelper.isOrbotInstalled(this)) {
                     MaterialAlertDialogBuilder(this)
-                        .setTitle("Orbot Richiesto")
-                        .setMessage("Per usare il proxy Tor, devi installare l'app ufficiale Orbot.")
-                        .setPositiveButton("Installa") { _, _ -> OrbotHelper.promptInstallOrbot(this) }
-                        .setNegativeButton("Annulla") { _, _ ->
+                        .setTitle(getString(R.string.orbot_required_title))
+                        .setMessage(getString(R.string.orbot_required_msg))
+                        .setPositiveButton(getString(R.string.update_install_btn)) { _, _ -> OrbotHelper.promptInstallOrbot(this) }
+                        .setNegativeButton(getString(R.string.call_dialog_btn_cancel)) { _, _ ->
                             switchProxy.isChecked = false
                             prefs.edit().putBoolean("use_proxy", false).apply()
                             ApiClient.reloadConfiguration(this)
@@ -1335,7 +1251,7 @@ class MainActivity : BaseActivity() {
                 } else {
                     waitingForOrbot = true
                     OrbotHelper.requestStartOrbot(this)
-                    Toast.makeText(this, "Avvio Orbot in corso...", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.orbot_starting_toast), Toast.LENGTH_SHORT).show()
                 }
             } else {
                 waitingForOrbot = false
@@ -1344,16 +1260,16 @@ class MainActivity : BaseActivity() {
         }
 
         val existingPanic = PanicHelper.getPanicCode(this)
-        if (!existingPanic.isNullOrBlank()) editPanic.hint = "Codice attivo. Modifica."
+        if (!existingPanic.isNullOrBlank()) editPanic.hint = getString(R.string.code_active_edit_hint)
 
         btnHelpPanic.setOnClickListener {
             MaterialAlertDialogBuilder(this).setTitle(getString(R.string.panic_help_title))
                 .setMessage(android.text.Html.fromHtml(getString(R.string.panic_help_message), android.text.Html.FROM_HTML_MODE_COMPACT))
-                .setPositiveButton("Ho capito", null).show()
+                .setPositiveButton(getString(R.string.action_got_it), null).show()
         }
 
         val existingRemote = prefs.getString("remote_kill_code", null)
-        if (!existingRemote.isNullOrBlank()) editRemoteKill.hint = "Codice attivo. Modifica."
+        if (!existingRemote.isNullOrBlank()) editRemoteKill.hint = getString(R.string.code_active_edit_hint)
 
         btnHelpRemoteKill.setOnClickListener {
             showRemoteKillHelpDialog()
@@ -1365,9 +1281,9 @@ class MainActivity : BaseActivity() {
 
         val currentDeadManDays = prefs.getInt("dead_man_days", 0)
         sliderDeadMan.value = currentDeadManDays.toFloat()
-        labelDeadMan.text = if (currentDeadManDays == 0) "Disattivato" else "$currentDeadManDays giorni"
+        labelDeadMan.text = if (currentDeadManDays == 0) getString(R.string.state_disabled) else getString(R.string.days_fmt, currentDeadManDays)
         sliderDeadMan.addOnChangeListener { _, value, _ ->
-            labelDeadMan.text = if (value.toInt() == 0) "Disattivato" else "${value.toInt()} giorni"
+            labelDeadMan.text = if (value.toInt() == 0) getString(R.string.state_disabled) else getString(R.string.days_fmt, value.toInt())
         }
         switchPanicDeleteAccount.isChecked = prefs.getBoolean("panic_delete_account", false)
 
@@ -1458,14 +1374,14 @@ class MainActivity : BaseActivity() {
                     if (!isFinishing && !isDestroyed && torBlocked) {
                         Toast.makeText(
                             this@MainActivity,
-                            "Tor attivo ma Orbot non è connesso: il traffico è bloccato finché Orbot non si connette.",
+                            getString(R.string.tor_active_orbot_disconnected),
                             Toast.LENGTH_LONG
                         ).show()
                     }
                 }
             }
 
-            Toast.makeText(this, "Impostazioni salvate con successo.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.settings_saved_success), Toast.LENGTH_SHORT).show()
             bottomSheet.dismiss()
         }
 
@@ -1510,9 +1426,9 @@ class MainActivity : BaseActivity() {
                     if (isFinishing || isDestroyed) return@withContext
                     sheet.dismiss()
                     val msg = when {
-                        ok && resetIdentity -> "Identity Key, PreKey e sessioni rigenerate e caricate sul server."
-                        ok -> "Signed PreKey ruotata e pool PreKey aggiornato sul server."
-                        else -> "Impossibile caricare le nuove chiavi sul server. Controlla la connessione."
+                        ok && resetIdentity -> getString(R.string.rekey_identity_done)
+                        ok -> getString(R.string.rekey_prekey_done)
+                        else -> getString(R.string.rekey_upload_failed)
                     }
                     Toast.makeText(this@MainActivity, msg, Toast.LENGTH_LONG).show()
                 }
@@ -1525,12 +1441,12 @@ class MainActivity : BaseActivity() {
 
         val triggerIdentityReset = View.OnClickListener {
             MaterialAlertDialogBuilder(this)
-                .setTitle("Conferma rigenerazione identità")
-                .setMessage("Questa azione sostituisce la tua Identity Key permanente. Tutti i contatti riceveranno un avviso TOFU di sicurezza e dovranno confermare il nuovo Safety Number.\n\nVuoi procedere?")
-                .setPositiveButton("Rigenera tutto") { _, _ ->
+                .setTitle(getString(R.string.rekey_confirm_identity_title))
+                .setMessage(getString(R.string.rekey_confirm_identity_msg))
+                .setPositiveButton(getString(R.string.rekey_confirm_identity_btn)) { _, _ ->
                     executeRotation(resetIdentity = true)
                 }
-                .setNegativeButton("Annulla", null)
+                .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null)
                 .show()
         }
         cardResetIdentity.setOnClickListener(triggerIdentityReset)
@@ -1594,9 +1510,9 @@ class MainActivity : BaseActivity() {
                 val stat = android.os.StatFs(filesDir.path)
                 val bytesAvailable = stat.availableBlocksLong * stat.blockSizeLong
                 val gigaBytesAvailable = bytesAvailable / (1024.0 * 1024.0 * 1024.0)
-                storageText.text = "Spazio libero sul telefono: " + String.format(java.util.Locale.getDefault(), "%.2f", gigaBytesAvailable) + " GB"
+                storageText.text = getString(R.string.voice_free_space_fmt, String.format(java.util.Locale.getDefault(), "%.2f", gigaBytesAvailable))
             } catch (e: Exception) {
-                storageText.text = "Spazio libero: Rilevamento non riuscito"
+                storageText.text = getString(R.string.voice_free_space_err)
             }
 
             uiItems.forEach { item ->
@@ -1627,13 +1543,13 @@ class MainActivity : BaseActivity() {
             val isAvailable = AudioTranscriber.isModelAvailable(this)
             if (isAvailable) {
                 val size = AudioTranscriber.getModelSize(this)
-                statusText.text = "Stato: Installato ($size)"
+                statusText.text = getString(R.string.voice_status_installed, size)
                 statusText.setTextColor(ContextCompat.getColor(this, R.color.primary_light))
-                btnAction.text = "Riscarica"
+                btnAction.text = getString(R.string.voice_btn_redownload)
                 btnAction.setIconResource(R.drawable.ic_system_update)
                 btnDelete.visibility = View.VISIBLE
             } else {
-                statusText.text = "Stato: Non installato"
+                statusText.text = getString(R.string.voice_status_not_installed)
                 statusText.setTextColor(ContextCompat.getColor(this, R.color.error_light))
                 val selectedItem = uiItems.find { it.rb.isChecked }
                 val sizeEstimate = when (selectedItem?.type) {
@@ -1646,7 +1562,7 @@ class MainActivity : BaseActivity() {
                     AudioTranscriber.TYPE_HYBRID -> "~193 MB"
                     else -> "~45 MB"
                 }
-                btnAction.text = "Scarica ($sizeEstimate)"
+                btnAction.text = getString(R.string.voice_btn_download_fmt, sizeEstimate)
                 btnAction.setIconResource(R.drawable.ic_file_download)
                 btnDelete.visibility = View.GONE
             }
@@ -1682,42 +1598,42 @@ class MainActivity : BaseActivity() {
             MaterialAlertDialogBuilder(this)
                 .setTitle(title)
                 .setMessage(message)
-                .setPositiveButton("Ho capito", null)
+                .setPositiveButton(getString(R.string.action_got_it), null)
                 .show()
         }
 
         dialogView.findViewById<ImageButton>(R.id.help_vosk).setOnClickListener {
-            showHelp("Vosk (Standard)", "Il modello offline originale. Estremamente leggero, rapido e a basso consumo. Perfetto per comandi brevi o per dispositivi con risorse hardware limitate, ma non supporta la punteggiatura avanzata.")
+            showHelp(getString(R.string.voice_help_vosk_title), getString(R.string.voice_help_vosk_desc))
         }
         dialogView.findViewById<ImageButton>(R.id.help_whisper_base).setOnClickListener {
-            showHelp("Whisper Base", "Il modello AI d'ingresso. Offre un'ottima fluidità e una comprensione del parlato notevolmente superiore a Vosk, integrando punteggiatura automatica e una correzione del contesto bilanciata.")
+            showHelp(getString(R.string.voice_whisper_base_title), getString(R.string.voice_help_whisper_base_desc))
         }
         dialogView.findViewById<ImageButton>(R.id.help_whisper_small_q5).setOnClickListener {
-            showHelp("Whisper Small Q5 (Consigliato)", "La scelta raccomandata per la maggior parte dei dispositivi moderni. Grazie alla quantizzazione neurale a 5-bit, mantiene il 98% della precisione del modello Small nativo riducendo il peso e velocizzando l'esecuzioni offline.")
+            showHelp(getString(R.string.voice_whisper_small_q5_title), getString(R.string.voice_help_whisper_small_q5_desc))
         }
         dialogView.findViewById<ImageButton>(R.id.help_whisper_small_q8).setOnClickListener {
-            showHelp("Whisper Small Q8", "Modello neurale ad alta fedeltà con quantizzazione minima a 8-bit. Offre dettagli di trascrizione eccellenti ed è quasi indistinguibile dal modello non compresso, richiedendo però processori performanti.")
+            showHelp(getString(R.string.voice_whisper_small_q8_title), getString(R.string.voice_help_whisper_small_q8_desc))
         }
         dialogView.findViewById<ImageButton>(R.id.help_whisper_small).setOnClickListener {
-            showHelp("Whisper Small Full", "Il modello neurale non compresso (Float16) completo. Raggiunge la massima precisione teorica ma richiede oltre 480 MB di spazio e un tempo di elaborazione considerevole su dispositivi standard.")
+            showHelp(getString(R.string.voice_whisper_small_full_title), getString(R.string.voice_help_whisper_small_full_desc))
         }
         dialogView.findViewById<ImageButton>(R.id.help_whisper_turbo_q5).setOnClickListener {
-            showHelp("Whisper Large-v3-Turbo Q5", "Modello distillato di OpenAI con la stessa straordinaria precisione del modello Large-v3 (punta di diamante per l'italiano), ma ottimizzato per eseguire l'elaborazione alla velocità di Whisper Small.")
+            showHelp(getString(R.string.voice_help_whisper_turbo_title), getString(R.string.voice_help_whisper_turbo_desc))
         }
         dialogView.findViewById<ImageButton>(R.id.help_hybrid).setOnClickListener {
-            showHelp("Modalità Ibrida", "Funzionalità avanzata per sviluppatori o per scopi di benchmark. Avvia simultaneamente Vosk e Whisper Base confrontando e stampando a schermo entrambi i flussi di testo.")
+            showHelp(getString(R.string.voice_hybrid_title), getString(R.string.voice_help_hybrid_desc))
         }
 
         updateUI()
 
         btnAction.setOnClickListener {
             if (!isNetworkAvailable) {
-                Toast.makeText(this, "Nessuna connessione internet.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.no_internet_connection), Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             progressLayout.visibility = View.VISIBLE
             progressBar.isIndeterminate = false
-            progressText.text = "Inizializzazione download..."
+            progressText.text = getString(R.string.voice_download_init)
             btnAction.isEnabled = false
             btnDelete.isEnabled = false
             btnClose.isEnabled = false
@@ -1729,23 +1645,23 @@ class MainActivity : BaseActivity() {
                     runOnUiThread {
                         if (progress > 100) {
                             progressBar.isIndeterminate = true
-                            progressText.text = "Installazione ed estrazione dei file..."
+                            progressText.text = getString(R.string.voice_download_extracting)
                         } else {
                             progressBar.progress = progress
-                            progressText.text = "Download in corso... $progress%"
+                            progressText.text = getString(R.string.voice_download_progress, progress)
                         }
                     }
                 },
                 onSuccess = {
                     runOnUiThread {
-                        Toast.makeText(this, "Modello vocale installato ed attivato correttamente!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, getString(R.string.voice_model_installed_toast), Toast.LENGTH_SHORT).show()
                         dialog.setCancelable(true)
                         updateUI()
                     }
                 },
                 onError = { error ->
                     runOnUiThread {
-                        Toast.makeText(this, "Errore: $error", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this, getString(R.string.error_prefix, error), Toast.LENGTH_LONG).show()
                         dialog.setCancelable(true)
                         updateUI()
                     }
@@ -1755,12 +1671,12 @@ class MainActivity : BaseActivity() {
 
         btnDelete.setOnClickListener {
             MaterialAlertDialogBuilder(this)
-                .setTitle("Rimuovi Modello")
-                .setMessage("Sei sicuro di voler liberare spazio eliminando i file di questo modello sul dispositivo?")
-                .setPositiveButton("Rimuovi") { _, _ ->
+                .setTitle(getString(R.string.voice_remove_title))
+                .setMessage(getString(R.string.voice_remove_msg))
+                .setPositiveButton(getString(R.string.action_remove)) { _, _ ->
                     progressLayout.visibility = View.VISIBLE
                     progressBar.isIndeterminate = true
-                    progressText.text = "Rimozione file in corso..."
+                    progressText.text = getString(R.string.voice_removing_files)
                     btnAction.isEnabled = false
                     btnDelete.isEnabled = false
                     btnClose.isEnabled = false
@@ -1770,15 +1686,15 @@ class MainActivity : BaseActivity() {
                         val success = AudioTranscriber.deleteModel(this@MainActivity)
                         withContext(Dispatchers.Main) {
                             if (success) {
-                                Toast.makeText(this@MainActivity, "Modello rimosso correttamente.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@MainActivity, getString(R.string.voice_removed_toast), Toast.LENGTH_SHORT).show()
                             } else {
-                                Toast.makeText(this@MainActivity, "Impossibile rimuovere alcuni file temporanei.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@MainActivity, getString(R.string.voice_remove_partial_toast), Toast.LENGTH_SHORT).show()
                             }
                             updateUI()
                         }
                     }
                 }
-                .setNegativeButton("Annulla", null)
+                .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null)
                 .show()
         }
 
@@ -1812,7 +1728,7 @@ class MainActivity : BaseActivity() {
                 val newState = !isBetaTester
                 updateBetaStatusOnServer(newState)
             }
-            .setNegativeButton("Annulla", null)
+            .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null)
             .create()
 
         betaTesterDialog?.show()
@@ -1824,7 +1740,7 @@ class MainActivity : BaseActivity() {
         betaProgressDialog?.dismiss() // Chiude eventuali dialoghi precedenti rimasti aperti
 
         betaProgressDialog = MaterialAlertDialogBuilder(this)
-            .setTitle("Sincronizzazione...")
+            .setTitle(getString(R.string.beta_syncing_title))
             .setView(ProgressBar(this).apply { setPadding(50, 50, 50, 50) })
             .setCancelable(false)
             .create()
@@ -1845,23 +1761,25 @@ class MainActivity : BaseActivity() {
                         prefs.edit().apply {
                             putBoolean("is_beta_tester", newState)
                             putBoolean("is_beta_synced_to_server_v1", true)
-                            apply()
+                            commit()
                         }
 
-                        val toastMsg = if (newState) "Benvenuto nel programma Beta! 🧪" else "Sei uscito dal programma Beta."
+                        AutoUpdateManager.getInstance(this@MainActivity).onBetaStatusChanged()
+
+                        val toastMsg = if (newState) getString(R.string.beta_joined_toast) else getString(R.string.beta_left_toast)
                         Toast.makeText(this@MainActivity, toastMsg, Toast.LENGTH_SHORT).show()
 
                         recreate()
                     } else {
                         Log.e("MainActivity", "Errore logico server: ${body?.message}")
-                        Toast.makeText(this@MainActivity, "Errore: ${body?.message}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@MainActivity, getString(R.string.error_prefix, body?.message ?: ""), Toast.LENGTH_LONG).show()
                     }
                 } else {
                     val httpCode = response.code()
                     val errorBodyString = response.errorBody()?.string()
 
                     Log.e("MainActivity", "Errore HTTP del server: $httpCode | Dettagli: $errorBodyString")
-                    Toast.makeText(this@MainActivity, "Errore server ($httpCode). Controlla i logcat.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@MainActivity, getString(R.string.beta_server_error_fmt, httpCode), Toast.LENGTH_LONG).show()
                 }
             }
 
@@ -1869,7 +1787,7 @@ class MainActivity : BaseActivity() {
                 if (isFinishing || isDestroyed) return
                 betaProgressDialog?.dismiss()
                 Log.e("MainActivity", "Connessione di rete fallita per la sincronizzazione dello stato Beta.", t)
-                Toast.makeText(this@MainActivity, "Errore di connessione: riprova più tardi.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@MainActivity, getString(R.string.connection_error_retry), Toast.LENGTH_LONG).show()
             }
         })
     }
@@ -1945,17 +1863,17 @@ class MainActivity : BaseActivity() {
         val setupCompleted = prefs.getBoolean("setup_completed", false)
         if (!setupCompleted) {
             prefs.edit().putBoolean("setup_completed", true).apply()
-            Toast.makeText(this, "Tutti i permessi sono stati configurati! 🎉", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.all_perms_configured), Toast.LENGTH_LONG).show()
         }
     }
 
     private fun showStandardBatteryOptimizationDialog() {
         if (isFinishing || isDestroyed || permissionDialog?.isShowing == true) return
         permissionDialog = MaterialAlertDialogBuilder(this)
-            .setTitle("Permesso Batteria Necessario")
-            .setMessage("Per evitare che il sistema chiuda CryptionChat e blocchi le notifiche, è necessario escludere l\'app dal risparmio energetico.\n\nIl sistema mostrerà un avviso di \'Alto Consumo\': è normale per le app di messaggistica in tempo reale.")
+            .setTitle(getString(R.string.battery_perm_title))
+            .setMessage(getString(R.string.battery_perm_message))
             .setCancelable(false)
-            .setPositiveButton("Risolvi") { _, _ ->
+            .setPositiveButton(getString(R.string.battery_perm_fix)) { _, _ ->
                 try {
                     val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
                         data = Uri.parse("package:$packageName")
@@ -2008,7 +1926,7 @@ class MainActivity : BaseActivity() {
             .setTitle(getString(R.string.perm_overlay_title))
             .setMessage(Html.fromHtml(
                 getString(R.string.perm_overlay_message) +
-                        "<br/><br/>⚠️ <b>Nota per Android 13+:</b> Se l'interruttore del sistema è grigio o disattivato (\"Impostazione limitata\"), premi <b>\"Guida Sblocco\"</b> per scoprire come attivarla.",
+                        getString(R.string.perm_overlay_restricted_note),
                 Html.FROM_HTML_MODE_COMPACT
             ))
             .setCancelable(false)
@@ -2021,7 +1939,7 @@ class MainActivity : BaseActivity() {
                     overlayPermissionLauncher.launch(intent)
                 }
             }
-            .setNeutralButton("Guida Sblocco") { _, _ ->
+            .setNeutralButton(getString(R.string.perm_unlock_guide_btn)) { _, _ ->
                 showRestrictedSettingsGuideDialog()
             }
 
@@ -2031,7 +1949,7 @@ class MainActivity : BaseActivity() {
                 prefs.edit().putBoolean("skip_overlay_permission", true).apply()
                 permissionDialog?.dismiss()
                 permissionDialog = null
-                Toast.makeText(this, "Permesso saltato. Le chiamate sopra le altre app potrebbero essere limitate dal sistema.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.perm_overlay_skipped_toast), Toast.LENGTH_SHORT).show()
                 checkAllMandatoryPermissions()
             }
         }
@@ -2042,21 +1960,12 @@ class MainActivity : BaseActivity() {
     private fun showRestrictedSettingsGuideDialog() {
         if (isFinishing || isDestroyed) return
 
-        val guideMessage = """
-            <b>Come sbloccare le Impostazioni Limitate su Android 13/14/15+:</b><br/><br/>
-            1. Esci temporaneamente dall'app e vai alla schermata home o nel drawer.<br/>
-            2. <b>Tieni premuto</b> sull'icona di <b>CryptionChat</b> e seleziona <b>"Informazioni app"</b> (oppure vai in Impostazioni -> App -> CryptionChat).<br/>
-            3. In alto a destra, premi sui <b>tre puntini verticali (⋮)</b>.<br/>
-            4. Seleziona l'opzione <b>"Consenti impostazioni limitate"</b> (o "Allow restricted settings").<br/>
-            5. Conferma sbloccando con l'impronta digitale o il PIN del tuo dispositivo.<br/>
-            6. Riapri CryptionChat e prova nuovamente ad abilitare l'autorizzazione di overlay.<br/><br/>
-            <i>Nota: Questa è una limitazione di sicurezza del sistema Android applicata a tutte le app installate al di fuori del Google Play Store.</i>
-        """.trimIndent()
+        val guideMessage = getString(R.string.restricted_guide_html)
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("Guida Impostazioni Limitate")
+            .setTitle(getString(R.string.restricted_guide_title))
             .setMessage(Html.fromHtml(guideMessage, Html.FROM_HTML_MODE_COMPACT))
-            .setPositiveButton("Ho Capito") { _, _ ->
+            .setPositiveButton(getString(R.string.notification_permission_positive)) { _, _ ->
                 // Riapre il dialogo principale di blocco costringendo l'utente ad abilitare il permesso reale
                 showOverlayPermissionDialog()
             }
@@ -2143,7 +2052,7 @@ class MainActivity : BaseActivity() {
         MaterialAlertDialogBuilder(this)
             .setTitle(getString(R.string.notification_settings_title))
             .setView(dialogBinding.root)
-            .setPositiveButton("Salva") { _, _ ->
+            .setPositiveButton(getString(R.string.action_save)) { _, _ ->
                 val newDuration = dialogBinding.durationSlider.value.toInt()
                 val newRespectDnd = dialogBinding.switchRespectDnd.isChecked
                 val newShowContent = dialogBinding.switchShowContent.isChecked
@@ -2153,9 +2062,9 @@ class MainActivity : BaseActivity() {
                     putBoolean("mention_respect_dnd", newRespectDnd)
                     putBoolean("show_notification_content", newShowContent)
                 }
-                Toast.makeText(this, "Impostazioni salvate.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.settings_saved_short), Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("Annulla", null)
+            .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null)
             .show()
     }
 
@@ -2164,15 +2073,15 @@ class MainActivity : BaseActivity() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_change_username, null)
         val newUsernameEditText = dialogView.findViewById<EditText>(R.id.editTextNewUsername)
         val passwordEditText = dialogView.findViewById<EditText>(R.id.editTextCurrentPassword)
-        MaterialAlertDialogBuilder(this).setTitle("Cambia Nome Utente").setView(dialogView)
-            .setPositiveButton("Salva") { _, _ ->
+        MaterialAlertDialogBuilder(this).setTitle(getString(R.string.action_change_username)).setView(dialogView)
+            .setPositiveButton(getString(R.string.action_save)) { _, _ ->
                 val newUsername = newUsernameEditText.text.toString().trim()
                 val password = passwordEditText.text.toString().trim()
-                if (newUsername.length < 3) { Toast.makeText(this, "Il nome utente deve essere di almeno 3 caratteri", Toast.LENGTH_SHORT).show(); return@setPositiveButton }
-                if (password.isEmpty()) { Toast.makeText(this, "La password è richiesta per conferma", Toast.LENGTH_SHORT).show(); return@setPositiveButton }
+                if (newUsername.length < 3) { Toast.makeText(this, getString(R.string.username_min_3), Toast.LENGTH_SHORT).show(); return@setPositiveButton }
+                if (password.isEmpty()) { Toast.makeText(this, getString(R.string.password_required_confirm), Toast.LENGTH_SHORT).show(); return@setPositiveButton }
                 changeUsername(newUsername, password)
             }
-            .setNegativeButton("Annulla", null).show()
+            .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null).show()
     }
 
     private fun showFeedbackDialog() {
@@ -2186,7 +2095,7 @@ class MainActivity : BaseActivity() {
         }
 
         val descText = TextView(context).apply {
-            text = "Il tuo feedback ci aiuta a rendere CryptionChat più sicuro, veloce e performante. Descrivi i dettagli qui sotto."
+            text = getString(R.string.feedback_desc)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
             setTextColor(ContextCompat.getColor(context, R.color.outline_dark))
             val params = LinearLayout.LayoutParams(
@@ -2200,7 +2109,7 @@ class MainActivity : BaseActivity() {
         rootLayout.addView(descText)
 
         val categoryLabel = TextView(context).apply {
-            text = "Tipo di segnalazione:"
+            text = getString(R.string.feedback_type_label)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
             setTypeface(null, android.graphics.Typeface.BOLD)
             setTextColor(ContextCompat.getColor(context, R.color.primary_light))
@@ -2227,21 +2136,21 @@ class MainActivity : BaseActivity() {
         }
 
         val chipBug = Chip(context).apply {
-            text = "Malfunzionamento / Bug 🐛"
+            text = getString(R.string.feedback_chip_bug)
             isCheckable = true
             isChecked = true
         }
         chipGroup.addView(chipBug)
 
         val chipFeature = Chip(context).apply {
-            text = "Nuova Idea / Funzione 💡"
+            text = getString(R.string.feedback_chip_idea)
             isCheckable = true
         }
         chipGroup.addView(chipFeature)
         rootLayout.addView(chipGroup)
 
         val textInputLayout = TextInputLayout(context).apply {
-            hint = "Descrivi i dettagli..."
+            hint = getString(R.string.feedback_hint_details)
             boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
             isCounterEnabled = true
             counterMaxLength = 500
@@ -2264,32 +2173,32 @@ class MainActivity : BaseActivity() {
 
         chipBug.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                textInputLayout.hint = "Descrivi il problema riscontrato..."
-                textInputLayout.helperText = "Includi i passaggi per riprodurre il bug"
+                textInputLayout.hint = getString(R.string.feedback_hint_bug)
+                textInputLayout.helperText = getString(R.string.feedback_helper_bug)
             }
         }
         chipFeature.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                textInputLayout.hint = "Descrivi la tua proposta..."
-                textInputLayout.helperText = "Spiega cosa vorresti aggiungere e perché"
+                textInputLayout.hint = getString(R.string.feedback_hint_idea)
+                textInputLayout.helperText = getString(R.string.feedback_helper_idea)
             }
         }
 
-        textInputLayout.helperText = "Includi i passaggi per riprodurre il bug"
+        textInputLayout.helperText = getString(R.string.feedback_helper_bug)
 
         MaterialAlertDialogBuilder(context)
-            .setTitle("Segnala o Suggerisci")
+            .setTitle(getString(R.string.feedback_dialog_title))
             .setIcon(R.drawable.ic_feedback)
             .setView(rootLayout)
-            .setNegativeButton("Annulla", null)
-            .setPositiveButton("Invia") { _, _ ->
+            .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null)
+            .setPositiveButton(getString(R.string.cd_send)) { _, _ ->
                 val feedbackText = editText.text.toString().trim()
                 if (feedbackText.isNotEmpty()) {
                     val category = if (chipBug.isChecked) "[BUG]" else "[IDEA]"
                     val finalFeedback = "$category $feedbackText"
                     sendFeedback(finalFeedback)
                 } else {
-                    Toast.makeText(context, "Il messaggio non può essere vuoto.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, getString(R.string.feedback_empty_toast), Toast.LENGTH_SHORT).show()
                 }
             }
             .show()
@@ -2297,41 +2206,41 @@ class MainActivity : BaseActivity() {
 
     private fun showClearCacheConfirmationDialog() {
         if (isFinishing || isDestroyed) return
-        MaterialAlertDialogBuilder(this).setTitle("Svuota Cache File")
-            .setMessage("Sei sicuro di voler eliminare tutti i file e le immagini scaricate? Dovrai scaricarli di nuovo per visualizzarli. Questa azione è irreversibile.")
-            .setNegativeButton("Annulla", null)
-            .setPositiveButton("Sì, svuota") { _, _ -> clearDownloadedFilesCache() }
+        MaterialAlertDialogBuilder(this).setTitle(getString(R.string.clear_cache_title))
+            .setMessage(getString(R.string.clear_cache_msg))
+            .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null)
+            .setPositiveButton(getString(R.string.clear_cache_confirm)) { _, _ -> clearDownloadedFilesCache() }
             .show()
     }
 
     private fun showResetAppConfirmationDialog() {
         if (isFinishing || isDestroyed) return
-        MaterialAlertDialogBuilder(this).setTitle("Ripristina Applicazione")
-            .setMessage("Sei sicuro? Questa azione è irreversibile e comporterà la cancellazione di tutti i dati locali dell'applicazione, inclusi account salvati, impostazioni e canali di notifica. L'app verrà terminata e al prossimo avvio sarà come appena installata.")
-            .setPositiveButton("Sì, ripristina") { _, _ -> performAppReset() }
-            .setNegativeButton("Annulla", null).show()
+        MaterialAlertDialogBuilder(this).setTitle(getString(R.string.reset_app_title))
+            .setMessage(getString(R.string.reset_app_msg))
+            .setPositiveButton(getString(R.string.reset_app_confirm)) { _, _ -> performAppReset() }
+            .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null).show()
     }
 
     private fun showDeleteConfirmationDialog() {
         if (isFinishing || isDestroyed) return
-        MaterialAlertDialogBuilder(this).setTitle("Elimina Account")
-            .setMessage("Sei assolutamente sicuro? Questa azione è irreversibile. Tutti i tuoi messaggi, i gruppi che hai creato e la tua appartenenza ad altri gruppi verranno eliminati permanentemente.")
+        MaterialAlertDialogBuilder(this).setTitle(getString(R.string.delete_account_title))
+            .setMessage(getString(R.string.delete_account_msg))
             .setIcon(android.R.drawable.ic_dialog_alert)
-            .setPositiveButton("Sì, elimina il mio account") { _, _ -> deleteUserAccount() }
-            .setNegativeButton("Annulla", null).show()
+            .setPositiveButton(getString(R.string.delete_account_confirm)) { _, _ -> deleteUserAccount() }
+            .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null).show()
     }
 
     private fun showBiometricAuthDialog() {
         if (isFinishing || isDestroyed) return
-        if (!BiometricHelper.canAuthenticate(this)) { Toast.makeText(this, "Il tuo dispositivo non supporta l'autenticazione biometrica.", Toast.LENGTH_LONG).show(); return }
+        if (!BiometricHelper.canAuthenticate(this)) { Toast.makeText(this, getString(R.string.biometric_not_supported), Toast.LENGTH_LONG).show(); return }
         val prefs = SecurePrefs.get(this)
         val isEnabled = prefs.getBoolean("biometric_auth_enabled", false)
-        val title = if (isEnabled) "Disabilita Accesso Biometrico" else "Abilita Accesso Biometrico"
-        val message = if (isEnabled) "Vuoi disabilitare l'accesso all'app tramite impronta digitale o riconoscimento facciale?" else "Vuoi abilitare l'accesso all'app tramite impronta digitale o riconoscimento facciale?."
-        MaterialAlertDialogBuilder(this).setTitle(title).setMessage(message).setNegativeButton("Annulla", null)
-            .setPositiveButton(if (isEnabled) "Disabilita" else "Abilita") { _, _ ->
+        val title = if (isEnabled) getString(R.string.biometric_disable_title) else getString(R.string.biometric_enable_title)
+        val message = if (isEnabled) getString(R.string.biometric_disable_msg) else getString(R.string.biometric_enable_msg)
+        MaterialAlertDialogBuilder(this).setTitle(title).setMessage(message).setNegativeButton(getString(R.string.call_dialog_btn_cancel), null)
+            .setPositiveButton(if (isEnabled) getString(R.string.action_disable) else getString(R.string.action_enable)) { _, _ ->
                 prefs.edit { putBoolean("biometric_auth_enabled", !isEnabled) }
-                Toast.makeText(this, "Impostazione salvata.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.setting_saved_short), Toast.LENGTH_SHORT).show()
             }
             .show()
     }
@@ -2344,9 +2253,9 @@ class MainActivity : BaseActivity() {
 
         if (!isRooted || !isWhitelisted) {
             MaterialAlertDialogBuilder(this)
-                .setTitle("Accesso Negato")
-                .setMessage("Questo menu è riservato agli sviluppatori su dispositivi con permessi di root.")
-                .setPositiveButton("OK", null)
+                .setTitle(getString(R.string.access_denied_title))
+                .setMessage(getString(R.string.root_menu_dev_only))
+                .setPositiveButton(getString(R.string.ok), null)
                 .show()
             return
         }
@@ -2364,16 +2273,16 @@ class MainActivity : BaseActivity() {
 
         val dialog = MaterialAlertDialogBuilder(this)
             .setView(dialogView)
-            .setPositiveButton("Chiudi", null)
+            .setPositiveButton(getString(R.string.action_close), null)
             .show()
 
         fun runRootCommandUI(command: String) {
-            textOutput.text = "Esecuzione in corso...\n> $command"
+            textOutput.text = getString(R.string.root_running_fmt, command)
             lifecycleScope.launch(Dispatchers.IO) {
                 val (success, output) = RootDetectionHelper.executeCommandAsRoot(command)
                 withContext(Dispatchers.Main) {
                     val statusText = if (success) "[SUCCESS]" else "[FAILED]"
-                    val finalOutput = if (output.isBlank()) "(Nessun output)" else output
+                    val finalOutput = if (output.isBlank()) getString(R.string.root_no_output) else output
                     textOutput.text = "> $command\n$statusText\n\n$finalOutput"
                 }
             }
@@ -2384,7 +2293,7 @@ class MainActivity : BaseActivity() {
         }
 
         btnWipeData.setOnClickListener {
-            Toast.makeText(this, "Wipe in corso...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.root_wipe_in_progress), Toast.LENGTH_SHORT).show()
             Thread { RootDetectionHelper.executeCommandAsRoot("pm clear $packageName") }.start()
         }
 
@@ -2393,26 +2302,28 @@ class MainActivity : BaseActivity() {
         }
 
         btnForceStop.setOnClickListener {
-            Toast.makeText(this, "Arresto forzato...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.root_force_stop_toast), Toast.LENGTH_SHORT).show()
             Thread { RootDetectionHelper.executeCommandAsRoot("am force-stop $packageName") }.start()
         }
 
         btnDumpDb.setOnClickListener {
+            val dumpSavedMsg = getString(R.string.root_dump_saved_msg)
             val cmd = """
                 mkdir -p /sdcard/Download/CryptionChat_Dump
                 cp -r /data/data/$packageName/databases /sdcard/Download/CryptionChat_Dump/
                 cp -r /data/data/$packageName/shared_prefs /sdcard/Download/CryptionChat_Dump/
                 chmod -R 777 /sdcard/Download/CryptionChat_Dump
-                echo "Dump salvato in /sdcard/Download/CryptionChat_Dump/"
+                echo "$dumpSavedMsg"
             """.trimIndent()
             runRootCommandUI(cmd)
         }
 
         btnDumpLogs.setOnClickListener {
+            val logcatSavedMsg = getString(R.string.root_logcat_saved_msg)
             val cmd = """
                 logcat -d > /sdcard/Download/cryptionchat_logcat.txt
                 chmod 777 /sdcard/Download/cryptionchat_logcat.txt
-                echo "Logcat salvato in /sdcard/Download/cryptionchat_logcat.txt"
+                echo "$logcatSavedMsg"
             """.trimIndent()
             runRootCommandUI(cmd)
         }
@@ -2543,11 +2454,11 @@ class MainActivity : BaseActivity() {
                         val recentList = sortedGroups.filter { it.id.toString() !in pinnedGroupIds }
 
                         if (pinnedList.isNotEmpty()) {
-                            listItems.add(GroupListItem.Header("Pinned"))
+                            listItems.add(GroupListItem.Header(getString(R.string.section_pinned)))
                             listItems.addAll(pinnedList.map { GroupListItem.GroupData(it, true) })
                         }
                         if (recentList.isNotEmpty()) {
-                            listItems.add(GroupListItem.Header("Recent"))
+                            listItems.add(GroupListItem.Header(getString(R.string.section_recent)))
                             listItems.addAll(recentList.map { GroupListItem.GroupData(it, false) })
                         }
 
@@ -2576,46 +2487,46 @@ class MainActivity : BaseActivity() {
 
     private fun showCreateGroupDialog() {
         if (isFinishing || isDestroyed) return
-        val input = EditText(this).apply { hint = "Nome del gruppo" }
+        val input = EditText(this).apply { hint = getString(R.string.group_name_hint_lower) }
         val container = FrameLayout(this)
         val params = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         val margin = (24 * resources.displayMetrics.density).toInt()
         params.leftMargin = margin; params.rightMargin = margin
         input.layoutParams = params
         container.addView(input)
-        MaterialAlertDialogBuilder(this).setTitle("Crea Nuovo Gruppo").setView(container)
-            .setPositiveButton("Crea") { _, _ ->
+        MaterialAlertDialogBuilder(this).setTitle(getString(R.string.action_create_new_group)).setView(container)
+            .setPositiveButton(getString(R.string.action_create)) { _, _ ->
                 val groupName = input.text.toString().trim()
-                if (groupName.isNotEmpty()) createGroup(groupName) else Toast.makeText(this, "Il nome del gruppo non può essere vuoto", Toast.LENGTH_SHORT).show()
+                if (groupName.isNotEmpty()) createGroup(groupName) else Toast.makeText(this, getString(R.string.group_name_empty_toast), Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("Annulla", null).show()
+            .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null).show()
     }
 
     private fun showJoinGroupDialog() {
         if (isFinishing || isDestroyed) return
-        val input = EditText(this).apply { hint = "Codice del gruppo o di invito"; inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS }
+        val input = EditText(this).apply { hint = getString(R.string.group_or_invite_code_hint); inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS }
         val container = FrameLayout(this)
         val params = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         val margin = (24 * resources.displayMetrics.density).toInt()
         params.leftMargin = margin; params.rightMargin = margin
         input.layoutParams = params
         container.addView(input)
-        MaterialAlertDialogBuilder(this).setTitle("Unisciti a un Gruppo").setView(container)
-            .setPositiveButton("Unisciti") { _, _ ->
+        MaterialAlertDialogBuilder(this).setTitle(getString(R.string.action_join_group)).setView(container)
+            .setPositiveButton(getString(R.string.action_join)) { _, _ ->
                 val code = input.text.toString().trim()
-                if (code.isNotEmpty()) joinGroup(code) else Toast.makeText(this, "Il codice non può essere vuoto", Toast.LENGTH_SHORT).show()
+                if (code.isNotEmpty()) joinGroup(code) else Toast.makeText(this, getString(R.string.code_empty_toast), Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("Annulla", null).show()
+            .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null).show()
     }
 
     private fun createGroup(groupName: String) {
         ApiClient.instance.createGroup(userId = userId, groupName = groupName).enqueue(object: Callback<CreateGroupResponse> {
             override fun onResponse(call: Call<CreateGroupResponse>, response: Response<CreateGroupResponse>) {
                 val createGroupResponse = response.body()
-                if (response.isSuccessful && createGroupResponse?.status == "success") { Toast.makeText(this@MainActivity, "Gruppo creato con successo!", Toast.LENGTH_SHORT).show(); fetchUserGroups(isInitialLoad = true) }
-                else Toast.makeText(this@MainActivity, "Errore: ${createGroupResponse?.message}", Toast.LENGTH_SHORT).show()
+                if (response.isSuccessful && createGroupResponse?.status == "success") { Toast.makeText(this@MainActivity, getString(R.string.group_created_toast), Toast.LENGTH_SHORT).show(); fetchUserGroups(isInitialLoad = true) }
+                else Toast.makeText(this@MainActivity, getString(R.string.error_prefix, createGroupResponse?.message ?: ""), Toast.LENGTH_SHORT).show()
             }
-            override fun onFailure(call: Call<CreateGroupResponse>, t: Throwable) { Toast.makeText(this@MainActivity, "Errore di rete: ${t.message}", Toast.LENGTH_SHORT).show() }
+            override fun onFailure(call: Call<CreateGroupResponse>, t: Throwable) { Toast.makeText(this@MainActivity, getString(R.string.error_network_msg, t.message ?: ""), Toast.LENGTH_SHORT).show() }
         })
     }
 
@@ -2623,10 +2534,10 @@ class MainActivity : BaseActivity() {
         ApiClient.instance.joinGroup(userId = userId, code = code).enqueue(object: Callback<JoinGroupResponse> {
             override fun onResponse(call: Call<JoinGroupResponse>, response: Response<JoinGroupResponse>) {
                 val joinGroupResponse = response.body()
-                if (response.isSuccessful && joinGroupResponse?.status == "success") { Toast.makeText(this@MainActivity, "Ti sei unito al gruppo!", Toast.LENGTH_SHORT).show(); fetchUserGroups(isInitialLoad = true) }
-                else Toast.makeText(this@MainActivity, "Errore: ${joinGroupResponse?.message}", Toast.LENGTH_SHORT).show()
+                if (response.isSuccessful && joinGroupResponse?.status == "success") { Toast.makeText(this@MainActivity, getString(R.string.group_joined_toast), Toast.LENGTH_SHORT).show(); fetchUserGroups(isInitialLoad = true) }
+                else Toast.makeText(this@MainActivity, getString(R.string.error_prefix, joinGroupResponse?.message ?: ""), Toast.LENGTH_SHORT).show()
             }
-            override fun onFailure(call: Call<JoinGroupResponse>, t: Throwable) { Toast.makeText(this@MainActivity, "Errore di rete: ${t.message}", Toast.LENGTH_SHORT).show() }
+            override fun onFailure(call: Call<JoinGroupResponse>, t: Throwable) { Toast.makeText(this@MainActivity, getString(R.string.error_network_msg, t.message ?: ""), Toast.LENGTH_SHORT).show() }
         })
     }
 
@@ -2635,7 +2546,7 @@ class MainActivity : BaseActivity() {
         if (data != null && data.scheme == "https" && data.host?.contains("your-server.example.com") == true) {
             if (data.path?.startsWith("/CryptionChat/join.php") == true) {
                 val code = data.getQueryParameter("code")
-                if (!code.isNullOrBlank()) { Log.d("DeepLink", "Trovato codice dal link: $code"); Toast.makeText(this, "Tento di unirmi al gruppo con il codice: $code", Toast.LENGTH_SHORT).show(); joinGroup(code); intent.data = null }
+                if (!code.isNullOrBlank()) { Log.d("DeepLink", "Trovato codice dal link: $code"); Toast.makeText(this, getString(R.string.deep_link_joining_fmt, code), Toast.LENGTH_SHORT).show(); joinGroup(code); intent.data = null }
             }
         }
     }
@@ -2643,7 +2554,7 @@ class MainActivity : BaseActivity() {
     private fun startQrScanner() {
         val options = ScanOptions()
         options.setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-        options.setPrompt("Inquadra il QR Code dell'invito")
+        options.setPrompt(getString(R.string.qr_prompt_invite))
         options.setCameraId(0)
         options.setBeepEnabled(false)
         options.setBarcodeImageEnabled(false)
@@ -2655,8 +2566,8 @@ class MainActivity : BaseActivity() {
     private fun handleScannedQrCode(scannedContent: String) {
         val uri = Uri.parse(scannedContent)
         val code = uri.getQueryParameter("code")
-        if (!code.isNullOrBlank()) { Toast.makeText(this, "Codice rilevato: $code. Unione in corso...", Toast.LENGTH_SHORT).show(); joinGroup(code) }
-        else { if (scannedContent.length in 4..20) joinGroup(scannedContent) else Toast.makeText(this, "QR Code non valido per CryptionChat", Toast.LENGTH_LONG).show() }
+        if (!code.isNullOrBlank()) { Toast.makeText(this, getString(R.string.qr_code_detected_joining, code), Toast.LENGTH_SHORT).show(); joinGroup(code) }
+        else { if (scannedContent.length in 4..20) joinGroup(scannedContent) else Toast.makeText(this, getString(R.string.qr_invalid_cryptionchat), Toast.LENGTH_LONG).show() }
     }
 
     private fun checkForBroadcastMessage() {
@@ -2678,9 +2589,9 @@ class MainActivity : BaseActivity() {
 
     private fun showBroadcastMessageDialog(data: BroadcastMessageData) {
         if (isFinishing || isDestroyed) return
-        val dialogTitle = data.messageTitle.ifEmpty { "Avviso Importante" }
+        val dialogTitle = data.messageTitle.ifEmpty { getString(R.string.broadcast_default_title) }
         val dialog = MaterialAlertDialogBuilder(this).setTitle(dialogTitle).setMessage(data.messageText)
-            .setPositiveButton("OK") { dialog, _ -> SecurePrefs.get(this@MainActivity).edit { putLong("last_seen_broadcast_id", data.messageId) }; dialog.dismiss() }
+            .setPositiveButton(getString(R.string.ok)) { dialog, _ -> SecurePrefs.get(this@MainActivity).edit { putLong("last_seen_broadcast_id", data.messageId) }; dialog.dismiss() }
             .setCancelable(false).show()
         val messageView = dialog.findViewById<TextView>(android.R.id.message)
         if (messageView != null) { Linkify.addLinks(messageView, Linkify.WEB_URLS); messageView.movementMethod = LinkMovementMethod.getInstance() }
@@ -2725,10 +2636,10 @@ class MainActivity : BaseActivity() {
                     this@MainActivity.username = updatedUsername
                     fetchUserGroups(isInitialLoad = false)
                     updateMeTabUI()
-                    Toast.makeText(this@MainActivity, "Nome utente aggiornato con successo!", Toast.LENGTH_SHORT).show()
-                } else Toast.makeText(this@MainActivity, "Errore: ${changeResponse?.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@MainActivity, getString(R.string.username_updated_toast), Toast.LENGTH_SHORT).show()
+                } else Toast.makeText(this@MainActivity, getString(R.string.error_prefix, changeResponse?.message ?: ""), Toast.LENGTH_LONG).show()
             }
-            override fun onFailure(call: Call<ChangeUsernameResponse>, t: Throwable) { if (isFinishing || isDestroyed) return; Toast.makeText(this@MainActivity, "Errore di rete: ${t.message}", Toast.LENGTH_LONG).show() }
+            override fun onFailure(call: Call<ChangeUsernameResponse>, t: Throwable) { if (isFinishing || isDestroyed) return; Toast.makeText(this@MainActivity, getString(R.string.error_network_msg, t.message ?: ""), Toast.LENGTH_LONG).show() }
         })
     }
 
@@ -2739,8 +2650,8 @@ class MainActivity : BaseActivity() {
         val osVersion = "Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})"
         ApiClient.instance.sendFeedback(userId = userId, username = username, feedbackText = feedbackText, appVersion = appVersion, deviceModel = deviceModel, deviceBrand = deviceBrand, osVersion = osVersion)
             .enqueue(object : Callback<BaseResponse> {
-                override fun onResponse(call: Call<BaseResponse>, response: Response<BaseResponse>) { if (isFinishing || isDestroyed) return; if (response.isSuccessful && response.body()?.status == "success") Toast.makeText(this@MainActivity, "Grazie! Il tuo feedback è stato inviato.", Toast.LENGTH_LONG).show() else Toast.makeText(this@MainActivity, "Errore: ${response.body()?.message}", Toast.LENGTH_LONG).show() }
-                override fun onFailure(call: Call<BaseResponse>, t: Throwable) { if (isFinishing || isDestroyed) return; Toast.makeText(this@MainActivity, "Errore di rete: ${t.message}", Toast.LENGTH_LONG).show() }
+                override fun onResponse(call: Call<BaseResponse>, response: Response<BaseResponse>) { if (isFinishing || isDestroyed) return; if (response.isSuccessful && response.body()?.status == "success") Toast.makeText(this@MainActivity, getString(R.string.feedback_sent_thanks), Toast.LENGTH_LONG).show() else Toast.makeText(this@MainActivity, getString(R.string.error_prefix, response.body()?.message ?: ""), Toast.LENGTH_LONG).show() }
+                override fun onFailure(call: Call<BaseResponse>, t: Throwable) { if (isFinishing || isDestroyed) return; Toast.makeText(this@MainActivity, getString(R.string.error_network_msg, t.message ?: ""), Toast.LENGTH_LONG).show() }
             })
     }
 
@@ -2751,7 +2662,7 @@ class MainActivity : BaseActivity() {
 
         val file = FileUtils.getFileFromUri(this, uri) ?: run {
             progressIndicator?.visibility = View.GONE
-            Toast.makeText(this, "Impossibile aprire il file selezionato.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.cannot_open_selected_file), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -2775,18 +2686,18 @@ class MainActivity : BaseActivity() {
                 if (response.isSuccessful && response.body()?.status == "success") {
                     val newUrl = response.body()?.data?.profilePictureUrl
                     SecurePrefs.get(this@MainActivity).edit { putString("profile_picture_url", newUrl) }
-                    Toast.makeText(this@MainActivity, "Immagine del profilo aggiornata.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, getString(R.string.profile_pic_updated), Toast.LENGTH_SHORT).show()
                     fetchUserGroups(isInitialLoad = false)
                     updateMeTabUI()
                 } else {
-                    Toast.makeText(this@MainActivity, "Errore durante il caricamento: ${response.body()?.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@MainActivity, getString(R.string.upload_failed_with_msg, response.body()?.message ?: ""), Toast.LENGTH_LONG).show()
                 }
             }
 
             override fun onFailure(call: Call<ProfilePictureResponse>, t: Throwable) {
                 progressIndicator?.visibility = View.GONE
                 if (isFinishing || isDestroyed) return
-                Toast.makeText(this@MainActivity, "Errore di rete: ${t.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@MainActivity, getString(R.string.error_network_msg, t.message ?: ""), Toast.LENGTH_LONG).show()
             }
         })
     }
@@ -2797,12 +2708,12 @@ class MainActivity : BaseActivity() {
                 if (isFinishing || isDestroyed) return
                 if (response.isSuccessful && response.body()?.status == "success") {
                     SecurePrefs.get(this@MainActivity).edit { remove("profile_picture_url") }
-                    Toast.makeText(this@MainActivity, "Immagine del profilo rimossa.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, getString(R.string.profile_pic_removed), Toast.LENGTH_SHORT).show()
                     fetchUserGroups(isInitialLoad = false)
                     updateMeTabUI()
-                } else Toast.makeText(this@MainActivity, "Errore durante la rimozione: ${response.body()?.message}", Toast.LENGTH_LONG).show()
+                } else Toast.makeText(this@MainActivity, getString(R.string.remove_failed_with_msg, response.body()?.message ?: ""), Toast.LENGTH_LONG).show()
             }
-            override fun onFailure(call: Call<BaseResponse>, t: Throwable) { if (isFinishing || isDestroyed) return; Toast.makeText(this@MainActivity, "Errore di rete: ${t.message}", Toast.LENGTH_LONG).show() }
+            override fun onFailure(call: Call<BaseResponse>, t: Throwable) { if (isFinishing || isDestroyed) return; Toast.makeText(this@MainActivity, getString(R.string.error_network_msg, t.message ?: ""), Toast.LENGTH_LONG).show() }
         })
     }
 
@@ -2841,9 +2752,9 @@ class MainActivity : BaseActivity() {
             if (!isFinishing && !isDestroyed) {
                 withContext(Dispatchers.Main) {
                     when {
-                        deletedFilesCount > 0 -> Toast.makeText(this@MainActivity, "Cache svuotata. $deletedFilesCount file eliminati.", Toast.LENGTH_LONG).show()
-                        deletedFilesCount == 0 -> Toast.makeText(this@MainActivity, "La cache dei file è già vuota.", Toast.LENGTH_SHORT).show()
-                        else -> Toast.makeText(this@MainActivity, "Si è verificato un errore durante la pulizia della cache.", Toast.LENGTH_SHORT).show()
+                        deletedFilesCount > 0 -> Toast.makeText(this@MainActivity, getString(R.string.cache_cleared_count, deletedFilesCount), Toast.LENGTH_LONG).show()
+                        deletedFilesCount == 0 -> Toast.makeText(this@MainActivity, getString(R.string.cache_already_empty), Toast.LENGTH_SHORT).show()
+                        else -> Toast.makeText(this@MainActivity, getString(R.string.cache_clear_error), Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -2870,11 +2781,11 @@ class MainActivity : BaseActivity() {
             override fun onResponse(call: Call<BaseResponse>, response: Response<BaseResponse>) {
                 if (isFinishing || isDestroyed) return
                 if (response.isSuccessful && response.body()?.status == "success") {
-                    Toast.makeText(this@MainActivity, "Account eliminato con successo.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@MainActivity, getString(R.string.account_deleted_success), Toast.LENGTH_LONG).show()
                     logoutUser()
-                } else Toast.makeText(this@MainActivity, "Errore: ${response.body()?.message}", Toast.LENGTH_LONG).show()
+                } else Toast.makeText(this@MainActivity, getString(R.string.error_prefix, response.body()?.message ?: ""), Toast.LENGTH_LONG).show()
             }
-            override fun onFailure(call: Call<BaseResponse>, t: Throwable) { if (isFinishing || isDestroyed) return; Toast.makeText(this@MainActivity, "Errore di rete: ${t.message}", Toast.LENGTH_LONG).show() }
+            override fun onFailure(call: Call<BaseResponse>, t: Throwable) { if (isFinishing || isDestroyed) return; Toast.makeText(this@MainActivity, getString(R.string.error_network_msg, t.message ?: ""), Toast.LENGTH_LONG).show() }
         })
     }
 
@@ -2908,21 +2819,27 @@ class MainActivity : BaseActivity() {
         val prefs = SecurePrefs.get(this)
         val pinnedGroupIds = prefs.getStringSet("pinned_group_ids", emptySet()) ?: emptySet()
         val isPinned = group.id.toString() in pinnedGroupIds
-        options.add(if (isPinned) "Sblocca in alto" else "Fissa in alto")
+        val optPin = getString(R.string.group_opt_pin)
+        val optUnpin = getString(R.string.group_opt_unpin)
+        val optOneTime = getString(R.string.group_opt_create_one_time_invite)
+        val optPermCode = getString(R.string.group_opt_share_perm_code)
+        val optLeave = getString(R.string.group_opt_leave)
+        val optDelete = getString(R.string.group_opt_delete)
+        options.add(if (isPinned) optUnpin else optPin)
         if (group.isAdmin) {
-            options.add("Crea invito monouso")
-            options.add("Condividi codice permanente")
+            options.add(optOneTime)
+            options.add(optPermCode)
         }
-        options.add("Lascia Gruppo")
-        if (group.isAdmin) options.add("Elimina Gruppo")
+        options.add(optLeave)
+        if (group.isAdmin) options.add(optDelete)
         MaterialAlertDialogBuilder(this).setTitle(group.groupName).setItems(options.toTypedArray()) { dialog, which ->
             when (options[which]) {
-                "Fissa in alto" -> pinGroup(group.id, true)
-                "Sblocca in alto" -> pinGroup(group.id, false)
-                "Crea invito monouso" -> createAndShareInviteLink(group)
-                "Condividi codice permanente" -> sharePermanentCode(group)
-                "Lascia Gruppo" -> showLeaveGroupConfirmationDialog(group)
-                "Elimina Gruppo" -> showDeleteGroupConfirmationDialog(group)
+                optPin -> pinGroup(group.id, true)
+                optUnpin -> pinGroup(group.id, false)
+                optOneTime -> createAndShareInviteLink(group)
+                optPermCode -> sharePermanentCode(group)
+                optLeave -> showLeaveGroupConfirmationDialog(group)
+                optDelete -> showDeleteGroupConfirmationDialog(group)
             }
             dialog.dismiss()
         }.show()
@@ -2934,8 +2851,11 @@ class MainActivity : BaseActivity() {
         val prefs = SecurePrefs.get(this)
         val pinnedGroupIds = prefs.getStringSet("pinned_group_ids", emptySet()) ?: emptySet()
         val isPinned = group.id.toString() in pinnedGroupIds
-        options.add(if (isPinned) "Sblocca in alto" else "Fissa in alto")
-        options.add("Elimina Chat")
+        val optPin = getString(R.string.group_opt_pin)
+        val optUnpin = getString(R.string.group_opt_unpin)
+        val optDeleteChat = getString(R.string.chat_opt_delete)
+        options.add(if (isPinned) optUnpin else optPin)
+        options.add(optDeleteChat)
         val otherUserName = run {
             val parts = group.groupName.split("&").map { it.trim() }.filter { it.isNotEmpty() }
             if (parts.size >= 2) {
@@ -2946,9 +2866,9 @@ class MainActivity : BaseActivity() {
         }
         MaterialAlertDialogBuilder(this).setTitle(otherUserName).setItems(options.toTypedArray()) { dialog, which ->
             when (options[which]) {
-                "Fissa in alto" -> pinGroup(group.id, true)
-                "Sblocca in alto" -> pinGroup(group.id, false)
-                "Elimina Chat" -> showDeletePrivateChatConfirmationDialog(group)
+                optPin -> pinGroup(group.id, true)
+                optUnpin -> pinGroup(group.id, false)
+                optDeleteChat -> showDeletePrivateChatConfirmationDialog(group)
             }
             dialog.dismiss()
         }.show()
@@ -2956,18 +2876,18 @@ class MainActivity : BaseActivity() {
 
     private fun showDeletePrivateChatConfirmationDialog(group: Group) {
         if (isFinishing || isDestroyed) return
-        MaterialAlertDialogBuilder(this).setTitle("Elimina Chat")
-            .setMessage("Sei sicuro di voler eliminare questa chat? L'azione è irreversibile e cancellerà la conversazione per entrambi.")
+        MaterialAlertDialogBuilder(this).setTitle(getString(R.string.chat_opt_delete))
+            .setMessage(getString(R.string.delete_chat_msg))
             .setIcon(android.R.drawable.ic_dialog_alert)
-            .setPositiveButton("Sì, elimina") { _, _ -> deleteGroup(group.id) }
-            .setNegativeButton("Annulla", null).show()
+            .setPositiveButton(getString(R.string.confirm_yes_delete)) { _, _ -> deleteGroup(group.id) }
+            .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null).show()
     }
 
     private fun showLeaveGroupConfirmationDialog(group: Group) {
         if (isFinishing || isDestroyed) return
-        MaterialAlertDialogBuilder(this).setTitle("Lascia Gruppo").setMessage("Sei sicuro di voler lasciare il gruppo '${group.groupName}'?")
-            .setPositiveButton("Sì, lascia") { _, _ -> leaveGroup(group.id) }
-            .setNegativeButton("Annulla", null).show()
+        MaterialAlertDialogBuilder(this).setTitle(getString(R.string.group_opt_leave)).setMessage(getString(R.string.leave_group_msg, group.groupName))
+            .setPositiveButton(getString(R.string.confirm_yes_leave)) { _, _ -> leaveGroup(group.id) }
+            .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null).show()
     }
 
     private fun showDeleteGroupConfirmationDialog(group: Group) {
@@ -2978,16 +2898,16 @@ class MainActivity : BaseActivity() {
         val margin = (24 * resources.displayMetrics.density).toInt()
         params.leftMargin = margin; params.rightMargin = margin
         input.layoutParams = params
-        input.hint = "Scrivi 'si'"
+        input.hint = getString(R.string.confirm_type_yes_hint)
         container.addView(input)
-        val dialog = MaterialAlertDialogBuilder(this).setTitle("Elimina Gruppo")
-            .setMessage("Sei sicuro di voler eliminare permanentemente il gruppo '${group.groupName}'? L'azione è irreversibile e cancellerà il gruppo per tutti i membri.\n\nPer confermare, scrivi 'si' qui sotto:")
-            .setView(container).setPositiveButton("Elimina", null).setNegativeButton("Annulla", null).create()
+        val dialog = MaterialAlertDialogBuilder(this).setTitle(getString(R.string.group_opt_delete))
+            .setMessage(getString(R.string.delete_group_msg, group.groupName))
+            .setView(container).setPositiveButton(getString(R.string.action_delete_short), null).setNegativeButton(getString(R.string.call_dialog_btn_cancel), null).create()
         dialog.show()
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
             val text = input.text.toString().trim().lowercase()
-            if (text == "si" || text == "sì") { deleteGroup(group.id); dialog.dismiss() }
-            else input.error = "Devi scrivere 'si' per confermare."
+            if (text == "si" || text == "sì" || text == "yes") { deleteGroup(group.id); dialog.dismiss() }
+            else input.error = getString(R.string.confirm_type_yes_error)
         }
     }
 
@@ -3008,19 +2928,19 @@ class MainActivity : BaseActivity() {
                     val inviteCode = inviteResponse.data?.inviteCode
                     if (inviteCode != null) {
                         val link = "https://your-server.example.com/CryptionChat/join.php?code=$inviteCode"
-                        val shareText = "Unisciti al gruppo '${group.groupName}' su CryptionChat con questo link monouso (scade in 24 ore):\n$link"
+                        val shareText = getString(R.string.invite_share_one_time_msg, group.groupName, link)
                         showQrCodeDialog(group.groupName, link, shareText)
-                    } else Toast.makeText(this@MainActivity, "Errore: codice di invito non ricevuto.", Toast.LENGTH_SHORT).show()
-                } else Toast.makeText(this@MainActivity, "Errore: ${inviteResponse?.message}", Toast.LENGTH_SHORT).show()
+                    } else Toast.makeText(this@MainActivity, getString(R.string.invite_code_missing), Toast.LENGTH_SHORT).show()
+                } else Toast.makeText(this@MainActivity, getString(R.string.error_prefix, inviteResponse?.message ?: ""), Toast.LENGTH_SHORT).show()
             }
-            override fun onFailure(call: Call<CreateInviteResponse>, t: Throwable) { if (isFinishing || isDestroyed) return; Toast.makeText(this@MainActivity, "Errore di rete: ${t.message}", Toast.LENGTH_SHORT).show() }
+            override fun onFailure(call: Call<CreateInviteResponse>, t: Throwable) { if (isFinishing || isDestroyed) return; Toast.makeText(this@MainActivity, getString(R.string.error_network_msg, t.message ?: ""), Toast.LENGTH_SHORT).show() }
         })
     }
 
     private fun sharePermanentCode(group: Group) {
-        if (group.groupCode.isNullOrEmpty()) { Toast.makeText(this, "Codice gruppo non disponibile.", Toast.LENGTH_SHORT).show(); return }
+        if (group.groupCode.isNullOrEmpty()) { Toast.makeText(this, getString(R.string.group_code_unavailable), Toast.LENGTH_SHORT).show(); return }
         val link = "https://your-server.example.com/CryptionChat/join.php?code=${group.groupCode}"
-        val shareText = "Unisciti al mio gruppo '${group.groupName}' su CryptionChat!\nCodice permanente: ${group.groupCode}\nOppure usa questo link: $link"
+        val shareText = getString(R.string.invite_share_perm_msg, group.groupName, group.groupCode, link)
         showQrCodeDialog(group.groupName, link, shareText)
     }
 
@@ -3031,15 +2951,15 @@ class MainActivity : BaseActivity() {
         val btnShare = dialogView.findViewById<Button>(R.id.btn_share_link)
         val btnClose = dialogView.findViewById<Button>(R.id.btn_close)
         val titleView = dialogView.findViewById<TextView>(R.id.qr_title)
-        titleView.text = "Invito a '$groupName'"
+        titleView.text = getString(R.string.invite_title_fmt, groupName)
         lifecycleScope.launch(Dispatchers.Default) {
             val bitmap = QrCodeHelper.generateQrBitmap(link, 512, 512)
-            withContext(Dispatchers.Main) { if (bitmap != null) qrImageView.setImageBitmap(bitmap) else Toast.makeText(this@MainActivity, "Errore generazione QR", Toast.LENGTH_SHORT).show() }
+            withContext(Dispatchers.Main) { if (bitmap != null) qrImageView.setImageBitmap(bitmap) else Toast.makeText(this@MainActivity, getString(R.string.qr_gen_error), Toast.LENGTH_SHORT).show() }
         }
         val dialog = MaterialAlertDialogBuilder(this).setView(dialogView).setCancelable(true).create()
         btnShare.setOnClickListener {
-            val intent = Intent(Intent.ACTION_SEND).apply { type = "text/plain"; putExtra(Intent.EXTRA_SUBJECT, "Invito gruppo CryptionChat"); putExtra(Intent.EXTRA_TEXT, shareMessage) }
-            startActivity(Intent.createChooser(intent, "Condividi invito"))
+            val intent = Intent(Intent.ACTION_SEND).apply { type = "text/plain"; putExtra(Intent.EXTRA_SUBJECT, getString(R.string.invite_share_subject)); putExtra(Intent.EXTRA_TEXT, shareMessage) }
+            startActivity(Intent.createChooser(intent, getString(R.string.invite_share_chooser)))
         }
         btnClose.setOnClickListener { dialog.dismiss() }
         dialog.show()
@@ -3049,10 +2969,10 @@ class MainActivity : BaseActivity() {
         ApiClient.instance.leaveGroup(userId = userId, groupId = groupId).enqueue(object : Callback<BaseResponse> {
             override fun onResponse(call: Call<BaseResponse>, response: Response<BaseResponse>) {
                 val baseResponse = response.body()
-                if (response.isSuccessful && baseResponse?.status == "success") { Toast.makeText(this@MainActivity, "Hai lasciato il gruppo.", Toast.LENGTH_SHORT).show(); fetchUserGroups(isInitialLoad = true) }
-                else Toast.makeText(this@MainActivity, "Errore: ${baseResponse?.message}", Toast.LENGTH_SHORT).show()
+                if (response.isSuccessful && baseResponse?.status == "success") { Toast.makeText(this@MainActivity, getString(R.string.group_left_toast), Toast.LENGTH_SHORT).show(); fetchUserGroups(isInitialLoad = true) }
+                else Toast.makeText(this@MainActivity, getString(R.string.error_prefix, baseResponse?.message ?: ""), Toast.LENGTH_SHORT).show()
             }
-            override fun onFailure(call: Call<BaseResponse>, t: Throwable) { Toast.makeText(this@MainActivity, "Errore di rete: ${t.message}", Toast.LENGTH_SHORT).show() }
+            override fun onFailure(call: Call<BaseResponse>, t: Throwable) { Toast.makeText(this@MainActivity, getString(R.string.error_network_msg, t.message ?: ""), Toast.LENGTH_SHORT).show() }
         })
     }
 
@@ -3060,10 +2980,10 @@ class MainActivity : BaseActivity() {
         ApiClient.instance.deleteGroup(userId = userId, groupId = groupId).enqueue(object : Callback<BaseResponse> {
             override fun onResponse(call: Call<BaseResponse>, response: Response<BaseResponse>) {
                 val baseResponse = response.body()
-                if (response.isSuccessful && baseResponse?.status == "success") { Toast.makeText(this@MainActivity, "Gruppo eliminato con successo.", Toast.LENGTH_SHORT).show(); fetchUserGroups(isInitialLoad = true) }
-                else Toast.makeText(this@MainActivity, "Errore: ${baseResponse?.message}", Toast.LENGTH_SHORT).show()
+                if (response.isSuccessful && baseResponse?.status == "success") { Toast.makeText(this@MainActivity, getString(R.string.group_deleted_toast), Toast.LENGTH_SHORT).show(); fetchUserGroups(isInitialLoad = true) }
+                else Toast.makeText(this@MainActivity, getString(R.string.error_prefix, baseResponse?.message ?: ""), Toast.LENGTH_SHORT).show()
             }
-            override fun onFailure(call: Call<BaseResponse>, t: Throwable) { Toast.makeText(this@MainActivity, "Errore di rete: ${t.message}", Toast.LENGTH_SHORT).show() }
+            override fun onFailure(call: Call<BaseResponse>, t: Throwable) { Toast.makeText(this@MainActivity, getString(R.string.error_network_msg, t.message ?: ""), Toast.LENGTH_SHORT).show() }
         })
     }
 
@@ -3073,18 +2993,18 @@ class MainActivity : BaseActivity() {
         val prefs = SecurePrefs.get(this)
         val isOledEnabled = prefs.getBoolean("oled_theme", false)
 
-        val title = if (isOledEnabled) "Disabilita Tema OLED" else "Abilita Tema OLED"
-        val message = "Il tema OLED sostituisce il grigio scuro predefinito con il nero assoluto (#000000). Questo ti permette di risparmiare molta batteria sugli schermi AMOLED.\n\nNota: L'effetto sarà visibile solo quando il sistema del telefono è impostato su 'Modalità Scura'."
+        val title = if (isOledEnabled) getString(R.string.oled_disable_title) else getString(R.string.oled_enable_title)
+        val message = getString(R.string.oled_dialog_msg)
 
         MaterialAlertDialogBuilder(this)
             .setTitle(title)
             .setMessage(message)
-            .setPositiveButton(if (isOledEnabled) "Disabilita" else "Abilita") { _, _ ->
+            .setPositiveButton(if (isOledEnabled) getString(R.string.action_disable) else getString(R.string.action_enable)) { _, _ ->
                 prefs.edit().putBoolean("oled_theme", !isOledEnabled).apply()
-                Toast.makeText(this, "Tema aggiornato.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.theme_updated_toast), Toast.LENGTH_SHORT).show()
                 recreate()
             }
-            .setNegativeButton("Annulla", null)
+            .setNegativeButton(getString(R.string.call_dialog_btn_cancel), null)
             .show()
     }
 
@@ -3100,35 +3020,8 @@ class MainActivity : BaseActivity() {
         val btnDownload = dialogView.findViewById<MaterialButton>(R.id.btn_download_shizuku)
         val btnOfficialGuide = dialogView.findViewById<MaterialButton>(R.id.btn_official_guide)
 
-        val part1Str = """
-            <b>A cosa serve Shizuku in CryptionChat?</b><br>
-            Permette all'app di eseguire i comandi avanzati del <b>Remote Kill Switch</b> (es. <i>/reboot</i>, <i>/off</i> o <i>/uninstall</i>) agendo direttamente sul sistema, <b>senza permessi di Root completi</b>.<br><br>
-
-            <b><u>METODO 1: Tramite PC (Tutti gli Android - ADB)</u></b><br>
-            <i>Richiede un computer Windows/Mac/Linux.</i><br>
-            1. Vai in <b>Impostazioni > Info telefono</b> e tocca 7 volte "Numero build".<br>
-            2. Vai in <b>Opzioni Sviluppatore</b> e attiva <b>Debug USB</b>.<br>
-            3. Collega il telefono al PC col cavo e consenti il debug.<br>
-            4. Sul PC, installa i "Platform Tools" (ADB) e apri il terminale.<br>
-            5. Avvia il servizio incollando questo comando:
-        """.trimIndent()
-
-        val part2Str = """
-            <i>(Se riavvii il telefono, dovrai ripetere il passaggio 5).</i><br><br>
-
-            <b><u>METODO 2: Senza PC (Solo Android 11+ - Debug Wireless)</u></b><br>
-            1. Nelle <b>Opzioni Sviluppatore</b>, attiva il <b>Debug Wireless</b>.<br>
-            2. Apri Shizuku e tocca <b>Accoppiamento (Pairing)</b>.<br>
-            3. Tocca "Opzioni sviluppatore" dal popup, vai su "Debug wireless" e tocca <b>Accoppia dispositivo con codice</b>.<br>
-            4. Inserisci il codice a 6 cifre nella notifica inviata da Shizuku in alto.<br>
-            5. Torna in Shizuku e premi <b>Avvia</b>.<br><br>
-            
-            <b>Passaggio Finale (Per entrambi i metodi):</b><br>
-            Apri Shizuku, vai su <b>Applicazioni autorizzate</b> e attiva l'interruttore per <b>CryptionChat</b>.
-        """.trimIndent()
-
-        textPart1.text = Html.fromHtml(part1Str, Html.FROM_HTML_MODE_COMPACT)
-        textPart2.text = Html.fromHtml(part2Str, Html.FROM_HTML_MODE_COMPACT)
+        textPart1.text = Html.fromHtml(getString(R.string.shizuku_guide_part1_html), Html.FROM_HTML_MODE_COMPACT)
+        textPart2.text = Html.fromHtml(getString(R.string.shizuku_guide_part2_html), Html.FROM_HTML_MODE_COMPACT)
 
         val dialog = MaterialAlertDialogBuilder(this)
             .setView(dialogView)
@@ -3137,9 +3030,9 @@ class MainActivity : BaseActivity() {
         val adbCommand = "adb shell sh /storage/emulated/0/Android/data/moe.shizuku.privileged.api/start.sh"
         btnCopyAdb.setOnClickListener {
             val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-            val clip = android.content.ClipData.newPlainText("Comando ADB", adbCommand)
+            val clip = android.content.ClipData.newPlainText(getString(R.string.shizuku_adb_clip_label), adbCommand)
             clipboard.setPrimaryClip(clip)
-            Toast.makeText(this, "Comando copiato negli appunti!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.adb_command_copied), Toast.LENGTH_SHORT).show()
         }
 
         btnUnderstand.setOnClickListener {
@@ -3163,24 +3056,12 @@ class MainActivity : BaseActivity() {
     private fun showRemoteKillHelpDialog() {
         if (isFinishing || isDestroyed) return
 
-        val message = """
-            <b>Come funziona il Remote Kill Switch?</b><br><br>
-            Se ricevi un messaggio che <b>inizia</b> esattamente con la parola d'ordine impostata, l'app si attiverà.<br><br>
-            
-            <b>Lista Comandi Avanzati:</b><br>
-            • <b>(nessun comando)</b>: Cancella istantaneamente tutti i dati, le chat e il database locale dell'app.<br><br>
-            
-            • <b>/off</b>: Spegne forzatamente il telefono (Richiede Shizuku).<br><br>
-            
-            • <b>/reboot</b>: Riavvia il telefono (Richiede Shizuku).<br><br>
-            
-            • <b>/uninstall</b>: Disinstalla l'app CryptionChat (Richiede Shizuku).
-        """.trimIndent()
+        val message = getString(R.string.remote_kill_help_html)
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("Comandi Remote Kill Switch")
+            .setTitle(getString(R.string.remote_kill_help_title))
             .setMessage(android.text.Html.fromHtml(message, android.text.Html.FROM_HTML_MODE_COMPACT))
-            .setPositiveButton("Ho capito", null)
+            .setPositiveButton(getString(R.string.action_got_it), null)
             .show()
     }
 

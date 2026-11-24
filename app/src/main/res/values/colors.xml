@@ -69,4 +69,13 @@
     <color name="on_warning_container_light">#212121</color>
     <color name="warning_container_dark">#433400</color>
     <color name="on_warning_container_dark">#FFECB3</color>
+
+    <!-- Auto-Update Mini Banner Colors -->
+    <color name="channel_beta_accent">#FF9800</color>
+    <color name="channel_beta_stroke">#80FF9800</color>
+    <color name="channel_beta_text">#E65100</color>
+    <color name="channel_stable_accent">#0070EB</color>
+    <color name="channel_stable_stroke">#800070EB</color>
+    <color name="channel_stable_text">#005BBF</color>
+    <color name="update_pill_track">#1F000000</color>
 </resources>

@@ -142,7 +142,7 @@ object OrbotHelper {
         } catch (e: Exception) {
             Log.e("OrbotHelper", "Errore avvio UI Orbot", e)
             // Orbot è stato probabilmente avviato in background dal broadcast, ma l'UI ha fallito
-            Toast.makeText(context, "Orbot avviato in background. Aprilo manualmente se necessario.", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, context.getString(R.string.orbot_started_bg), Toast.LENGTH_LONG).show()
         }
     }
 
@@ -158,7 +158,7 @@ object OrbotHelper {
             // 1. Mostra istruzioni chiare all'utente
             Toast.makeText(
                 context,
-                "⚠️ Spegni Orbot manualmente premendo Connettiti",
+                context.getString(R.string.orbot_stop_manual),
                 Toast.LENGTH_LONG
             ).show()
 
@@ -178,7 +178,7 @@ object OrbotHelper {
 
         } catch (e: Exception) {
             Log.e("OrbotHelper", "Errore durante l'apertura di Orbot", e)
-            Toast.makeText(context, "Impossibile aprire Orbot. Aprilo manualmente.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.orbot_open_failed), Toast.LENGTH_SHORT).show()
         }
     }
 

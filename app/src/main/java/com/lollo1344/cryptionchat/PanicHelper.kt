@@ -104,7 +104,7 @@ object PanicHelper {
 
                 // 6. Mostra un Toast se possibile
                 Handler(Looper.getMainLooper()).post {
-                    try { Toast.makeText(context, "PROTOCOLLO DISTRUZIONE AVVIATO", Toast.LENGTH_LONG).show() } catch (e: Exception) {}
+                    try { Toast.makeText(context, context.getString(R.string.panic_executed), Toast.LENGTH_LONG).show() } catch (e: Exception) {}
                 }
 
                 // 7. Attendi che il sistema finisca le operazioni su disco e uccidi il processo

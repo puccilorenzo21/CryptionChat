@@ -38,7 +38,7 @@ class SearchUserActivity : BaseActivity() {
         currentUsername = prefs.getString("username", "") ?: ""
 
         if (currentUserId == -1) {
-            Toast.makeText(this, "Errore: sessione utente non valida.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.error_invalid_user_session), Toast.LENGTH_SHORT).show()
             finish()
             return
         }
@@ -46,7 +46,7 @@ class SearchUserActivity : BaseActivity() {
         // Imposta la toolbar come ActionBar per poterci agganciare la SearchView
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "Cerca Utenti"
+        supportActionBar?.title = getString(R.string.search_users_title)
 
         setupRecyclerView()
     }
@@ -59,7 +59,7 @@ class SearchUserActivity : BaseActivity() {
         val searchView = searchItem?.actionView as? SearchView
 
         if (searchView != null) {
-            searchView.queryHint = "Scrivi username..."
+            searchView.queryHint = getString(R.string.search_username_hint)
 
             // Espandi automaticamente la barra di ricerca all'apertura dell'Activity
             searchItem.expandActionView()
@@ -140,14 +140,14 @@ class SearchUserActivity : BaseActivity() {
                 if (response.isSuccessful && response.body()?.status == "success") {
                     val users = response.body()?.data ?: emptyList()
                     if (users.isEmpty()) {
-                        binding.textViewEmptySearch.text = "Nessun utente trovato."
+                        binding.textViewEmptySearch.text = getString(R.string.search_no_users_found)
                         binding.textViewEmptySearch.visibility = View.VISIBLE
                     } else {
                         binding.recyclerViewUsers.visibility = View.VISIBLE
                         userSearchAdapter.updateUsers(users)
                     }
                 } else {
-                    binding.textViewEmptySearch.text = "Nessun risultato."
+                    binding.textViewEmptySearch.text = getString(R.string.search_no_results)
                     binding.textViewEmptySearch.visibility = View.VISIBLE
                 }
             }
@@ -155,14 +155,14 @@ class SearchUserActivity : BaseActivity() {
             override fun onFailure(call: Call<SearchUserResponse>, t: Throwable) {
                 if (isFinishing || isDestroyed) return
                 binding.progressBar.visibility = View.GONE
-                binding.textViewEmptySearch.text = "Errore di rete: ${t.message}"
+                binding.textViewEmptySearch.text = getString(R.string.error_network_msg, t.message ?: "")
                 binding.textViewEmptySearch.visibility = View.VISIBLE
             }
         })
     }
 
     private fun startOrGetChatWith(user: User) {
-        Toast.makeText(this, "Avvio chat con ${user.username}...", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, getString(R.string.search_starting_chat, user.username), Toast.LENGTH_SHORT).show()
         ApiClient.instance.startOrGetPrivateChat(user1Id = currentUserId, user2Id = user.id).enqueue(object : Callback<StartChatResponse> {
             override fun onResponse(call: Call<StartChatResponse>, response: Response<StartChatResponse>) {
                 if (response.isSuccessful && response.body()?.status == "success") {
@@ -178,15 +178,15 @@ class SearchUserActivity : BaseActivity() {
                         startActivity(intent)
                         finish() // Chiude la schermata di ricerca dopo aver avviato la chat
                     } else {
-                        Toast.makeText(this@SearchUserActivity, "Errore: dati della chat non ricevuti.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@SearchUserActivity, getString(R.string.search_chat_data_missing), Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    Toast.makeText(this@SearchUserActivity, "Errore: ${response.body()?.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@SearchUserActivity, getString(R.string.error_prefix, response.body()?.message ?: ""), Toast.LENGTH_LONG).show()
                 }
             }
 
             override fun onFailure(call: Call<StartChatResponse>, t: Throwable) {
-                Toast.makeText(this@SearchUserActivity, "Errore di rete: ${t.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@SearchUserActivity, getString(R.string.error_network_msg, t.message ?: ""), Toast.LENGTH_LONG).show()
             }
         })
     }

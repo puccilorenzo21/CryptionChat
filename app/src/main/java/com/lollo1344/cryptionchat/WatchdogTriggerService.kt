@@ -31,8 +31,8 @@ class WatchdogTriggerService : Service() {
 
         // 2. Crea la notifica per avviare il servizio in foreground
         val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Test Watchdog")
-            .setContentText("Attivazione del controllo di servizio...")
+            .setContentTitle(getString(R.string.watchdog_notif_title))
+            .setContentText(getString(R.string.watchdog_notif_text))
             .setSmallIcon(R.drawable.ic_settings) // Usa un'icona generica
             .build()
 
@@ -58,7 +58,7 @@ class WatchdogTriggerService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val serviceChannel = NotificationChannel(
                 CHANNEL_ID,
-                "Test Watchdog Trigger",
+                getString(R.string.watchdog_channel_name),
                 NotificationManager.IMPORTANCE_LOW
             )
             val manager = getSystemService(NotificationManager::class.java)
