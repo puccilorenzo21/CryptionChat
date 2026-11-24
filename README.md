@@ -5,6 +5,8 @@
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Platform: Android](https://img.shields.io/badge/Platform-Android%2010%2B%20(API%2029%2B)-green.svg)](app/build.gradle.kts)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-purple.svg)](build.gradle.kts)
+[![Android CI](https://github.com/puccilorenzo21/CryptionChat/actions/workflows/android-ci.yml/badge.svg)](https://github.com/puccilorenzo21/CryptionChat/actions/workflows/android-ci.yml)
+[![GitHub Release](https://img.shields.io/github/v/release/puccilorenzo21/CryptionChat?color=orange)](https://github.com/puccilorenzo21/CryptionChat/releases/latest)
 
 <p>
   <a href="https://lollo1344.altervista.org/CryptionChat/CryptionChat.html">
@@ -13,6 +15,22 @@
 </p>
 
 > **Attribution Notice:** Everyone is free to use, modify, and redistribute CryptionChat under the **Apache License 2.0**, provided that you **credit the original author — Lorenzo Pucci (puccilorenzo21)** — and preserve the [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE) files. See [License & Attribution](#license--attribution).
+
+---
+
+## Download
+
+- **Pre-built APK**: Download the latest release from [GitHub Releases](https://github.com/puccilorenzo21/CryptionChat/releases/latest) *(or visit the [official website](https://lollo1344.altervista.org/CryptionChat/CryptionChat.html))*.
+- **Self-Hosted / Source Build**: See [Quick Start (Build from Source)](#quick-start-build-from-source) below.
+
+## Screenshots
+
+<!-- Add 2–3 screenshots inside docs/screenshots/ and uncomment below -->
+<!--
+| Encrypted Chat | QR Key Verification | Privacy & Tor Settings |
+| :---: | :---: | :---: |
+| ![Chat](docs/screenshots/chat.png) | ![QR Verify](docs/screenshots/qr.png) | ![Privacy](docs/screenshots/privacy.png) |
+-->
 
 ---
 
