@@ -25,12 +25,26 @@
 
 ## Screenshots
 
-<!-- Add 2–3 screenshots inside docs/screenshots/ and uncomment below -->
-<!--
-| Encrypted Chat | QR Key Verification | Privacy & Tor Settings |
-| :---: | :---: | :---: |
-| ![Chat](docs/screenshots/chat.png) | ![QR Verify](docs/screenshots/qr.png) | ![Privacy](docs/screenshots/privacy.png) |
--->
+<p align="center">
+  <img src="docs/screenshots/carousel.gif" alt="CryptionChat Screenshots Carousel" width="860" />
+</p>
+
+<details>
+<summary>Browse all 12 screenshots individually (in creation order)</summary>
+
+| 01. Chats | 02. My Profile | 03. Settings | 04. Security & Privacy |
+| :---: | :---: | :---: | :---: |
+| ![Chats](docs/screenshots/01-chats.png) | ![My Profile](docs/screenshots/02-profile.png) | ![Settings](docs/screenshots/03-settings.png) | ![Security & Privacy](docs/screenshots/04-security-privacy.png) |
+
+| 05. Emergency Triggers | 06. Self-Destruct & Data | 07. Mention Notifications | 08. App Background |
+| :---: | :---: | :---: | :---: |
+| ![Emergency Triggers](docs/screenshots/05-emergency-triggers.png) | ![Self-Destruct & Data](docs/screenshots/06-self-destruct-data.png) | ![Mention Notifications](docs/screenshots/07-mention-notifications.png) | ![App Background](docs/screenshots/08-app-background.png) |
+
+| 09. Encrypted Chat | 10. Chat Attachments | 11. Ephemeral Message | 12. Ephemeral Text Viewer |
+| :---: | :---: | :---: | :---: |
+| ![Encrypted Chat](docs/screenshots/09-encrypted-chat.png) | ![Chat Attachments](docs/screenshots/10-chat-attachments.png) | ![Ephemeral Message](docs/screenshots/11-ephemeral-message.png) | ![Ephemeral Text Viewer](docs/screenshots/12-ephemeral-text.png) |
+
+</details>
 
 ---
 
@@ -74,6 +88,7 @@ CryptionChat/
 │   ├── src/test/              # JVM unit tests (crypto, panic, session lifecycle)
 │   └── build.gradle.kts
 ├── docs/
+│   ├── screenshots/           # App screenshots & animated carousel
 │   ├── ARCHITECTURE.md        # Cryptographic & client module architecture
 │   └── SETUP.md               # Build, configuration & placeholder setup guide
 ├── gradle/wrapper/            # Gradle wrapper
