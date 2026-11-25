@@ -20,8 +20,9 @@ jobs:
       - name: Set up patched JDK 21 (CVE-2026-114938 fix)
         uses: actions/setup-java@v5
         with:
-          distribution: temurin
-          java-version: '21.0.13.1'
+          distribution: corretto
+          java-version: '21'
+          check-latest: true
 
       - name: Verify JDK version and CVE-2026-114938 mitigation
         run: |
