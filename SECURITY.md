@@ -28,7 +28,7 @@ Before publication, secrets and private operational configurations are replaced 
 If you discover a security vulnerability in CryptionChat:
 
 1. **Do not** disclose it publicly in an issue or pull request before a fix is coordinated.
-2. Use GitHub's **Private Vulnerability Reporting** ("Security" tab -> "Report a vulnerability") on this repository, or contact the maintainer directly.
+2. Submit a private report via GitHub's [**Private Vulnerability Reporting**](https://github.com/puccilorenzo21/CryptionChat/security/advisories/new) (**Security** tab -> **Report a vulnerability**).
 3. Include:
    - Affected file(s) / component
    - Threat model and reproduction steps or proof of concept
