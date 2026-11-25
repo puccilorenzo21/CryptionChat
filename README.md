@@ -25,13 +25,6 @@
 
 ## Screenshots
 
-<p align="center">
-  <img src="docs/screenshots/carousel.gif" alt="CryptionChat Screenshots Carousel" width="860" />
-</p>
-
-<details>
-<summary>Browse all 12 screenshots individually (in creation order)</summary>
-
 | 01. Chats | 02. My Profile | 03. Settings | 04. Security & Privacy |
 | :---: | :---: | :---: | :---: |
 | ![Chats](docs/screenshots/01-chats.png) | ![My Profile](docs/screenshots/02-profile.png) | ![Settings](docs/screenshots/03-settings.png) | ![Security & Privacy](docs/screenshots/04-security-privacy.png) |
@@ -43,8 +36,6 @@
 | 09. Encrypted Chat | 10. Chat Attachments | 11. Ephemeral Message | 12. Ephemeral Text Viewer |
 | :---: | :---: | :---: | :---: |
 | ![Encrypted Chat](docs/screenshots/09-encrypted-chat.png) | ![Chat Attachments](docs/screenshots/10-chat-attachments.png) | ![Ephemeral Message](docs/screenshots/11-ephemeral-message.png) | ![Ephemeral Text Viewer](docs/screenshots/12-ephemeral-text.png) |
-
-</details>
 
 ---
 
@@ -88,7 +79,7 @@ CryptionChat/
 │   ├── src/test/              # JVM unit tests (crypto, panic, session lifecycle)
 │   └── build.gradle.kts
 ├── docs/
-│   ├── screenshots/           # App screenshots & animated carousel
+│   ├── screenshots/           # App screenshots
 │   ├── ARCHITECTURE.md        # Cryptographic & client module architecture
 │   └── SETUP.md               # Build, configuration & placeholder setup guide
 ├── gradle/wrapper/            # Gradle wrapper
