@@ -69,13 +69,12 @@ object EcdhHelper {
     fun computeRawSharedSecret(myPrivateKeyBase64: String, otherPublicKeyBase64: String): ByteArray? {
         return try {
             val keyFactory = KeyFactory.getInstance("EC")
-            val decoder = Base64.getDecoder()
 
-            val privateBytes = decoder.decode(myPrivateKeyBase64)
+            val privateBytes = SafeBase64.decodeStandard(myPrivateKeyBase64)
             val privSpec = PKCS8EncodedKeySpec(privateBytes)
             val privateKey = keyFactory.generatePrivate(privSpec)
 
-            val publicBytes = decoder.decode(otherPublicKeyBase64)
+            val publicBytes = SafeBase64.decodeStandard(otherPublicKeyBase64)
             val pubSpec = X509EncodedKeySpec(publicBytes)
             val publicKey = keyFactory.generatePublic(pubSpec)
 
@@ -187,7 +186,7 @@ object EcdhHelper {
         if (privB64.isBlank()) return null
         return try {
             val keyFactory = KeyFactory.getInstance("EC")
-            val privBytes = Base64.getDecoder().decode(privB64)
+            val privBytes = SafeBase64.decodeStandard(privB64)
             val privateKey = keyFactory.generatePrivate(PKCS8EncodedKeySpec(privBytes))
             val sig = Signature.getInstance(ECDSA_ALGORITHM)
             sig.initSign(privateKey)
@@ -206,9 +205,9 @@ object EcdhHelper {
         if (pubB64.isBlank() || sigB64.isBlank()) return false
         return try {
             val keyFactory = KeyFactory.getInstance("EC")
-            val pubBytes = Base64.getDecoder().decode(pubB64)
+            val pubBytes = SafeBase64.decodeStandard(pubB64)
             val publicKey = keyFactory.generatePublic(X509EncodedKeySpec(pubBytes))
-            val sigBytes = Base64.getDecoder().decode(sigB64)
+            val sigBytes = SafeBase64.decodeStandard(sigB64)
             val sig = Signature.getInstance(ECDSA_ALGORITHM)
             sig.initVerify(publicKey)
             sig.update(dataBytes)

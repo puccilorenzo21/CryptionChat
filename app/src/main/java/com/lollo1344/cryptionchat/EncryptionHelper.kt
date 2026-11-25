@@ -168,7 +168,7 @@ object EncryptionHelper {
         if (value.startsWith(GCM_PREFIX)) {
             return try {
                 val base64Payload = value.substring(GCM_PREFIX.length)
-                val combined = Base64.getDecoder().decode(base64Payload)
+                val combined = SafeBase64.decodeStandard(base64Payload)
                 if (combined.size < GCM_IV_LENGTH) return null
 
                 val iv = combined.copyOfRange(0, GCM_IV_LENGTH)
@@ -190,7 +190,7 @@ object EncryptionHelper {
 
         // Fallback di retrocompatibilità su AES/CBC/PKCS5Padding
         return try {
-            val decodedValue = Base64.getDecoder().decode(value)
+            val decodedValue = SafeBase64.decodeStandardLenientWhitespace(value)
             val cipher = getCipher(Cipher.DECRYPT_MODE, keyHex, ivHex) ?: return null
             val decryptedValue = cipher.doFinal(decodedValue)
             String(decryptedValue, Charsets.UTF_8)

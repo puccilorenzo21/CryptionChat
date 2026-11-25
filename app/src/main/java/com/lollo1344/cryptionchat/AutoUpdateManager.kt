@@ -145,8 +145,34 @@ class AutoUpdateManager private constructor(context: Context) {
     @Volatile private var cachedApkArchiveInfo: PackageInfo? = null
     @Volatile private var cachedCleanupResult = false
     @Volatile private var lastCleanupCheckMs = 0L
+    @Volatile private var hasPendingLocalApkFiles = true
+    @Volatile private var lastMandatorySyncMs = 0L
     @Volatile private var lastReadyActivityRef: WeakReference<Activity>? = null
     @Volatile private var lastReadyCheckMs = 0L
+
+    // Cache immutabile di processo per evitare ripetute IPC Binder su PackageManager e chiamate FUSE su MediaProvider
+    private val cachedInstalledVersionCode: Long by lazy { getAppVersionCode(appContext) }
+    private val cachedInstalledVersionName: String by lazy {
+        try {
+            appContext.packageManager.getPackageInfo(appContext.packageName, 0).versionName.orEmpty()
+        } catch (_: Exception) {
+            ""
+        }
+    }
+    private val cachedInstalledLastUpdateTime: Long by lazy {
+        try {
+            appContext.packageManager.getPackageInfo(appContext.packageName, 0).lastUpdateTime
+        } catch (_: Exception) {
+            0L
+        }
+    }
+    private val cachedDownloadDir: File? by lazy {
+        val dir = appContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+        if (dir != null && !dir.exists()) {
+            dir.mkdirs()
+        }
+        dir
+    }
 
     private fun getPrefs() = SecurePrefs.get(appContext)
 
@@ -166,7 +192,7 @@ class AutoUpdateManager private constructor(context: Context) {
     }
 
     fun getDownloadDir(): File? {
-        val dir = appContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+        val dir = cachedDownloadDir ?: appContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
         if (dir != null && !dir.exists()) {
             dir.mkdirs()
         }
@@ -306,17 +332,24 @@ class AutoUpdateManager private constructor(context: Context) {
     @Synchronized
     fun cleanupIfUpdatedOrObsolete(): Boolean {
         val nowMs = System.currentTimeMillis()
+        // Se non risultano APK scaricati in locale e abbiamo già verificato negli ultimi 10 minuti,
+        // evita chiamate FUSE/MediaProvider e decifrature SecurePrefs ripetitive in background.
+        if (!hasPendingLocalApkFiles && !isDownloading.get() && (nowMs - lastCleanupCheckMs) < 10 * 60 * 1000L) {
+            return cachedCleanupResult
+        }
         val apkFile = getApkFile()
         val tmpFile = getTmpApkFile()
-        if (nowMs - lastCleanupCheckMs < 2000L && !apkFile.exists() && !tmpFile.exists()) {
+        val anyLocalFileExists = apkFile.exists() || tmpFile.exists()
+        if (!anyLocalFileExists && (nowMs - lastCleanupCheckMs) < 10 * 60 * 1000L && lastCleanupCheckMs > 0L) {
+            hasPendingLocalApkFiles = false
             return cachedCleanupResult
         }
         lastCleanupCheckMs = nowMs
 
         val prefs = getPrefs()
-        val installedVC = getAppVersionCode(appContext)
-        val installedVN = getInstalledVersionName()
-        val lastInstallUpdateTime = getInstalledLastUpdateTime()
+        val installedVC = cachedInstalledVersionCode
+        val installedVN = cachedInstalledVersionName
+        val lastInstallUpdateTime = cachedInstalledLastUpdateTime
 
         val prevInstalledVC = prefs.getLong(PREF_LAST_KNOWN_INSTALLED_VC, 0L)
         val prevInstalledVN = prefs.getString(PREF_LAST_KNOWN_INSTALLED_VN, "").orEmpty()
@@ -390,6 +423,7 @@ class AutoUpdateManager private constructor(context: Context) {
                 .apply()
         }
 
+        hasPendingLocalApkFiles = apkFile.exists() || tmpFile.exists()
         cachedCleanupResult = deleted
         if (deleted) {
             notifyProgressListeners()
@@ -414,8 +448,10 @@ class AutoUpdateManager private constructor(context: Context) {
             clearDownloadedMetadata(syncLastSeenId = true)
             cancelDownloadNotification()
         }
-        val installedVC = getAppVersionCode(appContext)
-        val installedVN = getInstalledVersionName()
+        val installedVC = cachedInstalledVersionCode
+        val installedVN = cachedInstalledVersionName
+        hasPendingLocalApkFiles = false
+        lastCleanupCheckMs = 0L
         getPrefs().edit()
             .putLong(PREF_LAST_KNOWN_INSTALLED_VC, installedVC)
             .putString(PREF_LAST_KNOWN_INSTALLED_VN, installedVN)
@@ -517,8 +553,14 @@ class AutoUpdateManager private constructor(context: Context) {
     }
 
     fun isReadyApkAvailable(): Boolean {
+        if (!hasPendingLocalApkFiles && !isDownloading.get()) {
+            return false
+        }
         val apkFile = getApkFile()
         if (!apkFile.exists() || apkFile.length() == 0L) {
+            if (!isDownloading.get() && !getTmpApkFile().exists()) {
+                hasPendingLocalApkFiles = false
+            }
             return false
         }
 
@@ -544,8 +586,8 @@ class AutoUpdateManager private constructor(context: Context) {
             apkVN.contains("beta", ignoreCase = true)
         )
 
-        val installedVC = getAppVersionCode(appContext)
-        val installedVN = getInstalledVersionName()
+        val installedVC = cachedInstalledVersionCode
+        val installedVN = cachedInstalledVersionName
         val lastSeenId = if (isBeta) {
             prefs.getLong(PREF_LAST_BETA_UPDATE_ID, 0L)
         } else {
@@ -733,9 +775,14 @@ class AutoUpdateManager private constructor(context: Context) {
      */
     private fun syncRemoteMandatoryStateWhenApkReady() {
         if (isDownloading.get() || !isReadyApkAvailable()) return
+        val nowMs = System.currentTimeMillis()
+        if (lastMandatorySyncMs > 0L && (nowMs - lastMandatorySyncMs) < 15 * 60 * 1000L) {
+            return
+        }
+        lastMandatorySyncMs = nowMs
         val isBetaChannel = getPrefs().getBoolean("is_beta_tester", false)
-        val cacheBuster = System.currentTimeMillis()
-        val installedVC = getAppVersionCode(appContext)
+        val cacheBuster = nowMs
+        val installedVC = cachedInstalledVersionCode
 
         if (isBetaChannel) {
             ApiClient.instance.checkForBetaUpdates(cacheBuster).enqueue(object : RetrofitCallback<BetaUpdateResponse> {
@@ -1009,6 +1056,8 @@ class AutoUpdateManager private constructor(context: Context) {
         isInteractive: Boolean
     ) {
         if (!isDownloading.compareAndSet(false, true)) return
+        hasPendingLocalApkFiles = true
+        lastCleanupCheckMs = 0L
 
         currentUpdateVersionName = remoteVN
         currentUpdateChangelog = remoteChangelog

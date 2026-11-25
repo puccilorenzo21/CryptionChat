@@ -5,9 +5,11 @@ import android.app.AlarmManager
 import android.app.Dialog
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
@@ -61,6 +63,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.widget.TextViewCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -101,7 +104,14 @@ class MainActivity : BaseActivity() {
     private var username: String = ""
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var groupPollingRunnable: Runnable
-    private val pollingInterval = 1500L
+    private val pollingInterval = 3500L
+    private val homeNewMessageReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (!isFinishing && !isDestroyed && isNetworkAvailable && userId != -1) {
+                fetchUserGroups(isInitialLoad = false)
+            }
+        }
+    }
     private var betaTesterDialog: AlertDialog? = null
     private var betaProgressDialog: AlertDialog? = null
 
@@ -926,6 +936,10 @@ class MainActivity : BaseActivity() {
             checkForUpdates()
             fetchUserGroups(isInitialLoad = false)
             startGroupPolling()
+            LocalBroadcastManager.getInstance(this).registerReceiver(
+                homeNewMessageReceiver,
+                IntentFilter(NotificationService.ACTION_NEW_MESSAGE_RECEIVED)
+            )
             checkAllMandatoryPermissions()
             checkAndRestoreService()
             applyCurrentHomeBackground()
@@ -968,8 +982,12 @@ class MainActivity : BaseActivity() {
     override fun onPause() {
         super.onPause()
         try {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(homeNewMessageReceiver)
+        } catch (_: Exception) {}
+        try {
             val bgVideo = findViewById<VideoView>(R.id.home_background_video)
             if (bgVideo.isPlaying) bgVideo.pause()
+            bgVideo.suspend()
         } catch (e: Exception) {}
 
         stopGroupPolling()
@@ -2379,12 +2397,18 @@ class MainActivity : BaseActivity() {
 
                     // Calcolo ed allineamento locale del badge inferiore escludendo i messaggi di stato ZK
                     val prefs = SecurePrefs.get(this@MainActivity)
-                    prefs.edit().apply {
-                        groups.forEach { g ->
-                            putInt("e2ee_version_${g.id}", g.e2eeVersion)
-                            putInt("membership_epoch_${g.id}", g.membershipEpoch)
+                    var prefsEditor: android.content.SharedPreferences.Editor? = null
+                    groups.forEach { g ->
+                        val verKey = "e2ee_version_${g.id}"
+                        val epochKey = "membership_epoch_${g.id}"
+                        if (prefs.getInt(verKey, -1) != g.e2eeVersion) {
+                            (prefsEditor ?: prefs.edit().also { prefsEditor = it }).putInt(verKey, g.e2eeVersion)
                         }
-                    }.apply()
+                        if (prefs.getInt(epochKey, -1) != g.membershipEpoch) {
+                            (prefsEditor ?: prefs.edit().also { prefsEditor = it }).putInt(epochKey, g.membershipEpoch)
+                        }
+                    }
+                    prefsEditor?.apply()
 
                     val totalUnread = groups.sumOf { group ->
                         var adjustedCount = group.unreadCount
@@ -2721,13 +2745,14 @@ class MainActivity : BaseActivity() {
         return try {
             val mimeType = contentResolver.getType(uri) ?: "image/jpeg"
             val extension = if (mimeType == "image/gif") ".gif" else ".jpg"
-            val inputStream = contentResolver.openInputStream(uri)
             val file = File(cacheDir, "temp_profile_pic_${System.currentTimeMillis()}$extension")
-            val outputStream = FileOutputStream(file)
-            inputStream?.copyTo(outputStream)
-            inputStream?.close()
-            outputStream.close()
-            file
+            val copied = contentResolver.openInputStream(uri)?.use { inputStream ->
+                FileOutputStream(file).use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+                true
+            } ?: false
+            if (copied) file else null
         } catch (e: Exception) { null }
     }
 

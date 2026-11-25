@@ -78,6 +78,9 @@ class WatchdogReceiver : BroadcastReceiver() {
 
     @Suppress("DEPRECATION")
     private fun isServiceRunning(context: Context, serviceClass: Class<*>): Boolean {
+        if (serviceClass == NotificationService::class.java && NotificationService.isServiceRunning) {
+            return true
+        }
         val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         for (service in manager.getRunningServices(Integer.MAX_VALUE)) {
             if (serviceClass.name == service.service.className) {

@@ -376,7 +376,7 @@ object IdentityKeyManager {
     private fun isValidEcPublicKey(pubB64: String): Boolean {
         if (pubB64.isBlank()) return false
         return try {
-            val bytes = Base64.getDecoder().decode(pubB64)
+            val bytes = SafeBase64.decodeStandard(pubB64)
             KeyFactory.getInstance("EC").generatePublic(X509EncodedKeySpec(bytes))
             true
         } catch (_: Exception) {

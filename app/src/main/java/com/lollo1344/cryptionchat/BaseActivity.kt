@@ -43,7 +43,7 @@ open class BaseActivity : AppCompatActivity() {
 
     private val maintenanceHandler = Handler(Looper.getMainLooper())
     private lateinit var maintenanceCheckRunnable: Runnable
-    private val MAINTENANCE_CHECK_INTERVAL = 60000L // 60 secondi
+    private val MAINTENANCE_CHECK_INTERVAL = 300_000L // 5 minuti
     protected var isBlocked = false // Flag generico per bloccare l'esecuzione
 
     // Riferimento al monitor di rete e al banner globale
@@ -193,11 +193,13 @@ open class BaseActivity : AppCompatActivity() {
 
     private fun checkForMaintenance() {
         if (this is MaintenanceActivity || isFinishing || isDestroyed) return
+        if (!MaintenanceChecker.shouldCheck()) return
 
         val prefs = SecurePrefs.get(this@BaseActivity)
         val userId = prefs.getInt("user_id", -1)
         if (userId == -1) return
 
+        MaintenanceChecker.updateLastCheckTimestamp()
         // Inviamo il timestamp corrente come parametro per aggirare la cache del server
         ApiClient.instance.checkForUpdates(System.currentTimeMillis()).enqueue(object : Callback<UpdateInfoResponse> {
             override fun onResponse(call: Call<UpdateInfoResponse>, response: Response<UpdateInfoResponse>) {
@@ -405,6 +407,13 @@ open class BaseActivity : AppCompatActivity() {
         val tvDialogTitle = view.findViewById<TextView>(R.id.tv_dialog_title)
 
         btnClose.setOnClickListener { dialog.dismiss() }
+        dialog.setOnDismissListener {
+            try {
+                webView.stopLoading()
+                webView.loadUrl("about:blank")
+                webView.destroy()
+            } catch (_: Exception) {}
+        }
         webView.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true

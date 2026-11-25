@@ -40,7 +40,7 @@ android {
         minSdk = 29
         targetSdk = 34
         versionCode = 78
-        versionName = "78.6 (beta)"
+        versionName = "78.7 (beta)"
         multiDexEnabled = true
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -210,4 +210,9 @@ dependencies {
     // API Shizuku
     implementation("dev.rikka.shizuku:api:13.1.5")
     implementation("dev.rikka.shizuku:provider:13.1.5")
+}
+
+// Difesa in profondità CVE-2026-114938 ("Java4Shell"): disabilita l'intrinsic Base64 AVX-512 nei test JVM
+tasks.withType<Test>().configureEach {
+    jvmArgs("-XX:-UseBASE64Intrinsics")
 }

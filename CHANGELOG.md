@@ -2,6 +2,22 @@
 
 All notable open-source milestones and version notes for **CryptionChat** are documented in this file.
 
+## [78.7 (beta)] - 2026-11-25 (versionCode 78)
+
+### Security (`CVE-2026-114938`)
+- **Build Toolchain & CI Patching**: Upgraded the Gradle daemon JVM toolchain (`gradle/gradle-daemon-jvm.properties`) to patched **Amazon Corretto `21.0.13.1+2-LTS`** and pinned GitHub Actions CI (`.github/workflows/android-ci.yml`) to patched **Eclipse Temurin `21.0.13.1`**.
+- **JVM Defense-in-Depth**: Enabled `-XX:-UseBASE64Intrinsics` across Gradle daemon args (`gradle.properties`), JVM unit test tasks (`app/build.gradle.kts`), and CI (`JAVA_TOOL_OPTIONS`) to mitigate the x86-64 AVX-512 VBMI Base64 intrinsic vulnerability (`CVE-2026-114938`).
+- **Defensive Base64 Validation (`SafeBase64.kt`)**: Added strict pre-decoding length, alphabet, and padding validation across all cryptographic helpers (`DoubleRatchetHelper`, `EcdhHelper`, `EncryptionHelper`, `IdentityKeyManager`, `SenderKeyHelper`), verified with dedicated unit tests (`SafeBase64UnitTest`).
+
+### Battery & Energy Optimization
+- **Deep Sleep-Friendly Background Service (`NotificationService.kt`, `PollingPowerPolicy.kt`)**: Removed the continuous `PARTIAL_WAKE_LOCK` previously held during the 25s passive HTTP long-poll wait; short processing WakeLocks (`<= 8s`) are now acquired only when real events arrive (messages, incoming calls, WebRTC signals, key updates).
+- **Network & Screen-Off Power Adaptation**: Added `ConnectivityManager.NetworkCallback` to fully suspend background polling when offline, exponential backoff on transient network errors (`5s -> 60s`), and adaptive deep-idle pauses (`15s`/`20s`, strictly within the 45s incoming-call window) on cellular/Power Save when the screen is off.
+- **Reduced Background Traffic & IPC Overhead**: Throttled fallback `E2eeSessionOrchestrator.syncDistributions()` (immediate on hints/messages; periodic fallback increased to 5 min screen-on / 15 min screen-off), tuned `WatchdogReceiver` interval from 15 min to 2 hours with corrected `triggerAtMillis` (`ServiceScheduler.kt`), cached `DeviceUtils.getDeviceId()` and `ApiClient` auth credentials/Tor reachability, and cached `AutoUpdateManager` package/directory metadata to avoid repeated `PackageManager` IPC and FUSE/`MediaProvider` calls.
+
+### UI Efficiency & Memory/Resource Leak Fixes
+- **Foreground Polling & Storage Optimization**: Added dirty-checking before writing to `EncryptedSharedPreferences` in `MainActivity` and `ChatActivity`, batched chat metadata updates with `apply()`, throttled in-chat key distribution syncs and `invalidateOptionsMenu()`, added instant home-list refresh via local broadcast, and enforced `MaintenanceChecker` throttling in `BaseActivity`.
+- **Native Memory & Stream Cleanup**: Guaranteed `Model.close()`, `Recognizer.close()`, `MediaCodec.release()`, and `MediaExtractor.release()` in `AudioTranscriber`; wrapped `ContentResolver` streams in `.use {}` (`FileUtils`, `ChatBackgroundManager`, `MainActivity`); added `WebView.destroy()` on changelog dismissal (`BaseActivity`); suspended background video on `MainActivity.onPause()`; detached `RecyclerView.adapter` in `ChatActivity.onDestroy()`; and switched `ScreenshotDestroyer` to `applicationContext` with shared coroutine scopes.
+
 ## [78.6 (beta)] - 2026-11-24 (versionCode 78)
 
 ### Updates & UX

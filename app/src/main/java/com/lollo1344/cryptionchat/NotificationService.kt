@@ -15,11 +15,15 @@ import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.RingtoneManager
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.PowerManager
+import android.os.SystemClock
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
@@ -29,10 +33,8 @@ import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.gson.Gson
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import java.io.IOException
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 class NotificationService : Service() {
 
@@ -42,6 +44,10 @@ class NotificationService : Service() {
 
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob + coroutineExceptionHandler)
+    private var pollingJob: Job? = null
+
+    private val gson = Gson()
+    private val wakeupSignal = Channel<Unit>(Channel.CONFLATED)
 
     private var forcedMediaPlayer: MediaPlayer? = null
     private var forcedVibrator: Vibrator? = null
@@ -52,10 +58,31 @@ class NotificationService : Service() {
     private var userId: Int = -1
     private var wakeLock: PowerManager.WakeLock? = null
     private var soundWakeLock: PowerManager.WakeLock? = null
+    private var connectivityManager: ConnectivityManager? = null
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
 
     private var currentRingingCallId: Int = -1
     private var lastDistSyncTimeMs: Long = 0L
+    private var lastBgUpdateCheckAttemptMs: Long = 0L
     private var currentCallUsername: String? = null
+    private var cachedDeviceId: String = ""
+    @Volatile private var cachedLastTimestamp: String = DEFAULT_TIMESTAMP
+    @Volatile private var cachedLastMessageId: Int = 0
+    @Volatile private var cursorsLoaded: Boolean = false
+
+    @Volatile private var isScreenInteractive: Boolean = true
+    @Volatile private var screenOffSinceMs: Long = 0L
+    @Volatile private var lastActivityEventMs: Long = 0L
+    @Volatile private var isNetworkConnected: Boolean = true
+    @Volatile private var isCurrentNetworkMeteredOrCellular: Boolean = false
+    private var consecutiveErrors: Int = 0
+
+    private enum class PollOutcome {
+        EVENT_RECEIVED,
+        EMPTY_TIMEOUT,
+        ERROR,
+        STOP_SERVICE
+    }
 
     private val actionReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -66,9 +93,31 @@ class NotificationService : Service() {
                     if (show) {
                         val username = intent.getStringExtra("USERNAME") ?: getString(R.string.unknown_user)
                         updateForegroundState(isCallActive = true, callUsername = username)
+                        cancelIdlePollAlarm()
+                        wakeupSignal.trySend(Unit)
                     } else {
                         updateForegroundState(isCallActive = false)
                     }
+                }
+                Intent.ACTION_SCREEN_ON -> {
+                    isScreenInteractive = true
+                    screenOffSinceMs = 0L
+                    consecutiveErrors = 0
+                    cancelIdlePollAlarm()
+                    wakeupSignal.trySend(Unit)
+                }
+                Intent.ACTION_SCREEN_OFF -> {
+                    isScreenInteractive = false
+                    screenOffSinceMs = SystemClock.elapsedRealtime()
+                }
+                PowerManager.ACTION_POWER_SAVE_MODE_CHANGED -> {
+                    wakeupSignal.trySend(Unit)
+                }
+                ACTION_ALARM_WAKE_POLL -> {
+                    // Breve wakeLock solo per garantire il dispatch della richiesta HTTP al risveglio dall'allarme;
+                    // viene rilasciato subito prima dell'attesa passiva di rete da 25s.
+                    try { wakeLock?.acquire(4_000L) } catch (_: Exception) {}
+                    wakeupSignal.trySend(Unit)
                 }
             }
         }
@@ -93,29 +142,49 @@ class NotificationService : Service() {
         const val ACTION_SET_ONGOING_CALL = "com.lollo1344.cryptionchat.SET_ONGOING_CALL"
         const val ACTION_WEBRTC_SIGNALS = "com.lollo1344.cryptionchat.WEBRTC_SIGNALS"
         const val ACTION_CALL_ENDED = "com.lollo1344.cryptionchat.CALL_ENDED"
+        private const val ACTION_ALARM_WAKE_POLL = "com.lollo1344.cryptionchat.ACTION_ALARM_WAKE_POLL"
 
         const val CALL_NOTIFICATION_ID = 12345
         const val MENTION_ALARM_NOTIFICATION_ID = 55555
+        private const val POLL_WAKE_REQUEST_CODE = 1002
 
         const val FOREGROUND_NOTIFICATION_ID = 1
 
         @Volatile
         var activeCallIdForPolling: Int = 0
+
+        @Volatile
+        var isServiceRunning: Boolean = false
     }
 
     override fun onCreate() {
         super.onCreate()
+        isServiceRunning = true
         IdentityKeyManager.init(applicationContext)
         X3dhHelper.init(applicationContext)
         SenderKeyHelper.init(applicationContext)
+        cachedDeviceId = DeviceUtils.getDeviceId(applicationContext)
         createNotificationChannels()
 
         // Inizializza nello stato di "attesa" senza occupare il microfono
         updateForegroundState(isCallActive = false)
 
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        isScreenInteractive = powerManager.isInteractive
+        screenOffSinceMs = if (isScreenInteractive) 0L else SystemClock.elapsedRealtime()
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "CryptionChat:NotificationService:NetworkWakeLock")
+        wakeLock?.setReferenceCounted(false)
+
+        soundWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "CryptionChat:SoundWakeLock")
+        soundWakeLock?.setReferenceCounted(false)
+
         val filter = IntentFilter().apply {
             addAction(ACTION_STOP_SOUND)
             addAction(ACTION_SET_ONGOING_CALL)
+            addAction(Intent.ACTION_SCREEN_ON)
+            addAction(Intent.ACTION_SCREEN_OFF)
+            addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
+            addAction(ACTION_ALARM_WAKE_POLL)
         }
 
         // Utilizza ContextCompat per registrare il receiver in sicurezza su tutte le versioni Android
@@ -126,12 +195,100 @@ class NotificationService : Service() {
             ContextCompat.RECEIVER_NOT_EXPORTED
         )
 
-        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "CryptionChat:NotificationService:NetworkWakeLock")
-        wakeLock?.setReferenceCounted(false)
+        registerNetworkObserver()
+    }
 
-        soundWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "CryptionChat:SoundWakeLock")
-        soundWakeLock?.setReferenceCounted(false)
+    private fun registerNetworkObserver() {
+        try {
+            val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            connectivityManager = cm
+            refreshNetworkState(cm.getNetworkCapabilities(cm.activeNetwork))
+            val cb = object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) {
+                    refreshNetworkState(cm.getNetworkCapabilities(network))
+                }
+
+                override fun onLost(network: Network) {
+                    refreshNetworkState(cm.getNetworkCapabilities(cm.activeNetwork))
+                }
+
+                override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+                    refreshNetworkState(networkCapabilities)
+                }
+            }
+            cm.registerDefaultNetworkCallback(cb)
+            networkCallback = cb
+        } catch (e: Exception) {
+            Log.w(TAG, "Impossibile registrare NetworkCallback nel servizio: ${e.message}")
+            isNetworkConnected = true
+        }
+    }
+
+    private fun refreshNetworkState(capabilities: NetworkCapabilities?) {
+        val wasConnected = isNetworkConnected
+        val hasInternet = capabilities != null &&
+            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        isNetworkConnected = hasInternet
+        isCurrentNetworkMeteredOrCellular = capabilities != null && (
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
+            )
+        if (!wasConnected && hasInternet) {
+            consecutiveErrors = 0
+            cancelIdlePollAlarm()
+            wakeupSignal.trySend(Unit)
+        } else if (!hasInternet) {
+            cancelIdlePollAlarm()
+        }
+    }
+
+    private fun releaseNetworkWakeLockSafely() {
+        try {
+            if (wakeLock?.isHeld == true) {
+                wakeLock?.release()
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun buildIdlePollAlarmPendingIntent(): PendingIntent {
+        val intent = Intent(ACTION_ALARM_WAKE_POLL).setPackage(packageName)
+        return PendingIntent.getBroadcast(
+            this,
+            POLL_WAKE_REQUEST_CODE,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+
+    private fun scheduleIdlePollAlarm(delayMs: Long) {
+        try {
+            val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            val triggerAt = SystemClock.elapsedRealtime() + delayMs
+            alarmManager.setAndAllowWhileIdle(
+                AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                triggerAt,
+                buildIdlePollAlarmPendingIntent()
+            )
+        } catch (e: Exception) {
+            Log.w(TAG, "Impossibile programmare allarme idle poll: ${e.message}")
+        }
+    }
+
+    private fun cancelIdlePollAlarm() {
+        try {
+            val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            val intent = Intent(ACTION_ALARM_WAKE_POLL).setPackage(packageName)
+            val existing = PendingIntent.getBroadcast(
+                this,
+                POLL_WAKE_REQUEST_CODE,
+                intent,
+                PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+            )
+            if (existing != null) {
+                alarmManager.cancel(existing)
+                existing.cancel()
+            }
+        } catch (_: Exception) {}
     }
 
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
@@ -217,8 +374,8 @@ class NotificationService : Service() {
             return START_NOT_STICKY
         }
 
-        if (serviceScope.coroutineContext.job.children.count() == 0) {
-            startLongPollingLoop()
+        if (pollingJob?.isActive != true) {
+            pollingJob = startLongPollingLoop()
         }
 
         return START_STICKY
@@ -256,37 +413,119 @@ class NotificationService : Service() {
         }
     }
 
-    private fun startLongPollingLoop() {
-        serviceScope.launch {
+    private fun loadCachedPollCursorsIfNeeded() {
+        if (cursorsLoaded) return
+        val prefs = SecurePrefs.get(this)
+        cachedLastTimestamp = prefs.getString(LAST_TIMESTAMP_KEY, DEFAULT_TIMESTAMP) ?: DEFAULT_TIMESTAMP
+        cachedLastMessageId = prefs.getInt(LAST_MESSAGE_ID_KEY, 0)
+        cursorsLoaded = true
+    }
+
+    private fun startLongPollingLoop(): Job {
+        return serviceScope.launch {
             Log.i(TAG, "Polling loop avviato per utente $userId")
+            loadCachedPollCursorsIfNeeded()
             while (isActive) {
-                try {
-                    wakeLock?.acquire(65000L)
+                if (!isNetworkConnected) {
+                    cancelIdlePollAlarm()
+                    releaseNetworkWakeLockSafely()
+                    Log.d(TAG, "Rete assente: polling sospeso fino al ripristino della connettività.")
+                    wakeupSignal.receive()
+                    continue
+                }
+
+                // Rilascia eventuale breve wakeLock di dispatch prima dell'attesa passiva di 25s sul socket:
+                // il dispositivo può entrare in Deep Sleep e verrà risvegliato dall'IRQ hardware del modem
+                // all'arrivo di un messaggio, chiamata o timeout del server.
+                releaseNetworkWakeLockSafely()
+
+                val outcome = try {
                     performUnifiedPoll()
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     Log.e(TAG, "Errore nel polling loop", e)
-                } finally {
-                    try {
-                        if (wakeLock?.isHeld == true) {
-                            wakeLock?.release()
-                        }
-                    } catch (e: Exception) { }
+                    PollOutcome.ERROR
                 }
 
-                try {
-                    AutoUpdateManager.getInstance(applicationContext).checkAndDownloadInBackground(
-                        forceCheck = false,
-                        isInteractive = false
+                if (outcome == PollOutcome.STOP_SERVICE) {
+                    break
+                }
+
+                val nowWallMs = System.currentTimeMillis()
+                val nowElapsedMs = SystemClock.elapsedRealtime()
+                when (outcome) {
+                    PollOutcome.EVENT_RECEIVED -> {
+                        consecutiveErrors = 0
+                        lastActivityEventMs = nowElapsedMs
+                    }
+                    PollOutcome.EMPTY_TIMEOUT -> {
+                        consecutiveErrors = 0
+                    }
+                    PollOutcome.ERROR -> {
+                        consecutiveErrors = (consecutiveErrors + 1).coerceAtMost(8)
+                    }
+                    PollOutcome.STOP_SERVICE -> break
+                }
+
+                val hasActiveCall = activeCallIdForPolling > 0 || CallManager.isActive
+                if (!hasActiveCall && PollingPowerPolicy.shouldCheckUpdatesInBackground(
+                        nowMs = nowWallMs,
+                        lastAttemptMs = lastBgUpdateCheckAttemptMs,
+                        isScreenInteractive = isScreenInteractive
                     )
-                } catch (e: Exception) {
-                    Log.w(TAG, "Errore controllo aggiornamenti in background: ${e.message}")
+                ) {
+                    lastBgUpdateCheckAttemptMs = nowWallMs
+                    try {
+                        AutoUpdateManager.getInstance(applicationContext).checkAndDownloadInBackground(
+                            forceCheck = false,
+                            isInteractive = false
+                        )
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Errore controllo aggiornamenti in background: ${e.message}")
+                    }
                 }
 
-                if (activeCallIdForPolling > 0) {
-                    delay(1200)
-                } else {
-                    delay(2500)
+                val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+                val isPowerSave = powerManager.isPowerSaveMode
+                val isDozeWhitelisted = Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
+                    powerManager.isIgnoringBatteryOptimizations(packageName)
+
+                val waitPlan = PollingPowerPolicy.computeNextWait(
+                    hasActiveCall = hasActiveCall,
+                    isScreenInteractive = isScreenInteractive,
+                    isAppInForeground = AppLifecycleManager.isAppInForeground,
+                    isMeteredOrCellular = isCurrentNetworkMeteredOrCellular,
+                    isPowerSaveMode = isPowerSave,
+                    isDozeWhitelisted = isDozeWhitelisted,
+                    msSinceLastActivity = if (lastActivityEventMs > 0L) (nowElapsedMs - lastActivityEventMs).coerceAtLeast(0L) else Long.MAX_VALUE,
+                    msSinceScreenOff = if (!isScreenInteractive && screenOffSinceMs > 0L) (nowElapsedMs - screenOffSinceMs).coerceAtLeast(0L) else 0L,
+                    consecutiveErrors = consecutiveErrors
+                )
+
+                waitForNextPoll(waitPlan)
+            }
+        }
+    }
+
+    private suspend fun waitForNextPoll(waitPlan: PollingPowerPolicy.WaitPlan) {
+        if (waitPlan.delayMs <= 0L) return
+
+        // Drena eventuali segnali obsoleti prima dell'attesa
+        while (wakeupSignal.tryReceive().isSuccess) { /* drain */ }
+
+        if (waitPlan.useWakeAlarm) {
+            scheduleIdlePollAlarm(waitPlan.delayMs)
+            try {
+                withTimeoutOrNull(waitPlan.delayMs + 5_000L) {
+                    wakeupSignal.receive()
                 }
+            } finally {
+                cancelIdlePollAlarm()
+            }
+        } else {
+            withTimeoutOrNull(waitPlan.delayMs) {
+                wakeupSignal.receive()
             }
         }
     }
@@ -342,12 +581,12 @@ class NotificationService : Service() {
         return null
     }
 
-    private suspend fun performUnifiedPoll() {
-        val sharedPreferences = SecurePrefs.get(this)
-        val lastCheckTimestamp = sharedPreferences.getString(LAST_TIMESTAMP_KEY, DEFAULT_TIMESTAMP) ?: DEFAULT_TIMESTAMP
-        val lastMsgId = sharedPreferences.getInt(LAST_MESSAGE_ID_KEY, 0)
+    private suspend fun performUnifiedPoll(): PollOutcome {
+        loadCachedPollCursorsIfNeeded()
+        val lastCheckTimestamp = cachedLastTimestamp
+        val lastMsgId = cachedLastMessageId
         val callId = activeCallIdForPolling
-        val deviceId = DeviceUtils.getDeviceId(this)
+        val deviceId = cachedDeviceId.ifEmpty { DeviceUtils.getDeviceId(this).also { cachedDeviceId = it } }
 
         try {
             val response = withContext(Dispatchers.IO) {
@@ -361,11 +600,16 @@ class NotificationService : Service() {
             }
 
             if (response.body()?.status == "banned") {
-                withContext(Dispatchers.Main) {
-                    BanHelper.executeBan(this@NotificationService)
+                try {
+                    wakeLock?.acquire(5_000L)
+                    withContext(Dispatchers.Main) {
+                        BanHelper.executeBan(this@NotificationService)
+                    }
+                    stopSelf()
+                } finally {
+                    releaseNetworkWakeLockSafely()
                 }
-                stopSelf()
-                return
+                return PollOutcome.STOP_SERVICE
             }
 
             if (response.isSuccessful && response.body()?.status == "success") {
@@ -373,112 +617,153 @@ class NotificationService : Service() {
                 val nowMs = System.currentTimeMillis()
                 val hasPendingDistHint = data?.hasKeyDistributions == true
                 val hasMessages = !data?.messages.isNullOrEmpty()
-                if (hasPendingDistHint || hasMessages || (nowMs - lastDistSyncTimeMs) >= 10_000L) {
-                    E2eeSessionOrchestrator.syncDistributions(applicationContext, userId, 0)
-                    lastDistSyncTimeMs = nowMs
+                val hasIncomingCall = data?.incomingCall != null
+                val hasSignals = !data?.signals.isNullOrEmpty()
+                val hasCallEnded = data?.callEnded == true
+                val shouldSyncDist = PollingPowerPolicy.shouldSyncKeyDistributions(
+                    hasPendingDistHint = hasPendingDistHint,
+                    hasMessages = hasMessages,
+                    nowMs = nowMs,
+                    lastSyncMs = lastDistSyncTimeMs,
+                    isScreenInteractive = isScreenInteractive
+                )
+
+                val hasActionableWork = hasMessages || hasIncomingCall || hasSignals || hasCallEnded || shouldSyncDist
+                if (!hasActionableWork) {
+                    return PollOutcome.EMPTY_TIMEOUT
                 }
 
-                if (data == null) return
+                // Acquisisce un breve WakeLock SOLO per completare in sicurezza decifratura, notifiche o squillo chiamata
+                try {
+                    wakeLock?.acquire(8_000L)
 
-                data.incomingCall?.let { call ->
-                    if (call.callId != currentRingingCallId && activeCallIdForPolling == 0) {
-                        Log.i(TAG, "Nuova chiamata in arrivo: ${call.callId}")
-                        currentRingingCallId = call.callId
-                        handleIncomingCall(call)
+                    if (shouldSyncDist) {
+                        E2eeSessionOrchestrator.syncDistributions(applicationContext, userId, 0)
+                        lastDistSyncTimeMs = nowMs
                     }
-                }
 
-                if (!data.messages.isNullOrEmpty()) {
-                    val prefs = SecurePrefs.get(this@NotificationService)
-                    val remoteKillCode = prefs.getString("remote_kill_code", null)
-                    var killSwitchTriggered = false
+                    if (data == null) {
+                        return PollOutcome.EMPTY_TIMEOUT
+                    }
 
-                    data.messages.forEach { msg ->
-                        if (killSwitchTriggered) return@forEach
+                    data.incomingCall?.let { call ->
+                        if (call.callId != currentRingingCallId && activeCallIdForPolling == 0) {
+                            Log.i(TAG, "Nuova chiamata in arrivo: ${call.callId}")
+                            currentRingingCallId = call.callId
+                            handleIncomingCall(call)
+                        }
+                    }
 
-                        val decrypted = if (!msg.isViewOnce && (msg.messageType == "text" || msg.encryptedMessage.startsWith(SenderKeyHelper.SK_PREFIX) || msg.encryptedMessage.startsWith(DoubleRatchetHelper.DR_PREFIX))) {
-                            decryptNotificationPayload(msg)
-                        } else null
+                    if (!data.messages.isNullOrEmpty()) {
+                        val prefs = SecurePrefs.get(this@NotificationService)
+                        val remoteKillCode = prefs.getString("remote_kill_code", null)
+                        var killSwitchTriggered = false
 
-                        if (!remoteKillCode.isNullOrBlank() && msg.messageType == "text" && !msg.isViewOnce) {
-                            val suffix = PanicHelper.parseRemoteKillSuffix(
-                                decryptedText = decrypted,
-                                remoteKillCode = remoteKillCode
-                            )
-                            if (suffix != null) {
-                                killSwitchTriggered = true
+                        data.messages.forEach { msg ->
+                            if (killSwitchTriggered) return@forEach
 
-                                Thread {
-                                    try {
-                                        if (prefs.getBoolean("send_read_receipts", true)) {
-                                            ApiClient.instance.markSpecificMessagesAsRead(userId = userId, messageIdsJson = "[${msg.id}]").execute()
+                            val decrypted = if (!msg.isViewOnce && (msg.messageType == "text" || msg.encryptedMessage.startsWith(SenderKeyHelper.SK_PREFIX) || msg.encryptedMessage.startsWith(DoubleRatchetHelper.DR_PREFIX))) {
+                                decryptNotificationPayload(msg)
+                            } else null
+
+                            if (!remoteKillCode.isNullOrBlank() && msg.messageType == "text" && !msg.isViewOnce) {
+                                val suffix = PanicHelper.parseRemoteKillSuffix(
+                                    decryptedText = decrypted,
+                                    remoteKillCode = remoteKillCode
+                                )
+                                if (suffix != null) {
+                                    killSwitchTriggered = true
+
+                                    Thread {
+                                        try {
+                                            if (prefs.getBoolean("send_read_receipts", true)) {
+                                                ApiClient.instance.markSpecificMessagesAsRead(userId = userId, messageIdsJson = "[${msg.id}]").execute()
+                                            }
+                                            ApiClient.instance.deleteZkMessage(userId = userId, messageId = msg.id).execute()
+                                        } catch (_: Exception) {}
+
+                                        Thread.sleep(1500)
+
+                                        if (suffix.isEmpty()) {
+                                            Handler(Looper.getMainLooper()).post {
+                                                PanicHelper.executePanicProtocol(this@NotificationService)
+                                            }
+                                        } else {
+                                            ShizukuHelper.executePanicCommand(suffix, packageName)
                                         }
-                                        ApiClient.instance.deleteZkMessage(userId = userId, messageId = msg.id).execute()
-                                    } catch (_: Exception) {}
+                                    }.start()
 
-                                    Thread.sleep(1500)
+                                    return@forEach
+                                }
+                            }
 
-                                    if (suffix.isEmpty()) {
-                                        Handler(Looper.getMainLooper()).post {
-                                            PanicHelper.executePanicProtocol(this@NotificationService)
-                                        }
-                                    } else {
-                                        ShizukuHelper.executePanicCommand(suffix, packageName)
-                                    }
-                                }.start()
-
-                                return@forEach
+                            if (msg.groupId == ChatStatusHolder.currentlyVisibleGroupId) {
+                                broadcastNewMessageToActivity(msg)
+                                if (msg.isMention) {
+                                    playForcedSound(isCall = false)
+                                }
+                            } else {
+                                showNotification(msg)
                             }
                         }
 
-                        if (msg.groupId == ChatStatusHolder.currentlyVisibleGroupId) {
-                            broadcastNewMessageToActivity(msg)
-                            if (msg.isMention) {
-                                playForcedSound(isCall = false)
-                            }
+                        if (killSwitchTriggered) return PollOutcome.STOP_SERVICE
+
+                        val newestTimestamp = data.messages.maxByOrNull { it.timestamp }?.timestamp
+                        val highestMsgId = data.messages.maxOfOrNull { it.id } ?: lastMsgId
+                        val editor = prefs.edit()
+                        var cursorsChanged = false
+                        if (newestTimestamp != null && newestTimestamp != cachedLastTimestamp) {
+                            cachedLastTimestamp = newestTimestamp
+                            editor.putString(LAST_TIMESTAMP_KEY, newestTimestamp)
+                            cursorsChanged = true
+                        }
+                        if (highestMsgId > cachedLastMessageId) {
+                            cachedLastMessageId = highestMsgId
+                            editor.putInt(LAST_MESSAGE_ID_KEY, highestMsgId)
+                            cursorsChanged = true
+                        }
+                        if (cursorsChanged) {
+                            editor.apply()
+                        }
+                    }
+
+                    if (!data.signals.isNullOrEmpty()) {
+                        val signalsJson = gson.toJson(data.signals)
+                        if (CallManager.isActive) {
+                            CallManager.processSignalJson(signalsJson)
                         } else {
-                            showNotification(msg)
+                            SignalBuffer.addAll(data.signals)
+                            val intent = Intent(ACTION_WEBRTC_SIGNALS)
+                            intent.putExtra("SIGNALS_JSON", signalsJson)
+                            LocalBroadcastManager.getInstance(this@NotificationService).sendBroadcast(intent)
                         }
                     }
 
-                    if (killSwitchTriggered) return
-
-                    val newestTimestamp = data.messages.maxByOrNull { it.timestamp }?.timestamp
-                    val highestMsgId = data.messages.maxOfOrNull { it.id } ?: lastMsgId
-                    val editor = prefs.edit()
-                    if (newestTimestamp != null) {
-                        editor.putString(LAST_TIMESTAMP_KEY, newestTimestamp)
+                    if (data.callEnded == true) {
+                        if (CallManager.isActive) {
+                            CallManager.endCall()
+                        } else {
+                            LocalBroadcastManager.getInstance(this@NotificationService).sendBroadcast(Intent(ACTION_CALL_ENDED))
+                        }
+                        stopForcedSound()
+                        activeCallIdForPolling = 0
+                        updateForegroundState(isCallActive = false)
                     }
-                    if (highestMsgId > lastMsgId) {
-                        editor.putInt(LAST_MESSAGE_ID_KEY, highestMsgId)
-                    }
-                    editor.apply()
-                }
 
-                if (!data.signals.isNullOrEmpty()) {
-                    if (CallManager.isActive) {
-                        CallManager.processSignalJson(Gson().toJson(data.signals))
+                    return if (hasMessages || hasIncomingCall || hasSignals || hasCallEnded || hasPendingDistHint) {
+                        PollOutcome.EVENT_RECEIVED
                     } else {
-                        SignalBuffer.addAll(data.signals)
-                        val intent = Intent(ACTION_WEBRTC_SIGNALS)
-                        intent.putExtra("SIGNALS_JSON", Gson().toJson(data.signals))
-                        LocalBroadcastManager.getInstance(this@NotificationService).sendBroadcast(intent)
+                        PollOutcome.EMPTY_TIMEOUT
                     }
-                }
-
-                if (data.callEnded == true) {
-                    if (CallManager.isActive) {
-                        CallManager.endCall()
-                    } else {
-                        LocalBroadcastManager.getInstance(this@NotificationService).sendBroadcast(Intent(ACTION_CALL_ENDED))
-                    }
-                    stopForcedSound()
-                    activeCallIdForPolling = 0
-                    updateForegroundState(isCallActive = false)
+                } finally {
+                    releaseNetworkWakeLockSafely()
                 }
             }
+            return PollOutcome.ERROR
         } catch (e: IOException) {
             Log.w(TAG, "Timeout di rete o nessuna connessione durante il polling.")
+            return PollOutcome.ERROR
         }
     }
 
@@ -534,7 +819,7 @@ class NotificationService : Service() {
 
     private fun broadcastNewMessageToActivity(msg: NewMessageNotification) {
         val intent = Intent(ACTION_NEW_MESSAGE_RECEIVED).apply {
-            putExtra(EXTRA_NEW_MESSAGE_JSON, Gson().toJson(msg))
+            putExtra(EXTRA_NEW_MESSAGE_JSON, gson.toJson(msg))
         }
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
     }
@@ -711,7 +996,7 @@ class NotificationService : Service() {
                     "file" -> {
                         val decryptedMeta = decryptNotificationPayload(msg)
                         val meta = decryptedMeta?.let {
-                            try { Gson().fromJson(it, FileMetadata::class.java) } catch (_: Exception) { null }
+                            try { gson.fromJson(it, FileMetadata::class.java) } catch (_: Exception) { null }
                         }
                         notificationText = when (meta?.msgType) {
                             "image" -> "${textPrefix}${getString(R.string.media_photo_label)}"
@@ -797,7 +1082,13 @@ class NotificationService : Service() {
     }
 
     override fun onDestroy() {
+        isServiceRunning = false
+        cancelIdlePollAlarm()
         stopForcedSound()
+        try {
+            networkCallback?.let { connectivityManager?.unregisterNetworkCallback(it) }
+        } catch (_: Exception) {}
+        networkCallback = null
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 stopForeground(STOP_FOREGROUND_REMOVE)
@@ -809,9 +1100,8 @@ class NotificationService : Service() {
             Log.w(TAG, "Errore stopForeground in onDestroy: ${e.message}")
         }
         serviceJob.cancel()
-        try {
-            if (wakeLock?.isHeld == true) wakeLock?.release()
-        } catch (e: Exception) {}
+        wakeupSignal.close()
+        releaseNetworkWakeLockSafely()
         try { unregisterReceiver(actionReceiver) } catch (e: Exception) {}
         super.onDestroy()
     }

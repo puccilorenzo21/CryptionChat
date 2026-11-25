@@ -12,6 +12,7 @@ import android.util.Log
 import android.widget.Toast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import rikka.shizuku.Shizuku
@@ -21,6 +22,7 @@ import java.util.Locale
 object ScreenshotDestroyer {
 
     private const val TAG = "ScreenshotDestroyer"
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var contentObserver: ContentObserver? = null
 
     // Callback per avvisare l'Activity
@@ -34,30 +36,31 @@ object ScreenshotDestroyer {
     )
 
     fun startWatching(context: Context, listener: () -> Unit) {
+        this.onScreenshotDetected = listener
         if (contentObserver != null) return
 
-        this.onScreenshotDetected = listener
+        val appContext = context.applicationContext
         val handler = Handler(Looper.getMainLooper())
 
         contentObserver = object : ContentObserver(handler) {
             override fun onChange(selfChange: Boolean, uri: Uri?) {
                 super.onChange(selfChange, uri)
                 if (uri != null) {
-                    checkAndDestroyImage(context, uri)
+                    checkAndDestroyImage(appContext, uri)
                 } else {
-                    checkAndDestroyImage(context, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                    checkAndDestroyImage(appContext, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
                 }
             }
         }
 
         try {
             // Monitora sia lo storage esterno che quello interno per la massima compatibilità tra i dispositivi
-            context.contentResolver.registerContentObserver(
+            appContext.contentResolver.registerContentObserver(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                 true,
                 contentObserver!!
             )
-            context.contentResolver.registerContentObserver(
+            appContext.contentResolver.registerContentObserver(
                 MediaStore.Images.Media.INTERNAL_CONTENT_URI,
                 true,
                 contentObserver!!
@@ -70,7 +73,7 @@ object ScreenshotDestroyer {
 
     fun stopWatching(context: Context) {
         contentObserver?.let {
-            context.contentResolver.unregisterContentObserver(it)
+            context.applicationContext.contentResolver.unregisterContentObserver(it)
             contentObserver = null
             onScreenshotDetected = null
             Log.i(TAG, "Terminator Screenshot Fermato.")
@@ -88,7 +91,7 @@ object ScreenshotDestroyer {
 
     private fun checkAndDestroyImage(context: Context, uri: Uri) {
         val appContext = context.applicationContext
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             try {
                 val isSpecificUri = isSpecificItemUri(uri)
                 var targetUri = uri

@@ -8,12 +8,14 @@ import android.content.Intent
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import android.widget.Toast
 
 object ServiceScheduler {
 
-    private const val WATCHDOG_INTERVAL = AlarmManager.INTERVAL_FIFTEEN_MINUTES
+    // Intervallo portato a 2 ore per evitare 120+ wakeup hardware/2gg preservando auto-ripristino e Dead Man's Switch
+    private const val WATCHDOG_INTERVAL = 2 * AlarmManager.INTERVAL_HOUR
     private const val WATCHDOG_REQUEST_CODE = 1001
 
     /**
@@ -93,10 +95,20 @@ object ServiceScheduler {
 
     /**
      * Programma un allarme periodico che attiva il WatchdogReceiver.
+     * Evita riprogrammazioni ridondanti se l'allarme è già attivo (salvo [forceReschedule] = true).
      */
-    fun scheduleWatchdog(context: Context) {
+    fun scheduleWatchdog(context: Context, forceReschedule: Boolean = false) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, WatchdogReceiver::class.java)
+
+        val checkFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_NO_CREATE
+        } else {
+            PendingIntent.FLAG_NO_CREATE
+        }
+        if (!forceReschedule && PendingIntent.getBroadcast(context, WATCHDOG_REQUEST_CODE, intent, checkFlags) != null) {
+            return
+        }
 
         val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
@@ -105,13 +117,15 @@ object ServiceScheduler {
         }
         val pendingIntent = PendingIntent.getBroadcast(context, WATCHDOG_REQUEST_CODE, intent, pendingIntentFlags)
 
+        // FIX: usa elapsedRealtime() + WATCHDOG_INTERVAL invece di un timestamp assoluto nel passato
+        val firstTriggerAt = SystemClock.elapsedRealtime() + WATCHDOG_INTERVAL
         alarmManager.setInexactRepeating(
             AlarmManager.ELAPSED_REALTIME_WAKEUP,
-            WATCHDOG_INTERVAL,
+            firstTriggerAt,
             WATCHDOG_INTERVAL,
             pendingIntent
         )
-        Log.i("ServiceScheduler", "Watchdog periodico programmato.")
+        Log.i("ServiceScheduler", "Watchdog periodico programmato (intervallo: 2 ore).")
     }
 
     /**

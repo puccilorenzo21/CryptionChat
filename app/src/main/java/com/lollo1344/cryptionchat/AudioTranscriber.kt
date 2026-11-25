@@ -386,6 +386,7 @@ object AudioTranscriber {
                 return@Thread
             }
 
+            var recognizer: Recognizer? = null
             try {
                 onProgress(25, context.getString(R.string.transcribe_decoding_audio))
                 val (pcmData, sampleRate) = decodeAudioToPCM(audioFile) ?: run {
@@ -393,20 +394,21 @@ object AudioTranscriber {
                     return@Thread
                 }
 
-                val recognizer = Recognizer(model, sampleRate.toFloat())
-                val bis = BufferedInputStream(java.io.ByteArrayInputStream(pcmData))
-                val buffer = ByteArray(4096)
-                var bytesRead: Int
-                val totalBytes = pcmData.size.coerceAtLeast(1)
-                var processedBytes = 0
+                recognizer = Recognizer(model, sampleRate.toFloat())
+                BufferedInputStream(java.io.ByteArrayInputStream(pcmData)).use { bis ->
+                    val buffer = ByteArray(4096)
+                    var bytesRead: Int
+                    val totalBytes = pcmData.size.coerceAtLeast(1)
+                    var processedBytes = 0
 
-                onProgress(40, context.getString(R.string.transcribe_vosk_analyzing))
+                    onProgress(40, context.getString(R.string.transcribe_vosk_analyzing))
 
-                while (bis.read(buffer).also { bytesRead = it } != -1) {
-                    recognizer.acceptWaveForm(buffer, bytesRead)
-                    processedBytes += bytesRead
-                    val percent = (40 + (processedBytes.toDouble() / totalBytes * 50)).toInt().coerceIn(40, 90)
-                    onProgress(percent, context.getString(R.string.transcribe_vosk_analyzing_pct, percent))
+                    while (bis.read(buffer).also { bytesRead = it } != -1) {
+                        recognizer.acceptWaveForm(buffer, bytesRead)
+                        processedBytes += bytesRead
+                        val percent = (40 + (processedBytes.toDouble() / totalBytes * 50)).toInt().coerceIn(40, 90)
+                        onProgress(percent, context.getString(R.string.transcribe_vosk_analyzing_pct, percent))
+                    }
                 }
 
                 onProgress(95, context.getString(R.string.transcribe_processing_text))
@@ -415,11 +417,14 @@ object AudioTranscriber {
 
                 onProgress(100, context.getString(R.string.transcribe_completed_short))
                 if (text.isNotBlank()) onResult(text) else onResult(context.getString(R.string.transcribe_no_speech))
-                recognizer.close()
 
             } catch (e: Exception) {
                 Log.e(TAG, "Errore Vosk", e)
                 onError(context.getString(R.string.transcribe_vosk_error_msg, e.message ?: ""))
+            } finally {
+                try { recognizer?.close() } catch (_: Exception) {}
+                // Rilascia esplicitamente il modello nativo Vosk (~45 MB Native Heap) per evitare leak ZRAM/RAM
+                try { model.close() } catch (_: Exception) {}
             }
         }.start()
     }
@@ -493,60 +498,66 @@ object AudioTranscriber {
 
     private fun decodeAudioToPCM(inputFile: File): Pair<ByteArray, Int>? {
         val extractor = MediaExtractor()
-        try { extractor.setDataSource(inputFile.absolutePath) } catch (e: IOException) { return null }
-        var format: MediaFormat? = null
-        var mime = ""
-        var sampleRate = 44100
-        var trackIndex = -1
-        for (i in 0 until extractor.trackCount) {
-            val f = extractor.getTrackFormat(i)
-            val m = f.getString(MediaFormat.KEY_MIME) ?: continue
-            if (m.startsWith("audio/")) {
-                mime = m
-                format = f
-                trackIndex = i
-                if (f.containsKey(MediaFormat.KEY_SAMPLE_RATE)) sampleRate = f.getInteger(MediaFormat.KEY_SAMPLE_RATE)
-                break
-            }
-        }
-        if (trackIndex < 0 || format == null) return null
-        extractor.selectTrack(trackIndex)
-        val decoder = MediaCodec.createDecoderByType(mime)
-        decoder.configure(format, null, null, 0)
-        decoder.start()
-        val info = MediaCodec.BufferInfo()
-        val outputStream = ByteArrayOutputStream()
-        var isEOS = false
-        while (true) {
-            if (!isEOS) {
-                val inIndex = decoder.dequeueInputBuffer(5000)
-                if (inIndex >= 0) {
-                    val buffer = decoder.getInputBuffer(inIndex)
-                    val sampleSize = extractor.readSampleData(buffer!!, 0)
-                    if (sampleSize < 0) {
-                        decoder.queueInputBuffer(inIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
-                        isEOS = true
-                    } else {
-                        decoder.queueInputBuffer(inIndex, 0, sampleSize, extractor.sampleTime, 0)
-                        extractor.advance()
-                    }
+        var decoder: MediaCodec? = null
+        try {
+            try { extractor.setDataSource(inputFile.absolutePath) } catch (e: IOException) { return null }
+            var format: MediaFormat? = null
+            var mime = ""
+            var sampleRate = 44100
+            var trackIndex = -1
+            for (i in 0 until extractor.trackCount) {
+                val f = extractor.getTrackFormat(i)
+                val m = f.getString(MediaFormat.KEY_MIME) ?: continue
+                if (m.startsWith("audio/")) {
+                    mime = m
+                    format = f
+                    trackIndex = i
+                    if (f.containsKey(MediaFormat.KEY_SAMPLE_RATE)) sampleRate = f.getInteger(MediaFormat.KEY_SAMPLE_RATE)
+                    break
                 }
             }
-            val outIndex = decoder.dequeueOutputBuffer(info, 5000)
-            if (outIndex >= 0) {
-                val outBuffer = decoder.getOutputBuffer(outIndex)
-                val chunk = ByteArray(info.size)
-                outBuffer?.get(chunk)
-                outBuffer?.clear()
-                outputStream.write(chunk)
-                decoder.releaseOutputBuffer(outIndex, false)
-                if ((info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) break
-            } else if (outIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-                val newFormat = decoder.outputFormat
-                if (newFormat.containsKey(MediaFormat.KEY_SAMPLE_RATE)) sampleRate = newFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)
-            } else if (outIndex == MediaCodec.INFO_TRY_AGAIN_LATER && isEOS) break
+            if (trackIndex < 0 || format == null) return null
+            extractor.selectTrack(trackIndex)
+            decoder = MediaCodec.createDecoderByType(mime)
+            decoder.configure(format, null, null, 0)
+            decoder.start()
+            val info = MediaCodec.BufferInfo()
+            val outputStream = ByteArrayOutputStream()
+            var isEOS = false
+            while (true) {
+                if (!isEOS) {
+                    val inIndex = decoder.dequeueInputBuffer(5000)
+                    if (inIndex >= 0) {
+                        val buffer = decoder.getInputBuffer(inIndex)
+                        val sampleSize = extractor.readSampleData(buffer!!, 0)
+                        if (sampleSize < 0) {
+                            decoder.queueInputBuffer(inIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+                            isEOS = true
+                        } else {
+                            decoder.queueInputBuffer(inIndex, 0, sampleSize, extractor.sampleTime, 0)
+                            extractor.advance()
+                        }
+                    }
+                }
+                val outIndex = decoder.dequeueOutputBuffer(info, 5000)
+                if (outIndex >= 0) {
+                    val outBuffer = decoder.getOutputBuffer(outIndex)
+                    val chunk = ByteArray(info.size)
+                    outBuffer?.get(chunk)
+                    outBuffer?.clear()
+                    outputStream.write(chunk)
+                    decoder.releaseOutputBuffer(outIndex, false)
+                    if ((info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) break
+                } else if (outIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                    val newFormat = decoder.outputFormat
+                    if (newFormat.containsKey(MediaFormat.KEY_SAMPLE_RATE)) sampleRate = newFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)
+                } else if (outIndex == MediaCodec.INFO_TRY_AGAIN_LATER && isEOS) break
+            }
+            return Pair(outputStream.toByteArray(), sampleRate)
+        } finally {
+            try { decoder?.stop() } catch (_: Exception) {}
+            try { decoder?.release() } catch (_: Exception) {}
+            try { extractor.release() } catch (_: Exception) {}
         }
-        decoder.stop(); decoder.release(); extractor.release()
-        return Pair(outputStream.toByteArray(), sampleRate)
     }
 }

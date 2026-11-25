@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -15,6 +16,7 @@ import java.util.concurrent.TimeUnit
 
 object MeteredcaManager {
     private const val TAG = "MeteredcaManager"
+    private val meteredScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     // Account 1: Free Tier (20 GB)
     private const val APP1_NAME = "YOUR_METERED_APP1_NAME"
@@ -52,7 +54,7 @@ object MeteredcaManager {
             return
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+        meteredScope.launch {
             try {
                 val servers = fetchIceServersInternal(context)
                 if (servers.isNotEmpty()) {

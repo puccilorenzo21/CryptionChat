@@ -164,13 +164,13 @@ object FileUtils {
     }
 
     private fun copyRawStreamToFile(context: Context, uri: Uri, originalName: String): File? {
-        val inputStream = context.contentResolver.openInputStream(uri) ?: return null
         val safeName = originalName.replace("[^a-zA-Z0-9.-]".toRegex(), "_")
         val file = File(context.cacheDir, "temp_upload_${System.currentTimeMillis()}_$safeName")
-        val outputStream = FileOutputStream(file)
-        inputStream.copyTo(outputStream)
-        inputStream.close()
-        outputStream.close()
+        context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            FileOutputStream(file).use { outputStream ->
+                inputStream.copyTo(outputStream)
+            }
+        } ?: return null
         return file
     }
 
@@ -179,20 +179,18 @@ object FileUtils {
      * per garantire che sia sempre dritta prima dell'invio.
      */
     private fun getCorrectlyOrientedBitmap(context: Context, uri: Uri): Bitmap? {
-        var inputStream = context.contentResolver.openInputStream(uri) ?: return null
-        val bitmap = BitmapFactory.decodeStream(inputStream)
-        inputStream.close()
-
-        if (bitmap == null) return null
+        val bitmap = context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            BitmapFactory.decodeStream(inputStream)
+        } ?: return null
 
         return try {
-            inputStream = context.contentResolver.openInputStream(uri) ?: return bitmap
-            val exif = ExifInterface(inputStream)
-            val orientation = exif.getAttributeInt(
-                ExifInterface.TAG_ORIENTATION,
-                ExifInterface.ORIENTATION_NORMAL
-            )
-            inputStream.close()
+            val orientation = context.contentResolver.openInputStream(uri)?.use { exifStream ->
+                val exif = ExifInterface(exifStream)
+                exif.getAttributeInt(
+                    ExifInterface.TAG_ORIENTATION,
+                    ExifInterface.ORIENTATION_NORMAL
+                )
+            } ?: return bitmap
 
             val matrix = Matrix()
             when (orientation) {

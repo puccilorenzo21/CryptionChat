@@ -297,7 +297,7 @@ object SenderKeyHelper {
     }
 
     private fun encodeB64(bytes: ByteArray): String = Base64.getEncoder().encodeToString(bytes)
-    private fun decodeB64(str: String): ByteArray = Base64.getDecoder().decode(str)
+    private fun decodeB64(str: String): ByteArray = SafeBase64.decodeStandard(str)
 
     private fun stateKey(groupId: Int, senderUserId: Int): String = "${groupId}_${senderUserId}"
     private fun groupPrefix(groupId: Int): String = "${groupId}_"

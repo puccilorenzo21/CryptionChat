@@ -2,8 +2,10 @@ package com.lollo1344.cryptionchat
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import com.google.gson.GsonBuilder
 import okhttp3.CertificatePinner
@@ -33,13 +35,52 @@ object ApiClient {
     private var _apiService: ApiService? = null
     private val isRedirectingToAuth = AtomicBoolean(false)
 
+    // Cache in-memory di auth_token e user_id sincronizzata con SecurePrefs per evitare decifrature Tink ad ogni richiesta HTTP
+    @Volatile private var cachedAuthToken: String? = null
+    @Volatile private var cachedUserId: Int = -1
+    @Volatile private var prefsCacheInitialized = false
+    private var prefsChangeListener: SharedPreferences.OnSharedPreferenceChangeListener? = null
+
+    // Cache breve (solo esito positivo) della raggiungibilità locale di Orbot per evitare doppi socket su richieste ravvicinate
+    private const val TOR_REACHABLE_CACHE_MS = 5_000L
+    @Volatile private var lastTorReachableElapsedMs: Long = 0L
+    @Volatile private var lastTorReachableEndpoint: String = ""
+
     fun resetUnauthorizedRedirectFlag() {
         isRedirectingToAuth.set(false)
     }
 
+    private fun ensureAuthCacheRegistered(context: Context) {
+        val prefs = SecurePrefs.get(context.applicationContext)
+        if (!prefsCacheInitialized) {
+            synchronized(this) {
+                if (!prefsCacheInitialized) {
+                    cachedAuthToken = prefs.getString("auth_token", null)
+                    cachedUserId = prefs.getInt("user_id", -1)
+                    val listener = SharedPreferences.OnSharedPreferenceChangeListener { sp, key ->
+                        when (key) {
+                            null -> {
+                                cachedAuthToken = sp.getString("auth_token", null)
+                                cachedUserId = sp.getInt("user_id", -1)
+                            }
+                            "auth_token" -> cachedAuthToken = sp.getString("auth_token", null)
+                            "user_id" -> cachedUserId = sp.getInt("user_id", -1)
+                        }
+                    }
+                    prefsChangeListener = listener
+                    prefs.registerOnSharedPreferenceChangeListener(listener)
+                    prefsCacheInitialized = true
+                }
+            }
+        }
+    }
+
     fun init(context: Context) {
         Log.d(TAG, "Inizializzazione ApiClient...")
-        _okHttpClient = buildClient(context)
+        val appCtx = context.applicationContext
+        ensureAuthCacheRegistered(appCtx)
+        lastTorReachableElapsedMs = 0L
+        _okHttpClient = buildClient(appCtx)
         _apiService = buildRetrofit(_okHttpClient!!)
     }
 
@@ -140,12 +181,27 @@ object ApiClient {
                     throw UnknownHostException("Risoluzione DNS locale bloccata con Tor attivo: $hostname")
                 })
 
-                // Fail-closed se Orbot non è raggiungibile localmente
+                // Fail-closed se Orbot non è raggiungibile localmente (con cache breve solo sugli esiti positivi)
                 builder.addInterceptor { chain ->
-                    if (!OrbotHelper.isTorProxyReachable(host, port)) {
-                        throw IOException("Proxy Tor non raggiungibile su $host:$port (fail-closed).")
+                    val endpoint = "$host:$port"
+                    val nowElapsed = SystemClock.elapsedRealtime()
+                    val recentlyVerified = lastTorReachableEndpoint == endpoint &&
+                        lastTorReachableElapsedMs > 0L &&
+                        (nowElapsed - lastTorReachableElapsedMs) < TOR_REACHABLE_CACHE_MS
+                    if (!recentlyVerified) {
+                        if (!OrbotHelper.isTorProxyReachable(host, port)) {
+                            lastTorReachableElapsedMs = 0L
+                            throw IOException("Proxy Tor non raggiungibile su $host:$port (fail-closed).")
+                        }
+                        lastTorReachableEndpoint = endpoint
+                        lastTorReachableElapsedMs = nowElapsed
                     }
-                    chain.proceed(chain.request())
+                    try {
+                        chain.proceed(chain.request())
+                    } catch (e: IOException) {
+                        lastTorReachableElapsedMs = 0L
+                        throw e
+                    }
                 }
             } else {
                 directAllowed = true
@@ -185,15 +241,17 @@ object ApiClient {
         // --- SISTEMA DI AUTO-MIGRAZIONE E AUTH TOKEN ---
         builder.addInterceptor { chain ->
             val request = chain.request()
-            val prefs = SecurePrefs.get(context)
-            var token = prefs.getString("auth_token", null)
-            val userId = prefs.getInt("user_id", -1)
+            ensureAuthCacheRegistered(context)
+            var token = cachedAuthToken
+            val userId = cachedUserId
 
             // Se l'utente è loggato localmente, ma non ha un token, effettuiamo
             // la migrazione invisibile bloccando la richiesta in corso per un istante.
             if (token.isNullOrEmpty() && userId != -1) {
                 synchronized(this) {
+                    val prefs = SecurePrefs.get(context)
                     token = prefs.getString("auth_token", null) // Ricontrolliamo per thread safety
+                    cachedAuthToken = token
                     if (token.isNullOrEmpty()) {
                         Log.i(TAG, "Token mancante. Avvio procedura di auto-migrazione silenziosa...")
 
@@ -217,19 +275,21 @@ object ApiClient {
                                 .connectTimeout(15, TimeUnit.SECONDS)
                                 .build()
 
-                            val response = cleanClient.newCall(migrationRequest).execute()
-                            if (response.isSuccessful) {
-                                val responseString = response.body?.string()
-                                if (responseString != null && responseString.contains("\"status\":\"success\"")) {
-                                    val jsonObj = JSONObject(responseString)
-                                    val dataObj = jsonObj.getJSONObject("data")
-                                    token = dataObj.getString("token")
+                            cleanClient.newCall(migrationRequest).execute().use { response ->
+                                if (response.isSuccessful) {
+                                    val responseString = response.body?.string()
+                                    if (responseString != null && responseString.contains("\"status\":\"success\"")) {
+                                        val jsonObj = JSONObject(responseString)
+                                        val dataObj = jsonObj.getJSONObject("data")
+                                        token = dataObj.getString("token")
+                                        cachedAuthToken = token
 
-                                    // Salviamo il token
-                                    prefs.edit().putString("auth_token", token).apply()
-                                    Log.i(TAG, "Migrazione al sistema Token completata con successo!")
-                                } else {
-                                    Log.e(TAG, "Migrazione rifiutata dal server: $responseString")
+                                        // Salviamo il token
+                                        prefs.edit().putString("auth_token", token).apply()
+                                        Log.i(TAG, "Migrazione al sistema Token completata con successo!")
+                                    } else {
+                                        Log.e(TAG, "Migrazione rifiutata dal server: $responseString")
+                                    }
                                 }
                             }
                         } catch (e: Exception) {
@@ -256,6 +316,7 @@ object ApiClient {
                     ?.trim()
 
                 val shouldRedirect = synchronized(this@ApiClient) {
+                    val prefs = SecurePrefs.get(context)
                     val currentUserId = prefs.getInt("user_id", -1)
                     val currentToken = prefs.getString("auth_token", null)
                     val tokenMatches = sentBearerToken.isNullOrEmpty() ||
@@ -263,6 +324,8 @@ object ApiClient {
                         sentBearerToken == currentToken
                     if (currentUserId != -1 && tokenMatches && isRedirectingToAuth.compareAndSet(false, true)) {
                         SessionLifecycleHelper.clearSessionCredentialsOnly(prefs, currentUserId)
+                        cachedAuthToken = null
+                        cachedUserId = -1
                         true
                     } else {
                         false

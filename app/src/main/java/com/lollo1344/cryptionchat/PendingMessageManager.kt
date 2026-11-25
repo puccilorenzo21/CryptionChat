@@ -3,6 +3,7 @@ package com.lollo1344.cryptionchat
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.async
@@ -34,6 +35,7 @@ data class PendingMessage(
 )
 
 object PendingMessageManager {
+    private val pendingScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val pendingMessages = Collections.synchronizedList(mutableListOf<PendingMessage>())
 
     // Invece di bloccare tutto con un boolean, teniamo traccia degli ID in fase di invio
@@ -107,7 +109,7 @@ object PendingMessageManager {
         messagesToSend.forEach { sendingMessageIds.add(it.tempId) }
         Log.d("PendingMessageManager", "Avvio invio parallelo di ${messagesToSend.size} messaggi in sospeso.")
 
-        CoroutineScope(Dispatchers.IO).launch {
+        pendingScope.launch {
             try {
                 // Inviamo tutti i messaggi contemporaneamente (PARALLELO) anziché uno alla volta
                 val jobs = messagesToSend.map { msg ->

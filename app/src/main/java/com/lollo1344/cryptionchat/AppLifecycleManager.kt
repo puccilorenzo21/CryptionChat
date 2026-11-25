@@ -10,15 +10,20 @@ import android.util.Log
 import java.lang.ref.WeakReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 object AppLifecycleManager : Application.ActivityLifecycleCallbacks {
 
     private const val TAG = "AppLifecycleManager"
+    private val lifecycleScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var startedActivities = 0
     private lateinit var appContext: Context
     @Volatile
     private var currentResumedActivityRef: WeakReference<Activity>? = null
+
+    val isAppInForeground: Boolean
+        get() = startedActivities > 0
 
     fun getCurrentResumedActivity(): Activity? = currentResumedActivityRef?.get()
 
@@ -86,7 +91,7 @@ object AppLifecycleManager : Application.ActivityLifecycleCallbacks {
         val userId = prefs.getInt("user_id", -1)
         if (userId == -1) return
 
-        CoroutineScope(Dispatchers.IO).launch {
+        lifecycleScope.launch {
             try {
                 ApiClient.instance.setUserStatus(
                     userId = userId,

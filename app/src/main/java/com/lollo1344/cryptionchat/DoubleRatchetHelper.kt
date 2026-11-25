@@ -242,9 +242,9 @@ object DoubleRatchetHelper {
     }
 
     private fun encodeB64(bytes: ByteArray): String = Base64.getEncoder().encodeToString(bytes)
-    private fun decodeB64(str: String): ByteArray = Base64.getDecoder().decode(str)
+    private fun decodeB64(str: String): ByteArray = SafeBase64.decodeStandard(str)
     private fun encodeUrlB64(bytes: ByteArray): String = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
-    private fun decodeUrlB64(str: String): ByteArray = Base64.getUrlDecoder().decode(str)
+    private fun decodeUrlB64(str: String): ByteArray = SafeBase64.decodeUrlSafe(str)
 
     private fun kdfRootKey(rootKey: ByteArray, dhOut: ByteArray): Pair<ByteArray, ByteArray> {
         val derived = EcdhHelper.hkdfSha256(

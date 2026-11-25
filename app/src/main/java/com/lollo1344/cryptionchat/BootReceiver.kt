@@ -32,7 +32,7 @@ class BootReceiver : BroadcastReceiver() {
             val userId = prefs.getInt("user_id", -1)
 
             if (userId != -1) {
-                ServiceScheduler.scheduleWatchdog(context)
+                ServiceScheduler.scheduleWatchdog(context, forceReschedule = true)
 
                 val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
                 val serviceIntent = Intent(context, NotificationService::class.java).apply {

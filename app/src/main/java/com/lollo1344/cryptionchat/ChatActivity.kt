@@ -154,7 +154,10 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
 
     private val uiHandler = Handler(Looper.getMainLooper())
     private lateinit var pollingRunnable: Runnable
-    private val pollingInterval = 2500L
+    private val pollingInterval = 4000L
+    private var lastDistSyncInChatMs: Long = 0L
+    private var lastMenuAdminState: Boolean? = null
+    private var lastMenuOtherUserLoaded: Boolean? = null
 
     private var lastKnownMessageId: Int = 0
     private var currentAutoDeleteMinutes: Int = 0
@@ -702,6 +705,12 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
             Log.e(TAG, "Errore rilascio bgVideo", e)
         }
 
+        try {
+            if (::binding.isInitialized) {
+                binding.recyclerViewMessages.adapter = null
+            }
+        } catch (_: Exception) {}
+
         super.onDestroy()
     }
 
@@ -876,29 +885,51 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                     }
                     updateTypingUI(data.typingUsers)
                     updateChatInputState()
-                    invalidateOptionsMenu()
+                    val isOtherUserLoadedNow = isPrivateChat && groupMembers.any { it.userId != userId }
+                    if (lastMenuAdminState != isCurrentUserAdmin || lastMenuOtherUserLoaded != isOtherUserLoadedNow) {
+                        lastMenuAdminState = isCurrentUserAdmin
+                        lastMenuOtherUserLoaded = isOtherUserLoadedNow
+                        invalidateOptionsMenu()
+                    }
 
                     lifecycleScope.launch(Dispatchers.IO) {
                         val prefs = SecurePrefs.get(this@ChatActivity)
-                        prefs.edit()
-                            .putInt("e2ee_version_$groupId", currentE2eeVersion)
-                            .putInt("membership_epoch_$groupId", currentMembershipEpoch)
-                            .commit()
+                        var pendingEditor: android.content.SharedPreferences.Editor? = null
+                        fun editPrefs(): android.content.SharedPreferences.Editor {
+                            return pendingEditor ?: prefs.edit().also { pendingEditor = it }
+                        }
+
+                        if (prefs.getInt("e2ee_version_$groupId", -1) != currentE2eeVersion) {
+                            editPrefs().putInt("e2ee_version_$groupId", currentE2eeVersion)
+                        }
+                        if (prefs.getInt("membership_epoch_$groupId", -1) != currentMembershipEpoch) {
+                            editPrefs().putInt("membership_epoch_$groupId", currentMembershipEpoch)
+                        }
 
                         val serverKey = data.encryptionKey
                         val serverIv = data.encryptionIv
                         if (!serverKey.isNullOrEmpty() && !serverIv.isNullOrEmpty()) {
-                            prefs.edit()
-                                .putString("key_$groupId", serverKey)
-                                .putString("iv_$groupId", serverIv)
-                                .commit()
+                            if (prefs.getString("key_$groupId", null) != serverKey) {
+                                editPrefs().putString("key_$groupId", serverKey)
+                            }
+                            if (prefs.getString("iv_$groupId", null) != serverIv) {
+                                editPrefs().putString("iv_$groupId", serverIv)
+                            }
                         }
 
                         var activeKey: String?
                         var activeIv: String?
 
                         if (currentE2eeVersion >= 2) {
-                            E2eeSessionOrchestrator.syncDistributions(applicationContext, userId, 0)
+                            val nowSyncMs = System.currentTimeMillis()
+                            if (isTriggeredByBroadcast ||
+                                prevEpoch != currentMembershipEpoch ||
+                                lastDistSyncInChatMs == 0L ||
+                                (nowSyncMs - lastDistSyncInChatMs) >= 30_000L
+                            ) {
+                                E2eeSessionOrchestrator.syncDistributions(applicationContext, userId, 0)
+                                lastDistSyncInChatMs = nowSyncMs
+                            }
 
                             if (groupMembers.isEmpty() || prevEpoch != currentMembershipEpoch) {
                                 try {
@@ -915,7 +946,9 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                                     ?: otherUserId
                                 if (resolvedPeer > 0) {
                                     otherUserId = resolvedPeer
-                                    prefs.edit().putInt("private_peer_uid_$groupId", resolvedPeer).commit()
+                                    if (prefs.getInt("private_peer_uid_$groupId", -1) != resolvedPeer) {
+                                        editPrefs().putInt("private_peer_uid_$groupId", resolvedPeer)
+                                    }
 
                                     // Accetta eventuale X3dhInitHeader dall'ultimo messaggio DR1: ricevuto prima di ensurePairwiseSessionSync
                                     val latestPeerDrMsg = data.messages.lastOrNull {
@@ -972,6 +1005,9 @@ class ChatActivity : BaseActivity(), MessageInteractionListener {
                                     .commit()
                             }
                         }
+
+                        pendingEditor?.apply()
+                        pendingEditor = null
 
                         currentGroupKey = activeKey
                         currentGroupIv = activeIv

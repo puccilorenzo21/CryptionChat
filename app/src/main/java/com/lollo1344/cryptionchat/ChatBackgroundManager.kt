@@ -256,14 +256,15 @@ object ChatBackgroundManager {
                 else -> ".jpg"
             }
 
-            val inputStream = context.contentResolver.openInputStream(uri) ?: return false
             val fileName = "custom_bg_${System.currentTimeMillis()}$ext"
             val file = File(context.filesDir, fileName)
-            val outputStream = FileOutputStream(file)
-
-            inputStream.copyTo(outputStream)
-            inputStream.close()
-            outputStream.close()
+            val copied = context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                FileOutputStream(file).use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+                true
+            } ?: false
+            if (!copied) return false
 
             val editor = SecurePrefs.get(context).edit()
 

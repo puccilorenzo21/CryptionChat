@@ -4,7 +4,7 @@ import java.util.Locale
 
 object AutoUpdateEvaluator {
 
-    const val DEFAULT_BG_CHECK_INTERVAL_MS = 10 * 60 * 1000L // 10 minuti
+    const val DEFAULT_BG_CHECK_INTERVAL_MS = 60 * 60 * 1000L // 60 minuti (riduce traffico e risvegli background)
 
     fun isStableUpdateAvailable(
         installedVC: Long,
