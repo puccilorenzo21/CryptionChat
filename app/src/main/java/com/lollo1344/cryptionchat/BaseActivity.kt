@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.method.LinkMovementMethod
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
@@ -15,10 +16,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import android.webkit.WebChromeClient
-import android.webkit.WebSettings
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -28,6 +25,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.text.HtmlCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -401,43 +399,13 @@ open class BaseActivity : AppCompatActivity() {
         val view = LayoutInflater.from(this).inflate(R.layout.dialog_webview, null)
         dialog.setContentView(view)
 
-        val webView = view.findViewById<WebView>(R.id.changelogWebView)
+        val changelogTextView = view.findViewById<TextView>(R.id.changelogTextView)
         val btnClose = view.findViewById<ImageButton>(R.id.btnCloseWeb)
         val progressBar = view.findViewById<ProgressBar>(R.id.progressBarWeb)
         val tvDialogTitle = view.findViewById<TextView>(R.id.tv_dialog_title)
 
         btnClose.setOnClickListener { dialog.dismiss() }
-        dialog.setOnDismissListener {
-            try {
-                webView.stopLoading()
-                webView.loadUrl("about:blank")
-                webView.destroy()
-            } catch (_: Exception) {}
-        }
-        webView.settings.apply {
-            javaScriptEnabled = true
-            domStorageEnabled = true
-            allowFileAccess = false
-            allowContentAccess = false
-            cacheMode = WebSettings.LOAD_NO_CACHE
-        }
-        webView.clearCache(true)
-
-        webView.webViewClient = object : WebViewClient() {
-            override fun onPageFinished(view: WebView?, url: String?) {
-                progressBar.visibility = View.GONE
-            }
-        }
-        webView.webChromeClient = object : WebChromeClient() {
-            override fun onProgressChanged(view: WebView?, newProgress: Int) {
-                if (newProgress < 100) {
-                    progressBar.visibility = View.VISIBLE
-                    progressBar.progress = newProgress
-                } else {
-                    progressBar.visibility = View.GONE
-                }
-            }
-        }
+        changelogTextView.movementMethod = LinkMovementMethod.getInstance()
 
         val prefs = SecurePrefs.get(this)
         val isBeta = isBetaOverride ?: prefs.getBoolean("is_beta_tester", false)
@@ -462,7 +430,8 @@ open class BaseActivity : AppCompatActivity() {
             progressBar.visibility = View.GONE
 
             if (!html.isNullOrBlank()) {
-                webView.loadDataWithBaseURL(ApiClient.BASE_URL, html, "text/html", "UTF-8", null)
+                val cleanHtml = ChangelogHtmlFormatter.prepareForAndroidHtml(html)
+                changelogTextView.text = HtmlCompat.fromHtml(cleanHtml, HtmlCompat.FROM_HTML_MODE_LEGACY)
             } else {
                 val torBlocked = withContext(Dispatchers.IO) {
                     OrbotHelper.isTorEnforcedAndUnavailable(this@BaseActivity)
@@ -473,13 +442,8 @@ open class BaseActivity : AppCompatActivity() {
                 } else {
                     getString(R.string.changelog_load_error)
                 }
-                val errorHtml = """
-                    <html><body style="background:#121212;color:#E0E0E0;font-family:sans-serif;padding:24px;">
-                    <h3>${getString(R.string.changelog_unavailable_heading)}</h3>
-                    <p>$errorMsg</p>
-                    </body></html>
-                """.trimIndent()
-                webView.loadDataWithBaseURL(null, errorHtml, "text/html", "UTF-8", null)
+                val errorHtml = "<h3>${getString(R.string.changelog_unavailable_heading)}</h3><p>$errorMsg</p>"
+                changelogTextView.text = HtmlCompat.fromHtml(errorHtml, HtmlCompat.FROM_HTML_MODE_LEGACY)
                 Toast.makeText(this@BaseActivity, errorMsg, Toast.LENGTH_LONG).show()
             }
         }

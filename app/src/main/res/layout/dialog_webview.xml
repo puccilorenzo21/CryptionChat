@@ -43,10 +43,23 @@
         android:indeterminate="true"
         android:visibility="visible"/>
 
-    <!-- WebView -->
-    <WebView
-        android:id="@+id/changelogWebView"
+    <!-- Contenuto Changelog nativo (senza WebView/Chromium per risparmiare RAM e thread) -->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:clipToPadding="false"
+        android:padding="20dp">
+
+        <TextView
+            android:id="@+id/changelogTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorLink="?attr/colorPrimary"
+            android:textSize="15sp"
+            android:lineSpacingMultiplier="1.35"
+            android:textIsSelectable="true" />
+    </ScrollView>
 
 </LinearLayout>

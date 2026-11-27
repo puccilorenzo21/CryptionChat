@@ -18,9 +18,10 @@ object PollingPowerPolicy {
     // Finestra calda dopo spegnimento schermo o ricezione messaggio/chiamata
     const val HOT_WINDOW_MS = 2 * 60 * 1000L
 
-    // Pause in deep idle a schermo spento su rete mobile / Risparmio Energetico (sempre < 45s call window)
+    // Pause in deep idle a schermo spento (sempre < 45s call window)
     const val DEEP_IDLE_CELLULAR_PAUSE_MS = 15_000L
     const val DEEP_IDLE_POWER_SAVE_PAUSE_MS = 20_000L
+    const val DEEP_IDLE_WIFI_POWER_SAVE_PAUSE_MS = 10_000L
 
     // Backoff esponenziale su errori di rete (5s -> 10s -> 20s -> 40s -> 60s max)
     const val ERROR_BACKOFF_BASE_MS = 5_000L
@@ -48,7 +49,8 @@ object PollingPowerPolicy {
         isDozeWhitelisted: Boolean,
         msSinceLastActivity: Long,
         msSinceScreenOff: Long,
-        consecutiveErrors: Int
+        consecutiveErrors: Int,
+        isDeviceIdleMode: Boolean = false
     ): WaitPlan {
         if (hasActiveCall) {
             return WaitPlan(delayMs = CALL_POLL_DELAY_MS, useWakeAlarm = false)
@@ -59,7 +61,7 @@ object PollingPowerPolicy {
             val backoff = (ERROR_BACKOFF_BASE_MS shl shift).coerceAtMost(ERROR_BACKOFF_MAX_MS)
             return WaitPlan(
                 delayMs = backoff,
-                useWakeAlarm = !isScreenInteractive && isDozeWhitelisted
+                useWakeAlarm = !isScreenInteractive && isDozeWhitelisted && isDeviceIdleMode
             )
         }
 
@@ -68,13 +70,30 @@ object PollingPowerPolicy {
             return WaitPlan(delayMs = delay, useWakeAlarm = false)
         }
 
-        // Schermo spento: se siamo in finestra calda (<2 min da spegnimento o ultimo evento) o su Wi-Fi
-        // normale o non in Doze whitelist, riapriamo subito il socket long-poll (250ms) senza WakeLock
-        // durante i 25s di attesa: la CPU dorme sul socket e si sveglia via IRQ TCP.
+        // Schermo spento:
+        // - Finestra calda (<2 min): riarmo rapido (250ms) senza allarme.
+        // - Su Wi-Fi: MAI wakeup alarm hardware (il modem Wi-Fi dorme durante il long-poll passivo);
+        //   con Risparmio Energetico attivo aggiunge una pausa leggera (10s) tramite solo timer coroutine.
+        // - Su rete mobile in deep idle: pausa 15s (o 20s in Power Save), usando ELAPSED_REALTIME_WAKEUP
+        //   SOLO se il dispositivo è effettivamente in Deep Doze (altrimenti zero wakeup alarm hardware).
         val isDeepIdle = msSinceScreenOff >= HOT_WINDOW_MS && msSinceLastActivity >= HOT_WINDOW_MS
-        if (isDeepIdle && isDozeWhitelisted && (isMeteredOrCellular || isPowerSaveMode)) {
+        if (!isDeepIdle) {
+            return WaitPlan(delayMs = SCREEN_OFF_REARM_DELAY_MS, useWakeAlarm = false)
+        }
+
+        if (isMeteredOrCellular) {
+            if (!isDozeWhitelisted && isDeviceIdleMode) {
+                return WaitPlan(delayMs = SCREEN_OFF_REARM_DELAY_MS, useWakeAlarm = false)
+            }
             val pauseMs = if (isPowerSaveMode) DEEP_IDLE_POWER_SAVE_PAUSE_MS else DEEP_IDLE_CELLULAR_PAUSE_MS
-            return WaitPlan(delayMs = pauseMs, useWakeAlarm = true)
+            return WaitPlan(
+                delayMs = pauseMs,
+                useWakeAlarm = isDozeWhitelisted && isDeviceIdleMode
+            )
+        }
+
+        if (isPowerSaveMode) {
+            return WaitPlan(delayMs = DEEP_IDLE_WIFI_POWER_SAVE_PAUSE_MS, useWakeAlarm = false)
         }
 
         return WaitPlan(delayMs = SCREEN_OFF_REARM_DELAY_MS, useWakeAlarm = false)

@@ -75,6 +75,8 @@ class NotificationService : Service() {
     @Volatile private var lastActivityEventMs: Long = 0L
     @Volatile private var isNetworkConnected: Boolean = true
     @Volatile private var isCurrentNetworkMeteredOrCellular: Boolean = false
+    @Volatile private var isIdlePollAlarmScheduled: Boolean = false
+    private var idlePollPendingIntent: PendingIntent? = null
     private var consecutiveErrors: Int = 0
 
     private enum class PollOutcome {
@@ -113,7 +115,15 @@ class NotificationService : Service() {
                 PowerManager.ACTION_POWER_SAVE_MODE_CHANGED -> {
                     wakeupSignal.trySend(Unit)
                 }
+                PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED -> {
+                    val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+                    if (!pm.isDeviceIdleMode) {
+                        cancelIdlePollAlarm()
+                        wakeupSignal.trySend(Unit)
+                    }
+                }
                 ACTION_ALARM_WAKE_POLL -> {
+                    isIdlePollAlarmScheduled = false
                     // Breve wakeLock solo per garantire il dispatch della richiesta HTTP al risveglio dall'allarme;
                     // viene rilasciato subito prima dell'attesa passiva di rete da 25s.
                     try { wakeLock?.acquire(4_000L) } catch (_: Exception) {}
@@ -184,6 +194,7 @@ class NotificationService : Service() {
             addAction(Intent.ACTION_SCREEN_ON)
             addAction(Intent.ACTION_SCREEN_OFF)
             addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
+            addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED)
             addAction(ACTION_ALARM_WAKE_POLL)
         }
 
@@ -250,14 +261,15 @@ class NotificationService : Service() {
         } catch (_: Exception) {}
     }
 
-    private fun buildIdlePollAlarmPendingIntent(): PendingIntent {
+    private fun getOrCreateIdlePollPendingIntent(): PendingIntent {
+        idlePollPendingIntent?.let { return it }
         val intent = Intent(ACTION_ALARM_WAKE_POLL).setPackage(packageName)
         return PendingIntent.getBroadcast(
             this,
             POLL_WAKE_REQUEST_CODE,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
+        ).also { idlePollPendingIntent = it }
     }
 
     private fun scheduleIdlePollAlarm(delayMs: Long) {
@@ -267,27 +279,34 @@ class NotificationService : Service() {
             alarmManager.setAndAllowWhileIdle(
                 AlarmManager.ELAPSED_REALTIME_WAKEUP,
                 triggerAt,
-                buildIdlePollAlarmPendingIntent()
+                getOrCreateIdlePollPendingIntent()
             )
+            isIdlePollAlarmScheduled = true
         } catch (e: Exception) {
+            isIdlePollAlarmScheduled = false
             Log.w(TAG, "Impossibile programmare allarme idle poll: ${e.message}")
         }
     }
 
-    private fun cancelIdlePollAlarm() {
+    private fun cancelIdlePollAlarm(releasePendingIntent: Boolean = false) {
         try {
-            val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            val intent = Intent(ACTION_ALARM_WAKE_POLL).setPackage(packageName)
-            val existing = PendingIntent.getBroadcast(
+            val pi = idlePollPendingIntent ?: PendingIntent.getBroadcast(
                 this,
                 POLL_WAKE_REQUEST_CODE,
-                intent,
+                Intent(ACTION_ALARM_WAKE_POLL).setPackage(packageName),
                 PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
             )
-            if (existing != null) {
-                alarmManager.cancel(existing)
-                existing.cancel()
+            if (pi != null) {
+                if (isIdlePollAlarmScheduled || releasePendingIntent) {
+                    val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                    alarmManager.cancel(pi)
+                }
+                if (releasePendingIntent) {
+                    pi.cancel()
+                    idlePollPendingIntent = null
+                }
             }
+            isIdlePollAlarmScheduled = false
         } catch (_: Exception) {}
     }
 
@@ -488,6 +507,7 @@ class NotificationService : Service() {
 
                 val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
                 val isPowerSave = powerManager.isPowerSaveMode
+                val isDeviceIdleMode = powerManager.isDeviceIdleMode
                 val isDozeWhitelisted = Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
                     powerManager.isIgnoringBatteryOptimizations(packageName)
 
@@ -500,7 +520,8 @@ class NotificationService : Service() {
                     isDozeWhitelisted = isDozeWhitelisted,
                     msSinceLastActivity = if (lastActivityEventMs > 0L) (nowElapsedMs - lastActivityEventMs).coerceAtLeast(0L) else Long.MAX_VALUE,
                     msSinceScreenOff = if (!isScreenInteractive && screenOffSinceMs > 0L) (nowElapsedMs - screenOffSinceMs).coerceAtLeast(0L) else 0L,
-                    consecutiveErrors = consecutiveErrors
+                    consecutiveErrors = consecutiveErrors,
+                    isDeviceIdleMode = isDeviceIdleMode
                 )
 
                 waitForNextPoll(waitPlan)
@@ -517,11 +538,15 @@ class NotificationService : Service() {
         if (waitPlan.useWakeAlarm) {
             scheduleIdlePollAlarm(waitPlan.delayMs)
             try {
-                withTimeoutOrNull(waitPlan.delayMs + 5_000L) {
+                // Margine +20s superiore alla finestra inexact di setAndAllowWhileIdle (15s)
+                // per evitare cancellazioni premature dell'allarme.
+                withTimeoutOrNull(waitPlan.delayMs + 20_000L) {
                     wakeupSignal.receive()
                 }
             } finally {
-                cancelIdlePollAlarm()
+                if (isIdlePollAlarmScheduled) {
+                    cancelIdlePollAlarm()
+                }
             }
         } else {
             withTimeoutOrNull(waitPlan.delayMs) {
@@ -1083,7 +1108,7 @@ class NotificationService : Service() {
 
     override fun onDestroy() {
         isServiceRunning = false
-        cancelIdlePollAlarm()
+        cancelIdlePollAlarm(releasePendingIntent = true)
         stopForcedSound()
         try {
             networkCallback?.let { connectivityManager?.unregisterNetworkCallback(it) }

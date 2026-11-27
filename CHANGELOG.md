@@ -2,6 +2,15 @@
 
 All notable open-source milestones and version notes for **CryptionChat** are documented in this file.
 
+## [78.8 (beta)] - 2026-11-27 (versionCode 78)
+
+### Battery, Wakeup & Memory Optimization
+- **Zero Hardware Wakeup Alarms on Wi-Fi (`PollingPowerPolicy.kt`, `NotificationService.kt`)**: Removed unnecessary `ELAPSED_REALTIME_WAKEUP` alarms (`ACTION_ALARM_WAKE_POLL`) on Wi-Fi even when Power Save Mode is active (replaced with a lightweight 10s coroutine pause in deep idle). On cellular networks, hardware wakeup alarms are now scheduled strictly when the device actually enters Deep Doze (`PowerManager.isDeviceIdleMode`), listening for `ACTION_DEVICE_IDLE_MODE_CHANGED`, reusing a single cached `PendingIntent`, and using a `+20s` timeout margin to eliminate premature alarm cancellations and kernel IPC overhead.
+- **Native Changelog Viewer Without Chromium (`ChangelogHtmlFormatter.kt`, `BaseActivity.kt`, `dialog_webview.xml`)**: Replaced the `WebView` changelog dialog with a native `ScrollView` + `TextView` (`HtmlCompat.fromHtml` with sanitized HTML formatting, selectable text, and clickable links), preventing the in-process Chromium engine from loading (~42 fewer persistent background threads and ~60–70 MB less Native Heap/ZRAM).
+
+### CI/CD
+- **GitHub Actions JDK 21 Setup Fix (`.github/workflows/android-ci.yml`)**: Switched `actions/setup-java@v5` to `distribution: corretto`, `java-version: '21'`, `check-latest: true` for valid SemVer resolution aligned with `gradle/gradle-daemon-jvm.properties` while preserving CVE-2026-114938 mitigation (`-XX:-UseBASE64Intrinsics`).
+
 ## [78.7 (beta)] - 2026-11-25 (versionCode 78)
 
 ### Security (`CVE-2026-114938`)

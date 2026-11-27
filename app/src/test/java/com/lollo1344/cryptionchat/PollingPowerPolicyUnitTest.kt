@@ -88,7 +88,8 @@ class PollingPowerPolicyUnitTest {
 
     @Test
     fun screenOff_deepIdleCellularOrPowerSave_pausesSafelyUnderIncomingCallWindow() {
-        val cellularPlan = PollingPowerPolicy.computeNextWait(
+        // Su rete mobile fuori da Deep Doze: pausa 15s senza wakeup alarm hardware
+        val cellularNonDoze = PollingPowerPolicy.computeNextWait(
             hasActiveCall = false,
             isScreenInteractive = false,
             isAppInForeground = false,
@@ -97,13 +98,32 @@ class PollingPowerPolicyUnitTest {
             isDozeWhitelisted = true,
             msSinceLastActivity = 10 * 60 * 1000L,
             msSinceScreenOff = 10 * 60 * 1000L,
-            consecutiveErrors = 0
+            consecutiveErrors = 0,
+            isDeviceIdleMode = false
         )
-        assertEquals(PollingPowerPolicy.DEEP_IDLE_CELLULAR_PAUSE_MS, cellularPlan.delayMs)
-        assertTrue(cellularPlan.delayMs < 45_000L)
-        assertTrue(cellularPlan.useWakeAlarm)
+        assertEquals(PollingPowerPolicy.DEEP_IDLE_CELLULAR_PAUSE_MS, cellularNonDoze.delayMs)
+        assertTrue(cellularNonDoze.delayMs < 45_000L)
+        assertFalse(cellularNonDoze.useWakeAlarm)
 
-        val powerSavePlan = PollingPowerPolicy.computeNextWait(
+        // Su rete mobile IN Deep Doze: usa wakeup alarm per risvegliare il poll entro < 45s
+        val cellularDoze = PollingPowerPolicy.computeNextWait(
+            hasActiveCall = false,
+            isScreenInteractive = false,
+            isAppInForeground = false,
+            isMeteredOrCellular = true,
+            isPowerSaveMode = true,
+            isDozeWhitelisted = true,
+            msSinceLastActivity = 10 * 60 * 1000L,
+            msSinceScreenOff = 10 * 60 * 1000L,
+            consecutiveErrors = 0,
+            isDeviceIdleMode = true
+        )
+        assertEquals(PollingPowerPolicy.DEEP_IDLE_POWER_SAVE_PAUSE_MS, cellularDoze.delayMs)
+        assertTrue(cellularDoze.delayMs < 45_000L)
+        assertTrue(cellularDoze.useWakeAlarm)
+
+        // Su Wi-Fi con Risparmio Energetico (anche in Deep Doze): MAI wakeup alarm hardware
+        val wifiPowerSave = PollingPowerPolicy.computeNextWait(
             hasActiveCall = false,
             isScreenInteractive = false,
             isAppInForeground = false,
@@ -112,11 +132,12 @@ class PollingPowerPolicyUnitTest {
             isDozeWhitelisted = true,
             msSinceLastActivity = 10 * 60 * 1000L,
             msSinceScreenOff = 10 * 60 * 1000L,
-            consecutiveErrors = 0
+            consecutiveErrors = 0,
+            isDeviceIdleMode = true
         )
-        assertEquals(PollingPowerPolicy.DEEP_IDLE_POWER_SAVE_PAUSE_MS, powerSavePlan.delayMs)
-        assertTrue(powerSavePlan.delayMs < 45_000L)
-        assertTrue(powerSavePlan.useWakeAlarm)
+        assertEquals(PollingPowerPolicy.DEEP_IDLE_WIFI_POWER_SAVE_PAUSE_MS, wifiPowerSave.delayMs)
+        assertTrue(wifiPowerSave.delayMs < 45_000L)
+        assertFalse(wifiPowerSave.useWakeAlarm)
     }
 
     @Test
@@ -130,7 +151,8 @@ class PollingPowerPolicyUnitTest {
             isDozeWhitelisted = false,
             msSinceLastActivity = 10 * 60 * 1000L,
             msSinceScreenOff = 10 * 60 * 1000L,
-            consecutiveErrors = 0
+            consecutiveErrors = 0,
+            isDeviceIdleMode = true
         )
         assertEquals(PollingPowerPolicy.SCREEN_OFF_REARM_DELAY_MS, plan.delayMs)
         assertFalse(plan.useWakeAlarm)
@@ -140,7 +162,7 @@ class PollingPowerPolicyUnitTest {
     fun errorBackoff_scalesExponentiallyAndCapsAt60s() {
         val expected = listOf(5_000L, 10_000L, 20_000L, 40_000L, 60_000L, 60_000L)
         expected.forEachIndexed { idx, expectedMs ->
-            val plan = PollingPowerPolicy.computeNextWait(
+            val planDoze = PollingPowerPolicy.computeNextWait(
                 hasActiveCall = false,
                 isScreenInteractive = false,
                 isAppInForeground = false,
@@ -149,10 +171,26 @@ class PollingPowerPolicyUnitTest {
                 isDozeWhitelisted = true,
                 msSinceLastActivity = 0L,
                 msSinceScreenOff = 0L,
-                consecutiveErrors = idx + 1
+                consecutiveErrors = idx + 1,
+                isDeviceIdleMode = true
             )
-            assertEquals(expectedMs, plan.delayMs)
-            assertTrue(plan.useWakeAlarm)
+            assertEquals(expectedMs, planDoze.delayMs)
+            assertTrue(planDoze.useWakeAlarm)
+
+            val planNonDoze = PollingPowerPolicy.computeNextWait(
+                hasActiveCall = false,
+                isScreenInteractive = false,
+                isAppInForeground = false,
+                isMeteredOrCellular = true,
+                isPowerSaveMode = false,
+                isDozeWhitelisted = true,
+                msSinceLastActivity = 0L,
+                msSinceScreenOff = 0L,
+                consecutiveErrors = idx + 1,
+                isDeviceIdleMode = false
+            )
+            assertEquals(expectedMs, planNonDoze.delayMs)
+            assertFalse(planNonDoze.useWakeAlarm)
         }
     }
 
